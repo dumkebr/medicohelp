@@ -41,7 +41,10 @@ export default function Login() {
         title: "Login realizado com sucesso",
         description: `Bem-vindo, ${data.user.name}!`,
       });
-      setLocation("/");
+      
+      const redirectTo = sessionStorage.getItem("redirectAfterLogin") || "/";
+      sessionStorage.removeItem("redirectAfterLogin");
+      setLocation(redirectTo);
     },
     onError: (error: Error) => {
       toast({

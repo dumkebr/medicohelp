@@ -1,0 +1,61 @@
+Fix SPA routing to remove 404 on root.
+
+Frontend (React Router):
+1) Create/ensure a central router file (e.g. client/src/router.tsx) using react-router-dom v6 with these routes:
+- "/"            -> redirect to "/login"
+- "/login"       -> LoginPage
+- "/register"    -> RegisterPage
+- "/forgot"      -> ForgotPage
+- "/verify-code" -> VerifyCodePage
+- "/profile"     -> ProfilePage (protected)
+- "/atendimento" -> AtendimentoMedicoPage (protected)
+- "/pacientes"   -> PatientsListPage (protected)
+- "/pacientes/novo" -> NewPatientPage (protected)
+- "/sobre"       -> AboutPage
+- "*"            -> redirect to "/login"
+
+Example (v6):
+import { createBrowserRouter, Navigate } from "react-router-dom";
+export const router = createBrowserRouter([
+  { path: "/", element: <Navigate to="/login" replace /> },
+  { path: "/login", element: <LoginPage /> },
+  { path: "/register", element: <RegisterPage /> },
+  { path: "/forgot", element: <ForgotPage /> },
+  { path: "/verify-code", element: <VerifyCodePage /> },
+  { path: "/profile", element: <Protected><ProfilePage /></Protected> },
+  { path: "/atendimento", element: <Protected><AtendimentoPage /></Protected> },
+  { path: "/pacientes", element: <Protected><PatientsListPage /></Protected> },
+  { path: "/pacientes/novo", element: <Protected><NewPatientPage /></Protected> },
+  { path: "/sobre", element: <AboutPage /> },
+  { path: "*", element: <Navigate to="/login" replace /> },
+]);
+
+// Protected wrapper: se não tiver token, redireciona para /login
+function Protected({ children }) {
+  const token = localStorage.getItem("token");
+  if (!token) return <Navigate to="/login" replace />;
+  return children;
+}
+
+No client/src/main.tsx:
+import { RouterProvider } from "react-router-dom";
+import { router } from "./router";
+createRoot(document.getElementById("root")!).render(<RouterProvider router={router} />);
+2) Atualize os links do menu lateral para apontarem exatamente para as rotas acima (/atendimento, /pacientes, /sobre etc.).
+
+Backend (SPA fallback):
+3) Add history fallback so non-API routes serve index.html:
+- npm i connect-history-api-fallback
+- In server/index.ts:
+import history from "connect-history-api-fallback";
+app.use(history({
+  rewrites: [
+    { from: /^\/api\/.*$/, to: ctx => ctx.parsedUrl.path },
+    { from: /^\/auth\/.*$/, to: ctx => ctx.parsedUrl.path },
+    { from: /^\/static\/.*$/, to: ctx => ctx.parsedUrl.path },
+  ],
+}));
+Keep serveStatic after history middleware.
+
+4) Rebuild/Restart and open the root URL: it must auto-redirect to /login and not show 404.
+Print in console which route is the default and a quick list of available routes.

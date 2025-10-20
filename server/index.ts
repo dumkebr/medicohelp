@@ -71,6 +71,13 @@ app.use((req, res, next) => {
   // This must come before Vite setup to ensure proper routing
   app.use(history({
     rewrites: [
+      // Don't rewrite Vite dev server paths
+      { from: /^\/@vite\/.*$/, to: (context: any) => context.parsedUrl.path },
+      { from: /^\/@react-refresh$/, to: (context: any) => context.parsedUrl.path },
+      { from: /^\/@fs\/.*$/, to: (context: any) => context.parsedUrl.path },
+      { from: /^\/@id\/.*$/, to: (context: any) => context.parsedUrl.path },
+      { from: /^\/node_modules\/.*$/, to: (context: any) => context.parsedUrl.path },
+      { from: /^\/src\/.*$/, to: (context: any) => context.parsedUrl.path },
       // Don't rewrite API routes
       { from: /^\/api\/.*$/, to: (context: any) => context.parsedUrl.path },
       // Don't rewrite auth routes

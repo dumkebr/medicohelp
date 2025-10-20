@@ -8,18 +8,30 @@ MédicoHelp is a professional medical platform that leverages artificial intelli
 
 I prefer simple language and clear explanations. I want iterative development with frequent updates and feedback. Ask before making major changes or architectural decisions. Do not make changes to the folder `Z` or the file `Y`.
 
-## AI Behavior: Clinical Scribe Mode
+## AI Behavior: Dual-Mode System
 
-**Role**: The AI functions as a **registrador médico** (clinical scribe/medical registrar), NOT as a teaching assistant or advisor.
+MédicoHelp AI operates in **two distinct modes** selected via frontend toggle:
 
-**Core Principles**:
-- Returns ONLY the requested clinical content (e.g., history, physical exam, evolution note)
-- NO introductions, explanations, or commentary
-- NO teaching content, literature reviews, or generic advice
-- User is always interpreted as a doctor writing medical documentation
-- Responses follow structured medical note formats
+### 🩺 Modo Clínico (Clinical Mode) - **DEFAULT**
 
-**Response Format** (Tradicional MédicoHelp):
+**Role**: Medical scribe / Registrador médico - for clinical documentation only.
+
+**Behavior**:
+- Returns ONLY structured clinical content (no explanations, no teaching)
+- Direct and objective responses for medical charts/notes
+- Follows selected documentation style: Tradicional, SOAP, or Personalizado
+- NO introductions, commentary, or theoretical explanations
+- User always interpreted as physician writing documentation
+
+**Forbidden in Clinical Mode**:
+- ❌ "Espero que isso ajude" / didactic phrases
+- ❌ "Recomendo que..." / generic advice
+- ❌ Teaching content or literature reviews
+- ❌ Any explanations beyond what's needed for the chart
+
+**Response Formats**:
+
+*Tradicional MédicoHelp*:
 ```
 **QUEIXA PRINCIPAL:** [brief chief complaint]
 **HISTÓRIA CLÍNICA:** [concise clinical history]
@@ -27,16 +39,51 @@ I prefer simple language and clear explanations. I want iterative development wi
 **CONDUTA:** [clear management plan]
 ```
 
-**Forbidden Content**:
-- ❌ "Espero que isso ajude" / "Hope this helps"
-- ❌ "Recomendo que..." / "I recommend..."
-- ❌ "É importante lembrar que..." / "It's important to remember..."
-- ❌ Didactic explanations or teaching points
-- ❌ Literature reviews or evidence summaries (unless explicitly requested via Clinical Evidence toggle)
+*SOAP*:
+```
+**SUBJETIVO:** [patient's perspective]
+**OBJETIVO:** [examination findings]
+**AVALIAÇÃO:** [diagnosis and clinical reasoning]
+**PLANO:** [management plan]
+```
 
-**Language**: Portuguese (Brasil) with professional medical terminology
+*Personalizado*: User-defined template from profile settings.
 
-**Response Style**: Direct, objective, concise (typically 100-400 words)
+**Length**: 100-400 words, concise and structured.
+
+---
+
+### 📘 Modo Explicativo (Explanatory Mode)
+
+**Role**: Educational assistant for learning and clinical reasoning.
+
+**Behavior**:
+- Provides detailed explanations with scientific foundations
+- Explains pathophysiology, guidelines, and clinical reasoning
+- Educational tone with teaching content
+- Can access PubMed evidence if enabled in user profile (silent integration)
+- Longer, more comprehensive responses
+
+**Automatic Trigger Detection**: Mode automatically switches if user input contains:
+- "explica", "me ensina", "justifica", "por quê"
+- "evidência", "estudo", "artigo", "pesquisa"
+- "fundamento", "fisiopatologia"
+
+**Evidence Integration** (if enabled in profile):
+- Silently fetches scientific references from PubMed
+- Integrates evidence into explanation without visible citations
+- Enriches educational content with current research
+- No UI indication of evidence fetching (seamless)
+
+**Configuration**: User can enable/disable evidence search in profile settings.
+
+**Length**: 400-800 words, comprehensive and educational.
+
+---
+
+**Language**: Portuguese (Brasil) with professional medical terminology (both modes)
+
+**Mode Persistence**: Selected mode persists during session, user can toggle anytime.
 
 ## System Architecture
 
@@ -67,24 +114,29 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 
 **Key Features & Technical Implementations:**
 - **Frontend Authentication UI**: Complete auth flow with login, register (with conditional CRM/UF for doctors), forgot password, and 6-digit verification code pages. Protected route guards with redirect preservation. User profile management with avatar upload.
-- **AI Medical Chat with Streaming (Clinical Scribe Mode)**: 
-  - **Behavior**: Acts as a clinical scribe/medical registrar (registrador médico)
-  - **Focus**: Strictly clinical documentation - NO teaching, generic advice, or conduct reviews
-  - **Response Style**: Returns ONLY requested content (history, evolution notes, etc.) without introductions or commentary
-  - **Format**: Short, structured, objective medical notes following "Tradicional MédicoHelp" format
+- **AI Medical Chat with Dual-Mode System**: 
+  - **Modo Clínico (default)**: Clinical scribe for structured documentation (Tradicional/SOAP/Personalizado formats)
+  - **Modo Explicativo**: Educational responses with optional silent PubMed evidence integration
+  - **Automatic Detection**: Switches mode based on trigger phrases ("explica", "me ensina", "por quê", etc.)
+  - **User Control**: Frontend toggle buttons with tooltips explaining each mode
+  - **Evidence Integration**: Optional silent PubMed search in Explanatory Mode (configurable in profile)
   - **Technical**: SSE streaming for real-time responses, full conversation history, attachment support (images, PDFs)
   - **UX**: Progressive UI updates, automatic fallback to non-streaming, disabled send button during streaming
   - **Analytics**: Completion duration and token count tracking
 - **Exam Analysis**: Multi-file upload, automatic analysis with GPT-5 Vision, contextual medical interpretation.
 - **Patient Management (CRUD)**: Complete patient lifecycle management with fields like name, CPF, birth date, phone, address, and observations. Integration with Memed for prescriptions.
-- **Clinical Evidence (Evidências Clínicas)**: Optional toggle-based feature in chat that provides scientific references from PubMed (NIH/NCBI E-utilities) for medical queries. Defaults to OFF. When enabled, displays up to 5 scientific references (title, source, authors, year, clickable links) below AI responses with disclaimer "Material de apoio. Não substitui avaliação médica." References are purely supplementary and DO NOT affect medical chat logic. Gracefully degrades when API not configured. Requires SEARCH_PROVIDER and SEARCH_API_KEY environment variables. Non-blocking analytics logging tracks usage.
+- **Clinical Evidence (Evidências Clínicas)**: Legacy toggle-based feature for explicit evidence display. Now integrated into dual-mode system: in Explanatory Mode, evidence can be silently fetched (if enabled in profile) to enrich explanations without visible citations. Original toggle still available for backward compatibility (shows explicit references with disclaimer). Powered by PubMed (NIH/NCBI E-utilities). Non-blocking analytics logging tracks usage.
 - **Consultation History System**: Saves patient consultations, including chat history, attachments, date, and responsible physician, stored in PostgreSQL with JSONB for flexible data.
 - **Design Guidelines**: Professional medical design with primary green colors, Inter typography, consistent spacing, subtle shadows, and visual feedback.
 
 **Data Structures (PostgreSQL + Drizzle):**
 - `patients`: Stores patient details.
 - `users`: Stores user authentication details (doctors, students) including roles and CRM.
-- `user_settings`: User-specific preferences like default style.
+- `user_settings`: User-specific preferences including:
+  - `default_style`: Documentation format (tradicional/soap/personalizado)
+  - `custom_template`: User-defined template for "personalizado" style
+  - `explanatory_mode_enabled`: Enable/disable PubMed evidence in Explanatory Mode
+  - Module visibility toggles (showPediatria, showGestante, showEmergencia)
 - `consultations`: Stores detailed consultation records, linked to patients.
 - `research_analytics` (optional): Tracks usage of clinical evidence feature for analytics (non-blocking, query text, source count, response time).
 
@@ -103,14 +155,18 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 
 ## Recent Changes (October 20, 2025)
 
-**AI Behavior Adjustment - Clinical Scribe Mode (Latest):**
-- Changed AI from "medical assistant" to "clinical scribe" (registrador médico)
-- AI now focuses strictly on clinical documentation, not teaching or advising
-- Responses are direct and objective, following requested format without explanations
-- Default format: Tradicional MédicoHelp (Queixa Principal, História Clínica, Exame Físico, Conduta)
-- Removed didactic content, generic advice, and literature reviews
-- User always interpreted as a doctor writing medical charts/notes
-- Language: Portuguese (Brasil), professional medical terminology
+**Dual-Mode AI System Implementation (Latest):**
+- Implemented two distinct AI modes: Modo Clínico (default) and Modo Explicativo
+- **Modo Clínico**: Clinical scribe for structured documentation (Tradicional/SOAP/Personalizado)
+- **Modo Explicativo**: Educational responses with optional silent PubMed evidence integration
+- Added automatic mode detection based on trigger phrases (e.g., "explica", "me ensina", "por quê")
+- Frontend: Toggle buttons in chat interface with tooltips explaining each mode
+- Backend: Mode-specific system prompts and evidence integration logic
+- Database: Added `explanatory_mode_enabled` and `custom_template` columns to `user_settings`
+- Profile settings: New configuration for evidence in Explanatory Mode + custom template support
+- Documentation styles: Added "Personalizado" option with user-defined templates
+- Silent evidence integration: PubMed searches enrich Explanatory Mode without visible citations
+- Maintains backward compatibility with legacy evidence toggle
 
 **Chat Performance Optimization with SSE Streaming (Production Ready):**
 - Implemented Server-Sent Events (SSE) for `/api/chat` endpoint with real-time streaming

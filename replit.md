@@ -37,7 +37,14 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 
 **Key Features & Technical Implementations:**
 - **Frontend Authentication UI**: Complete auth flow with login, register (with conditional CRM/UF for doctors), forgot password, and 6-digit verification code pages. Protected route guards with redirect preservation. User profile management with avatar upload.
-- **AI Medical Chat with Streaming**: Contextual medical queries with SSE streaming for real-time responses, full conversation history, attachment support (images, PDFs). Progressive UI updates show responses as they stream in. Automatic fallback to non-streaming mode if needed. Disabled send button during streaming prevents duplicate requests. Analytics logging tracks completion duration and token count.
+- **AI Medical Chat with Streaming (Clinical Scribe Mode)**: 
+  - **Behavior**: Acts as a clinical scribe/medical registrar (registrador médico)
+  - **Focus**: Strictly clinical documentation - NO teaching, generic advice, or conduct reviews
+  - **Response Style**: Returns ONLY requested content (history, evolution notes, etc.) without introductions or commentary
+  - **Format**: Short, structured, objective medical notes following "Tradicional MédicoHelp" format
+  - **Technical**: SSE streaming for real-time responses, full conversation history, attachment support (images, PDFs)
+  - **UX**: Progressive UI updates, automatic fallback to non-streaming, disabled send button during streaming
+  - **Analytics**: Completion duration and token count tracking
 - **Exam Analysis**: Multi-file upload, automatic analysis with GPT-5 Vision, contextual medical interpretation.
 - **Patient Management (CRUD)**: Complete patient lifecycle management with fields like name, CPF, birth date, phone, address, and observations. Integration with Memed for prescriptions.
 - **Clinical Evidence (Evidências Clínicas)**: Optional toggle-based feature in chat that provides scientific references from PubMed (NIH/NCBI E-utilities) for medical queries. Defaults to OFF. When enabled, displays up to 5 scientific references (title, source, authors, year, clickable links) below AI responses with disclaimer "Material de apoio. Não substitui avaliação médica." References are purely supplementary and DO NOT affect medical chat logic. Gracefully degrades when API not configured. Requires SEARCH_PROVIDER and SEARCH_API_KEY environment variables. Non-blocking analytics logging tracks usage.
@@ -66,7 +73,16 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 
 ## Recent Changes (October 20, 2025)
 
-**Chat Performance Optimization with SSE Streaming (Latest - Production Ready):**
+**AI Behavior Adjustment - Clinical Scribe Mode (Latest):**
+- Changed AI from "medical assistant" to "clinical scribe" (registrador médico)
+- AI now focuses strictly on clinical documentation, not teaching or advising
+- Responses are direct and objective, following requested format without explanations
+- Default format: Tradicional MédicoHelp (Queixa Principal, História Clínica, Exame Físico, Conduta)
+- Removed didactic content, generic advice, and literature reviews
+- User always interpreted as a doctor writing medical charts/notes
+- Language: Portuguese (Brasil), professional medical terminology
+
+**Chat Performance Optimization with SSE Streaming (Production Ready):**
 - Implemented Server-Sent Events (SSE) for `/api/chat` endpoint with real-time streaming
 - Added exponential backoff retry logic: 3 attempts, 2s base delay, 45s timeout per attempt
 - Switched to GPT-4o model for better streaming compatibility and faster responses

@@ -354,6 +354,163 @@ export class DbStorage implements IStorage {
     
     return result[0];
   }
+
+  // Chat history operations
+  async getChatHistoryByUser(userId: string, limit: number = 20, cursor?: string): Promise<ChatHistoryItem[]> {
+    const conditions = cursor
+      ? and(
+          eq(chatHistoryItems.userId, userId),
+          lt(chatHistoryItems.createdAt, cursor as any) // Use createdAt for cursor pagination
+        )
+      : eq(chatHistoryItems.userId, userId);
+
+    return await db
+      .select()
+      .from(chatHistoryItems)
+      .where(conditions)
+      .orderBy(desc(chatHistoryItems.createdAt))
+      .limit(limit);
+  }
+
+  async getChatHistoryItem(id: string, userId: string): Promise<ChatHistoryItem | undefined> {
+    const result = await db
+      .select()
+      .from(chatHistoryItems)
+      .where(and(
+        eq(chatHistoryItems.id, id),
+        eq(chatHistoryItems.userId, userId)
+      ))
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async createChatHistoryItem(item: InsertChatHistoryItem): Promise<ChatHistoryItem> {
+    const result = await db
+      .insert(chatHistoryItems)
+      .values(item)
+      .returning();
+    
+    return result[0];
+  }
+
+  async pinChatHistoryItem(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .update(chatHistoryItems)
+      .set({ pinned: true })
+      .where(and(
+        eq(chatHistoryItems.id, id),
+        eq(chatHistoryItems.userId, userId)
+      ))
+      .returning();
+    
+    return result.length > 0;
+  }
+
+  async unpinChatHistoryItem(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .update(chatHistoryItems)
+      .set({ pinned: false })
+      .where(and(
+        eq(chatHistoryItems.id, id),
+        eq(chatHistoryItems.userId, userId)
+      ))
+      .returning();
+    
+    return result.length > 0;
+  }
+
+  async deleteChatHistoryItem(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(chatHistoryItems)
+      .where(and(
+        eq(chatHistoryItems.id, id),
+        eq(chatHistoryItems.userId, userId)
+      ))
+      .returning();
+    
+    return result.length > 0;
+  }
+
+  async deleteChatHistoryBulk(userId: string): Promise<number> {
+    const result = await db
+      .delete(chatHistoryItems)
+      .where(and(
+        eq(chatHistoryItems.userId, userId),
+        eq(chatHistoryItems.pinned, false)
+      ))
+      .returning();
+    
+    return result.length;
+  }
+
+  async getChatHistoryStats(userId: string): Promise<{ total: number; pinned: number; lastCreatedAt: Date | null }> {
+    const items = await db
+      .select()
+      .from(chatHistoryItems)
+      .where(eq(chatHistoryItems.userId, userId));
+    
+    const total = items.length;
+    const pinned = items.filter(item => item.pinned).length;
+    const lastCreatedAt = items.length > 0 
+      ? items.reduce((latest, item) => item.createdAt > latest ? item.createdAt : latest, items[0].createdAt)
+      : null;
+    
+    return { total, pinned, lastCreatedAt };
+  }
+
+  async cleanupOldHistory(userId: string, maxItems: number, maxDays: number): Promise<number> {
+    // Get non-pinned items sorted by date (oldest first)
+    const allItems = await db
+      .select()
+      .from(chatHistoryItems)
+      .where(and(
+        eq(chatHistoryItems.userId, userId),
+        eq(chatHistoryItems.pinned, false)
+      ))
+      .orderBy(desc(chatHistoryItems.createdAt));
+
+    const idsToDelete: string[] = [];
+    
+    // Check for items beyond maxItems limit
+    if (allItems.length > maxItems) {
+      const excess = allItems.slice(maxItems);
+      idsToDelete.push(...excess.map(item => item.id));
+    }
+
+    // Check for items older than maxDays
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - maxDays);
+    
+    const oldItems = allItems.filter(item => item.createdAt < cutoffDate);
+    idsToDelete.push(...oldItems.map(item => item.id));
+
+    // Remove duplicates
+    const uniqueIdsSet = new Set(idsToDelete);
+    const uniqueIds = Array.from(uniqueIdsSet);
+
+    if (uniqueIds.length === 0) {
+      return 0;
+    }
+
+    // Delete in batches
+    for (let i = 0; i < uniqueIds.length; i++) {
+      await db
+        .delete(chatHistoryItems)
+        .where(eq(chatHistoryItems.id, uniqueIds[i]));
+    }
+
+    return uniqueIds.length;
+  }
+
+  async exportChatHistory(userId: string, limit: number = 500): Promise<ChatHistoryItem[]> {
+    return await db
+      .select()
+      .from(chatHistoryItems)
+      .where(eq(chatHistoryItems.userId, userId))
+      .orderBy(desc(chatHistoryItems.createdAt))
+      .limit(limit);
+  }
 }
 
 export const storage = new DbStorage();

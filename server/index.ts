@@ -10,18 +10,27 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Rate limiter: 10 requests per day for all /api routes
-app.use("/api/", rateLimit({
-  windowMs: 24 * 60 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (_req, res) => {
-    res.status(429).json({ 
-      message: "Limite diário de 10 consultas atingido. Tente novamente amanhã." 
-    });
+// Rate limiter: 10 requests per day for most /api routes
+// Skip /api/tools/* routes as they have their own rate limiting (60 req/hour per tool)
+app.use("/api/", (req, res, next) => {
+  // Skip rate limiting for medical tools - they have their own limiter
+  if (req.path.startsWith("/tools")) {
+    return next();
   }
-}));
+  
+  // Apply standard rate limit to other API routes
+  return rateLimit({
+    windowMs: 24 * 60 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (_req, res) => {
+      res.status(429).json({ 
+        message: "Limite diário de 10 consultas atingido. Tente novamente amanhã." 
+      });
+    }
+  })(req, res, next);
+});
 
 app.use((req, res, next) => {
   const start = Date.now();

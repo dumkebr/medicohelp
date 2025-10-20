@@ -36,7 +36,9 @@ export function rateLimitMedicalTools(req: Request, res: Response, next: NextFun
   }
 
   const userId = req.authUser.userId;
-  const tool = req.path.split('/')[2] || 'unknown'; // Extract tool name from path /tools/{tool}
+  // Extract tool name from path: /posologia or /calculadora/alvarado -> "posologia", "calculadora"
+  const pathParts = req.path.split('/').filter(p => p);
+  const tool = pathParts[0] || 'unknown';
   const key = `${userId}:${tool}`;
   const now = Date.now();
   const oneHour = 60 * 60 * 1000;

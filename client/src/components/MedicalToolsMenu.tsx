@@ -94,7 +94,8 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
       if (alergias) payload.alergias = alergias.split(",").map(a => a.trim());
 
       const response = await apiRequest("POST", "/api/tools/posologia", payload);
-      setResult(response);
+      const data = await response.json();
+      setResult(data);
       toast({
         title: "Posologia consultada",
         description: "Resultado disponível abaixo",
@@ -128,7 +129,8 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
       const response = await apiRequest("POST", `/api/tools/calculadora/${calculadoraSelecionada}`, {
         variaveis,
       });
-      setResult(response);
+      const data = await response.json();
+      setResult(data);
       toast({
         title: "Score calculado",
         description: "Resultado disponível abaixo",
@@ -162,7 +164,8 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
         quadro: quadroConduta,
         resumo: resumoConduta || undefined,
       });
-      setResult(response);
+      const data = await response.json();
+      setResult(data);
       toast({
         title: "Conduta sugerida",
         description: "Resultado disponível abaixo",
@@ -195,7 +198,8 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
       const response = await apiRequest("POST", "/api/tools/exames/pedir", {
         quadro: quadroExames,
       });
-      setResult(response);
+      const data = await response.json();
+      setResult(data);
       toast({
         title: "Exames sugeridos",
         description: "Resultado disponível abaixo",
@@ -228,7 +232,8 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
       const response = await apiRequest("POST", "/api/tools/diferenciais", {
         quadro: quadroDiferenciais,
       });
-      setResult(response);
+      const data = await response.json();
+      setResult(data);
       toast({
         title: "Diferenciais gerados",
         description: "Resultado disponível abaixo",
@@ -632,9 +637,11 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
               )}
             </CardHeader>
             <CardContent>
-              <pre className="text-xs bg-muted p-4 rounded-md overflow-x-auto whitespace-pre-wrap">
-                {JSON.stringify(result.data || result, null, 2)}
-              </pre>
+              <div className="space-y-2">
+                <pre className="text-xs bg-muted p-4 rounded-md overflow-x-auto whitespace-pre-wrap">
+                  {JSON.stringify(result, null, 2)}
+                </pre>
+              </div>
             </CardContent>
           </Card>
         )}

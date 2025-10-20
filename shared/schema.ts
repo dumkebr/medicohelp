@@ -7,11 +7,11 @@ import { z } from "zod";
 export const patients = pgTable("patients", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   nome: text("nome").notNull(),
-  cpf: text("cpf"),
-  dataNascimento: text("data_nascimento"),
-  telefone: text("telefone"),
-  endereco: text("endereco"),
-  observacoes: text("observacoes"),
+  cpf: text("cpf").default(""),
+  dataNascimento: text("data_nascimento").default(""),
+  telefone: text("telefone").default(""),
+  endereco: text("endereco").default(""),
+  observacoes: text("observacoes").default(""),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

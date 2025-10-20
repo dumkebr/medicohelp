@@ -1,5 +1,6 @@
-import { type Patient, type InsertPatient } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { type Patient, type InsertPatient, patients } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Pacientes
@@ -15,70 +16,71 @@ export interface IStorage {
   resetQuota(userId: string): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private patients: Map<string, Patient>;
-  private quotas: Map<string, { count: number; date: string }>;
-
-  constructor() {
-    this.patients = new Map();
-    this.quotas = new Map();
-  }
-
+export class DbStorage implements IStorage {
+  // Pacientes usando PostgreSQL
   async getPatient(id: string): Promise<Patient | undefined> {
-    return this.patients.get(id);
+    const result = await db
+      .select()
+      .from(patients)
+      .where(eq(patients.id, id))
+      .limit(1);
+    
+    return result[0];
   }
 
   async getAllPatients(): Promise<Patient[]> {
-    return Array.from(this.patients.values()).sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return await db
+      .select()
+      .from(patients)
+      .orderBy(desc(patients.createdAt));
   }
 
   async createPatient(insertPatient: InsertPatient): Promise<Patient> {
-    const id = randomUUID();
-    const patient: Patient = {
-      ...insertPatient,
-      id,
-      createdAt: new Date(),
-    };
-    this.patients.set(id, patient);
-    return patient;
+    const result = await db
+      .insert(patients)
+      .values(insertPatient)
+      .returning();
+    
+    return result[0];
   }
 
   async updatePatient(id: string, updates: Partial<InsertPatient>): Promise<Patient | undefined> {
-    const existing = this.patients.get(id);
-    if (!existing) {
-      return undefined;
-    }
+    const result = await db
+      .update(patients)
+      .set(updates)
+      .where(eq(patients.id, id))
+      .returning();
     
-    const updated: Patient = {
-      ...existing,
-      ...updates,
-    };
-    
-    this.patients.set(id, updated);
-    return updated;
+    return result[0];
   }
 
   async deletePatient(id: string): Promise<boolean> {
-    return this.patients.delete(id);
+    const result = await db
+      .delete(patients)
+      .where(eq(patients.id, id))
+      .returning();
+    
+    return result.length > 0;
   }
+
+  // Quota tracking ainda em memória (por enquanto)
+  private quotas: Map<string, { count: number; date: string }> = new Map();
 
   async getQuotaUsed(userId: string): Promise<number> {
     const today = new Date().toISOString().split('T')[0];
     const quota = this.quotas.get(userId);
-    
+
     if (!quota || quota.date !== today) {
       return 0;
     }
-    
+
     return quota.count;
   }
 
   async incrementQuota(userId: string): Promise<void> {
     const today = new Date().toISOString().split('T')[0];
     const quota = this.quotas.get(userId);
-    
+
     if (!quota || quota.date !== today) {
       this.quotas.set(userId, { count: 1, date: today });
     } else {
@@ -91,4 +93,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DbStorage();

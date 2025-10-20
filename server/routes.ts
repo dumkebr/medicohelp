@@ -1452,6 +1452,10 @@ Use este contexto para fundamentar sua explicação, mas não cite explicitament
     }
   });
 
+  // ===== MEDICAL TOOLS ROUTES =====
+  const medicalToolsRouter = (await import("./routes/medicalTools")).default;
+  app.use("/api/tools", medicalToolsRouter);
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -11,6 +11,9 @@ interface User {
   uf?: string;
   avatarUrl?: string;
   defaultStyle: "tradicional" | "soap";
+  showPediatria: boolean;
+  showGestante: boolean;
+  showEmergencia: boolean;
 }
 
 interface AuthContextType {

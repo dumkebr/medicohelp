@@ -1,37 +1,93 @@
-import { type User, type InsertUser } from "@shared/schema";
+import { type Patient, type InsertPatient } from "@shared/schema";
 import { randomUUID } from "crypto";
 
-// modify the interface with any CRUD methods
-// you might need
-
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  // Pacientes
+  getPatient(id: string): Promise<Patient | undefined>;
+  getAllPatients(): Promise<Patient[]>;
+  createPatient(patient: InsertPatient): Promise<Patient>;
+  updatePatient(id: string, patient: Partial<InsertPatient>): Promise<Patient | undefined>;
+  deletePatient(id: string): Promise<boolean>;
+  
+  // Quota tracking
+  getQuotaUsed(userId: string): Promise<number>;
+  incrementQuota(userId: string): Promise<void>;
+  resetQuota(userId: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private patients: Map<string, Patient>;
+  private quotas: Map<string, { count: number; date: string }>;
 
   constructor() {
-    this.users = new Map();
+    this.patients = new Map();
+    this.quotas = new Map();
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getPatient(id: string): Promise<Patient | undefined> {
+    return this.patients.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+  async getAllPatients(): Promise<Patient[]> {
+    return Array.from(this.patients.values()).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createPatient(insertPatient: InsertPatient): Promise<Patient> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const patient: Patient = {
+      ...insertPatient,
+      id,
+      createdAt: new Date(),
+    };
+    this.patients.set(id, patient);
+    return patient;
+  }
+
+  async updatePatient(id: string, updates: Partial<InsertPatient>): Promise<Patient | undefined> {
+    const existing = this.patients.get(id);
+    if (!existing) {
+      return undefined;
+    }
+    
+    const updated: Patient = {
+      ...existing,
+      ...updates,
+    };
+    
+    this.patients.set(id, updated);
+    return updated;
+  }
+
+  async deletePatient(id: string): Promise<boolean> {
+    return this.patients.delete(id);
+  }
+
+  async getQuotaUsed(userId: string): Promise<number> {
+    const today = new Date().toISOString().split('T')[0];
+    const quota = this.quotas.get(userId);
+    
+    if (!quota || quota.date !== today) {
+      return 0;
+    }
+    
+    return quota.count;
+  }
+
+  async incrementQuota(userId: string): Promise<void> {
+    const today = new Date().toISOString().split('T')[0];
+    const quota = this.quotas.get(userId);
+    
+    if (!quota || quota.date !== today) {
+      this.quotas.set(userId, { count: 1, date: today });
+    } else {
+      quota.count++;
+    }
+  }
+
+  async resetQuota(userId: string): Promise<void> {
+    this.quotas.delete(userId);
   }
 }
 

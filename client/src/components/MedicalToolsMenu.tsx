@@ -41,16 +41,6 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
   const [result, setResult] = useState<any>(null);
   const { toast } = useToast();
 
-  // Posologia states
-  const [principioAtivo, setPrincipioAtivo] = useState("");
-  const [indicacao, setIndicacao] = useState("");
-  const [idadeAnos, setIdadeAnos] = useState("");
-  const [pesoKg, setPesoKg] = useState("");
-  const [creatClear, setCreatClear] = useState("");
-  const [gravidez, setGravidez] = useState(false);
-  const [lactacao, setLactacao] = useState(false);
-  const [alergias, setAlergias] = useState("");
-
   // Calculadora states
   const [calculadoraSelecionada, setCalculadoraSelecionada] = useState("");
   const [variaveisCalc, setVariaveisCalc] = useState("");
@@ -66,50 +56,6 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
   const [quadroDiferenciais, setQuadroDiferenciais] = useState("");
 
   const hasAccess = userRole === "medico" || userRole === "estudante";
-
-  const handlePosologia = async () => {
-    if (!principioAtivo || !indicacao) {
-      toast({
-        title: "Dados incompletos",
-        description: "Preencha ao menos Princípio Ativo e Indicação",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-    setResult(null);
-
-    try {
-      const payload: any = {
-        principio_ativo: principioAtivo,
-        indicacao,
-      };
-
-      if (idadeAnos) payload.idade_anos = parseInt(idadeAnos);
-      if (pesoKg) payload.peso_kg = parseFloat(pesoKg);
-      if (creatClear) payload.creatinina_clear_mlmin = parseFloat(creatClear);
-      if (gravidez) payload.gravidez = true;
-      if (lactacao) payload.lactacao = true;
-      if (alergias) payload.alergias = alergias.split(",").map(a => a.trim());
-
-      const response = await apiRequest("POST", "/api/tools/posologia", payload);
-      const data = await response.json();
-      setResult(data);
-      toast({
-        title: "Posologia consultada",
-        description: "Resultado disponível abaixo",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao consultar posologia",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCalculadora = async () => {
     if (!calculadoraSelecionada || !variaveisCalc) {
@@ -317,115 +263,35 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
           </TabsList>
 
           {/* POSOLOGIA */}
-          <TabsContent value="posologia" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Consulta de Posologia</CardTitle>
-                <CardDescription>
-                  Informações de dosagem, ajustes e contraindicações
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="principio-ativo">Princípio Ativo *</Label>
-                    <Input
-                      id="principio-ativo"
-                      placeholder="Ex: Amoxicilina"
-                      value={principioAtivo}
-                      onChange={(e) => setPrincipioAtivo(e.target.value)}
-                      data-testid="input-principio-ativo"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="indicacao">Indicação *</Label>
-                    <Input
-                      id="indicacao"
-                      placeholder="Ex: Pneumonia comunitária"
-                      value={indicacao}
-                      onChange={(e) => setIndicacao(e.target.value)}
-                      data-testid="input-indicacao"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="idade">Idade (anos)</Label>
-                    <Input
-                      id="idade"
-                      type="number"
-                      placeholder="Ex: 45"
-                      value={idadeAnos}
-                      onChange={(e) => setIdadeAnos(e.target.value)}
-                      data-testid="input-idade"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="peso">Peso (kg)</Label>
-                    <Input
-                      id="peso"
-                      type="number"
-                      placeholder="Ex: 70"
-                      value={pesoKg}
-                      onChange={(e) => setPesoKg(e.target.value)}
-                      data-testid="input-peso"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="creat">Clearance Creatinina (mL/min)</Label>
-                    <Input
-                      id="creat"
-                      type="number"
-                      placeholder="Ex: 90"
-                      value={creatClear}
-                      onChange={(e) => setCreatClear(e.target.value)}
-                      data-testid="input-creat"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="alergias">Alergias (separadas por vírgula)</Label>
-                    <Input
-                      id="alergias"
-                      placeholder="Ex: penicilina, sulfa"
-                      value={alergias}
-                      onChange={(e) => setAlergias(e.target.value)}
-                      data-testid="input-alergias"
-                    />
+          <TabsContent value="posologia" className="flex items-center justify-center min-h-[400px]">
+            <Card className="w-full max-w-md text-center shadow-lg">
+              <CardContent className="pt-12 pb-10 px-8 space-y-6">
+                <div className="flex justify-center">
+                  <div className="w-20 h-20 rounded-full bg-[#00A86B]/10 dark:bg-[#00A86B]/20 flex items-center justify-center">
+                    <Pill className="w-10 h-10 text-[#00A86B]" />
                   </div>
                 </div>
-                <div className="flex gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="gravidez"
-                      checked={gravidez}
-                      onCheckedChange={setGravidez}
-                      data-testid="switch-gravidez"
-                    />
-                    <Label htmlFor="gravidez">Gestante</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="lactacao"
-                      checked={lactacao}
-                      onCheckedChange={setLactacao}
-                      data-testid="switch-lactacao"
-                    />
-                    <Label htmlFor="lactacao">Lactante</Label>
-                  </div>
+                
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-semibold text-[#00A86B]">
+                    PosologiaCerta
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Em breve — módulo completo de cálculo e ajuste de doses integrado ao MédicoHelp.
+                  </p>
                 </div>
-                <Button
-                  onClick={handlePosologia}
-                  disabled={loading}
-                  className="w-full"
-                  data-testid="button-consultar-posologia"
+
+                <Button 
+                  disabled 
+                  className="w-full bg-[#00A86B] hover:bg-[#00A86B]/90"
+                  data-testid="button-acessar-posologiacerta"
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Consultando...
-                    </>
-                  ) : (
-                    "Consultar Posologia"
-                  )}
+                  Acessar PosologiaCerta
                 </Button>
+
+                <p className="text-xs text-muted-foreground/70">
+                  Versão Beta exclusiva para médicos
+                </p>
               </CardContent>
             </Card>
           </TabsContent>

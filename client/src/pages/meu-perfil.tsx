@@ -7,16 +7,21 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient, getAuthToken } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Loader2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Camera, Loader2, Eye, EyeOff } from "lucide-react";
 
 const profileSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   defaultStyle: z.enum(["tradicional", "soap"]),
+  showPediatria: z.boolean(),
+  showGestante: z.boolean(),
+  showEmergencia: z.boolean(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -33,6 +38,9 @@ export default function MeuPerfil() {
     defaultValues: {
       name: "",
       defaultStyle: "tradicional",
+      showPediatria: true,
+      showGestante: true,
+      showEmergencia: true,
     },
   });
 
@@ -41,6 +49,9 @@ export default function MeuPerfil() {
       form.reset({
         name: user.name,
         defaultStyle: user.defaultStyle,
+        showPediatria: user.showPediatria,
+        showGestante: user.showGestante,
+        showEmergencia: user.showEmergencia,
       });
     }
   }, [user, form]);
@@ -315,6 +326,85 @@ export default function MeuPerfil() {
                   </FormItem>
                 )}
               />
+
+              <Separator className="my-6" />
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium">Módulos de pré-visualização</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Controle quais módulos em desenvolvimento aparecem no menu lateral
+                  </p>
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="showPediatria"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Pediatria</FormLabel>
+                        <FormDescription>
+                          Tabela de Peso e Crescimento (em desenvolvimento)
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="toggle-show-pediatria"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="showGestante"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Gestante</FormLabel>
+                        <FormDescription>
+                          Pré-natal Completo (em desenvolvimento)
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="toggle-show-gestante"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="showEmergencia"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Emergência</FormLabel>
+                        <FormDescription>
+                          Protocolos de Atendimento (em desenvolvimento)
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="toggle-show-emergencia"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Separator className="my-6" />
 
               <Button 
                 type="submit" 

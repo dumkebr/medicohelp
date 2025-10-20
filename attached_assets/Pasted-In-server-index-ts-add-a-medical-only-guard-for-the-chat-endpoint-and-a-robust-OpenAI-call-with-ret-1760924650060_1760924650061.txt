@@ -1,0 +1,58 @@
+In server/index.ts, add a medical-only guard for the chat endpoint and a robust OpenAI call with retry/backoff.
+
+1) At the top, ensure these utilities exist (create if missing):
+- SYSTEM_PROMPT_MEDICO (Portuguese, medical-only)
+- withRetry helper (exponential backoff for 429/5xx)
+- KW_MED array with medical keywords
+- Import OpenAI and initialize with process.env.OPENAI_API_KEY
+
+Use:
+import OpenAI from "openai";
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+const SYSTEM_PROMPT_MEDICO = `
+Você é o Dr. Help, assistente MÉDICO do MédicoHelp.
+Responda somente temas clínicos (sinais/sintomas, exames, diagnósticos, fármacos, doses, condutas e protocolos).
+Se a pergunta fugir de medicina, responda:
+"Este assistente é exclusivo para uso médico. Por favor, mantenha o foco em assuntos clínicos."
+Se faltar dado essencial (idade, peso, alergias, comorbidades, gestação), peça antes de sugerir dose/conduta.
+Fale curto, direto e tradicional. A conduta final é do médico assistente.
+`;
+
+async function withRetry(fn, tries = 4) {
+  let delay = 800;
+  for (let i = 0; i < tries; i++) {
+    try { return await fn(); }
+    catch (e) {
+      const status = e?.status ?? e?.response?.status;
+      if ((status === 429 || status >= 500) && i < tries - 1) {
+        await new Promise(r => setTimeout(r, delay)); delay *= 2; continue;
+      }
+      throw e;
+    }
+  }
+}
+
+const KW_MED = [
+  "dor","febre","tosse","dispneia","taquicardia","pressão","hipertensão","diabetes",
+  "colesterol","exame","hemograma","ultrassom","tomografia","rx","ecg","gestante",
+  "posologia","dose","antibiótico","analgésico","protocolo","cid","anamnese","internação",
+  "alergia","asma","pneumonia","otite","sinusite","cefaleia","depressão","ansiedade","tratamento"
+];
+
+2) Add optional mock mode: read process.env.USE_MOCK_AI; when "true", the endpoint returns a fixed mock reply to avoid spending credits.
+
+3) In the POST /api/chat handler:
+- If USE_MOCK_AI === "true": return a short mock reply.
+- If the message does not match KW_MED: return "Este assistente é exclusivo para uso médico. Por favor, mantenha o foco em assuntos clínicos."
+- Otherwise call OpenAI using withRetry, with:
+  model: "gpt-4o-mini",
+  temperature: 0.2,
+  messages: [
+    { role: "system", content: SYSTEM_PROMPT_MEDICO },
+    { role: "user", content: <user message> }
+  ]
+- On 429, return "Limite da IA atingido no momento. Tente novamente em alguns minutos."
+
+Keep the existing 10-requests/day rate limiter as is.
+Make sure the file compiles and the app runs.

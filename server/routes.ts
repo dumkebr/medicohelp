@@ -1,5 +1,6 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
+import express from "express";
 import multer from "multer";
 import bcrypt from "bcryptjs";
 import passport from "passport";
@@ -356,7 +357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.setHeader("Cache-Control", "public, max-age=86400");
     next();
   });
-  app.use("/static/avatars", require("express").static(path.join(process.cwd(), "uploads/avatars")));
+  app.use("/static/avatars", express.static(path.join(process.cwd(), "uploads/avatars")));
 
   // ===== OAUTH ROUTES =====
   const OAUTH_BASE_URL = process.env.OAUTH_BASE_URL || "http://localhost:5000";

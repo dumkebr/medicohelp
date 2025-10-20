@@ -859,13 +859,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Add to waitlist (with deduplication)
       const result = await storage.addToWaitlist(feature, email);
 
-      res.json({
+      res.status(201).json({
         success: true,
         message: "Email cadastrado com sucesso! Você será notificado quando o recurso estiver disponível.",
         data: result,
       });
     } catch (error: any) {
       console.error("Erro ao cadastrar na waitlist:", error);
+      
+      // Check if it's a duplicate error
+      if (error.message && error.message.includes("já cadastrado")) {
+        return res.status(409).json({
+          error: error.message,
+        });
+      }
       
       if (error.name === "ZodError") {
         return res.status(400).json({

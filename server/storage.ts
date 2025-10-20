@@ -332,18 +332,9 @@ export class DbStorage implements IStorage {
       .onConflictDoNothing({ target: [notificationsWaitlist.feature, notificationsWaitlist.email] })
       .returning();
     
-    // If conflict, fetch the existing entry
+    // If conflict (result is empty), throw error for duplicate
     if (result.length === 0) {
-      const existing = await db
-        .select()
-        .from(notificationsWaitlist)
-        .where(and(
-          eq(notificationsWaitlist.feature, feature),
-          eq(notificationsWaitlist.email, email)
-        ))
-        .limit(1);
-      
-      return existing[0];
+      throw new Error("Email já cadastrado para este módulo");
     }
     
     return result[0];

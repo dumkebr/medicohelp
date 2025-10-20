@@ -37,6 +37,9 @@ export default function Atendimento() {
   const [savedAttachments, setSavedAttachments] = useState<any[]>([]);
   const [evidenceEnabled, setEvidenceEnabled] = useState(false);
   const [isResearchAvailable, setIsResearchAvailable] = useState(true);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingMessage, setStreamingMessage] = useState("");
+  const [currentUserMessage, setCurrentUserMessage] = useState("");
   const { toast } = useToast();
 
   const { data: patients } = useQuery<Patient[]>({
@@ -59,8 +62,17 @@ export default function Atendimento() {
     },
   });
 
-  const chatMutation = useMutation({
-    mutationFn: async (data: { message: string; history: any[]; enableEvidence: boolean }) => {
+  // SSE Chat handler with streaming
+  const handleChatStream = async (userMessage: string, chatHistory: any[], enableEvidence: boolean) => {
+    setIsStreaming(true);
+    setStreamingMessage("");
+    setCurrentUserMessage(userMessage);
+    
+    let fullResponse = "";
+    let references: ScientificReference[] | undefined;
+
+    try {
+      // Create SSE connection via fetch with streaming
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -68,45 +80,91 @@ export default function Atendimento() {
           "X-User-Id": "demo-doctor",
         },
         body: JSON.stringify({
-          message: data.message,
-          history: data.history,
+          message: userMessage,
+          history: chatHistory,
         }),
       });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Erro ao processar mensagem");
-      }
-      return response.json();
-    },
-    onSuccess: async (data, variables) => {
-      let references: ScientificReference[] | undefined;
 
-      // If evidence mode is enabled, search for scientific references
-      if (variables.enableEvidence) {
+      if (!response.ok) {
+        throw new Error("Erro ao conectar com o servidor");
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error("Streaming não suportado");
+      }
+
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("event:")) {
+            const event = line.slice(6).trim();
+            const nextLine = lines.shift();
+            
+            if (nextLine?.startsWith("data:")) {
+              const data = JSON.parse(nextLine.slice(5).trim());
+
+              if (event === "chunk") {
+                fullResponse += data.content;
+                setStreamingMessage(fullResponse);
+              } else if (event === "complete") {
+                // Stream completed successfully
+                console.log(`Chat completed: ${data.tokens} tokens in ${data.duration}ms`);
+              } else if (event === "error") {
+                throw new Error(data.message);
+              }
+            }
+          }
+        }
+      }
+
+      // Fetch scientific references if evidence mode is enabled
+      if (enableEvidence && fullResponse) {
         try {
-          const researchData = await researchMutation.mutateAsync(variables.message);
+          const researchData = await researchMutation.mutateAsync(userMessage);
           references = researchData.references;
         } catch (error) {
           console.error("Erro ao buscar evidências:", error);
         }
       }
 
+      // Add to history
       setHistory(prev => [...prev, {
-        user: variables.message,
-        assistant: data.answer,
+        user: userMessage,
+        assistant: fullResponse,
         references,
       }]);
+
+      // Clear inputs
       setMessage("");
       setFiles([]);
-    },
-    onError: (error: any) => {
+      setStreamingMessage("");
+      setCurrentUserMessage("");
+    } catch (error: any) {
+      console.error("Erro no chat stream:", error);
+      setStreamingMessage("");
+      setCurrentUserMessage("");
+      
       toast({
         variant: "destructive",
         title: "Erro ao processar mensagem",
-        description: error.message || "Tente novamente mais tarde.",
+        description: error.message || "⚠️ Conexão lenta. Tente novamente ou verifique sua chave API.",
       });
-    },
-  });
+    } finally {
+      setIsStreaming(false);
+    }
+  };
 
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
@@ -219,11 +277,8 @@ export default function Atendimento() {
       { role: "assistant" as const, content: h.assistant },
     ]);
 
-    chatMutation.mutate({
-      message: enrichedMessage,
-      history: chatHistory,
-      enableEvidence: evidenceEnabled,
-    });
+    // Call streaming chat handler
+    handleChatStream(enrichedMessage, chatHistory, evidenceEnabled);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -233,7 +288,7 @@ export default function Atendimento() {
     }
   };
 
-  const isLoading = chatMutation.isPending || uploadMutation.isPending;
+  const isLoading = isStreaming || uploadMutation.isPending;
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
@@ -296,7 +351,7 @@ export default function Atendimento() {
         </Card>
       )}
 
-      {history.length > 0 && (
+      {(history.length > 0 || isStreaming) && (
         <Card data-testid="card-chat-history">
           <CardContent className="p-6 space-y-6">
             {history.map((item, index) => (
@@ -349,6 +404,27 @@ export default function Atendimento() {
                 </div>
               </div>
             ))}
+            
+            {/* Show streaming message while it's being generated */}
+            {isStreaming && currentUserMessage && (
+              <div className="space-y-4 opacity-90">
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-primary">Você:</p>
+                  <p className="text-sm whitespace-pre-wrap">{currentUserMessage}</p>
+                </div>
+                <div className="space-y-3 bg-muted/30 p-4 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-primary">Médico Help:</p>
+                    {!streamingMessage && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+                  </div>
+                  {streamingMessage ? (
+                    <p className="text-sm whitespace-pre-wrap">{streamingMessage}</p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">Gerando resposta...</p>
+                  )}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

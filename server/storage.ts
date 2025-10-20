@@ -12,7 +12,10 @@ import {
   consultations, 
   type Consultation, 
   type InsertConsultation,
-  researchAnalytics 
+  researchAnalytics,
+  notificationsWaitlist,
+  type NotificationsWaitlist,
+  type InsertNotificationsWaitlist
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNotNull } from "drizzle-orm";
@@ -33,8 +36,11 @@ export interface IStorage {
   // User settings
   getUserSettings(userId: string): Promise<UserSettings | undefined>;
   createUserSettings(settings: InsertUserSettings): Promise<UserSettings>;
-  updateUserSettings(userId: string, defaultStyle: "tradicional" | "soap"): Promise<UserSettings | undefined>;
+  updateUserSettings(userId: string, updates: Partial<Pick<UserSettings, "defaultStyle" | "showPediatria" | "showGestante" | "showEmergencia">>): Promise<UserSettings | undefined>;
   getUserWithSettings(userId: string): Promise<UserWithSettings | undefined>;
+  
+  // Notifications waitlist
+  addToWaitlist(feature: string, email: string): Promise<NotificationsWaitlist>;
   
   // Pacientes
   getPatient(id: string): Promise<Patient | undefined>;
@@ -165,10 +171,10 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
-  async updateUserSettings(userId: string, defaultStyle: "tradicional" | "soap"): Promise<UserSettings | undefined> {
+  async updateUserSettings(userId: string, updates: Partial<Pick<UserSettings, "defaultStyle" | "showPediatria" | "showGestante" | "showEmergencia">>): Promise<UserSettings | undefined> {
     const result = await db
       .update(userSettings)
-      .set({ defaultStyle })
+      .set(updates)
       .where(eq(userSettings.userId, userId))
       .returning();
     
@@ -185,6 +191,9 @@ export class DbStorage implements IStorage {
     return {
       ...user,
       defaultStyle: settings.defaultStyle,
+      showPediatria: settings.showPediatria,
+      showGestante: settings.showGestante,
+      showEmergencia: settings.showEmergencia,
     };
   }
 
@@ -313,6 +322,31 @@ export class DbStorage implements IStorage {
       // Log error but don't throw - analytics should never block the main flow
       console.error("Error logging research query:", error);
     }
+  }
+
+  // Notifications waitlist
+  async addToWaitlist(feature: string, email: string): Promise<NotificationsWaitlist> {
+    const result = await db
+      .insert(notificationsWaitlist)
+      .values({ feature, email })
+      .onConflictDoNothing({ target: [notificationsWaitlist.feature, notificationsWaitlist.email] })
+      .returning();
+    
+    // If conflict, fetch the existing entry
+    if (result.length === 0) {
+      const existing = await db
+        .select()
+        .from(notificationsWaitlist)
+        .where(and(
+          eq(notificationsWaitlist.feature, feature),
+          eq(notificationsWaitlist.email, email)
+        ))
+        .limit(1);
+      
+      return existing[0];
+    }
+    
+    return result[0];
   }
 }
 

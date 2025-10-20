@@ -23,6 +23,7 @@ export interface AuthResponse {
     role: "medico" | "estudante";
     crm?: string;
     uf?: string;
+    verifiedCrm?: boolean;
   };
 }
 

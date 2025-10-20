@@ -25,6 +25,7 @@ export const users = pgTable("users", {
   role: text("role").notNull().$type<"medico" | "estudante">(),
   crm: text("crm"),
   uf: char("uf", { length: 2 }),
+  verifiedCrm: boolean("verified_crm").default(false).notNull(),
   avatarUrl: text("avatar_url"),
   phone: text("phone"),
   phoneVerified: boolean("phone_verified").default(false).notNull(),
@@ -149,6 +150,7 @@ export interface AuthResponse {
     crm?: string;
     uf?: string;
     avatarUrl?: string;
+    verifiedCrm?: boolean;
   };
 }
 

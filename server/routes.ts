@@ -160,6 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: user.id,
         email: user.email,
         role: user.role,
+        verifiedCrm: user.verifiedCrm || false,
       });
 
       const response: AuthResponse = {
@@ -172,6 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           crm: user.crm || undefined,
           uf: user.uf || undefined,
           avatarUrl: user.avatarUrl || undefined,
+          verifiedCrm: user.verifiedCrm || false,
         },
       };
 
@@ -208,6 +210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: user.id,
         email: user.email,
         role: user.role,
+        verifiedCrm: user.verifiedCrm || false,
       });
 
       const response: AuthResponse = {
@@ -220,6 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           crm: user.crm || undefined,
           uf: user.uf || undefined,
           avatarUrl: user.avatarUrl || undefined,
+          verifiedCrm: user.verifiedCrm || false,
         },
       };
 
@@ -400,6 +404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user.id,
           email: user.email,
           role: user.role,
+          verifiedCrm: user.verified_crm || user.verifiedCrm || false,
         });
         res.redirect(`${OAUTH_BASE_URL}/?token=${token}`);
       }
@@ -418,6 +423,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user.id,
           email: user.email,
           role: user.role,
+          verifiedCrm: user.verified_crm || user.verifiedCrm || false,
         });
         res.redirect(`${OAUTH_BASE_URL}/?token=${token}`);
       }
@@ -439,6 +445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user.id,
           email: user.email,
           role: user.role,
+          verifiedCrm: user.verified_crm || user.verifiedCrm || false,
         });
         res.redirect(`${OAUTH_BASE_URL}/?token=${token}`);
       }
@@ -460,6 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user.id,
           email: user.email,
           role: user.role,
+          verifiedCrm: user.verified_crm || user.verifiedCrm || false,
         });
         res.redirect(`${OAUTH_BASE_URL}/?token=${token}`);
       }
@@ -593,6 +601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user.id,
           email: user.email,
           role: user.role,
+          verifiedCrm: user.verifiedCrm || false,
         });
 
         const response: AuthResponse = {
@@ -605,6 +614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             crm: user.crm || undefined,
             uf: user.uf || undefined,
             avatarUrl: user.avatarUrl || undefined,
+            verifiedCrm: user.verifiedCrm || false,
           },
         };
 
@@ -623,6 +633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user.id,
           email: user.email,
           role: user.role,
+          verifiedCrm: user.verifiedCrm || false,
         }, "15m");
 
         return res.json({ resetToken });
@@ -871,8 +882,10 @@ Use este contexto para fundamentar sua explicação, mas não cite explicitament
       const template = customTemplate || userSettings?.customTemplate;
 
       // Buscar evidências silenciosamente se modo explicativo + habilitado
+      // Respeita tanto a configuração do usuário quanto a flag global do sistema
+      const EVIDENCE_ALLOWED_IN_EXPLANATORY = process.env.EVIDENCE_ALLOWED_IN_EXPLANATORY !== 'false';
       let evidenceContext = '';
-      if (activeMode === 'explicativo' && userSettings?.explanatoryModeEnabled) {
+      if (activeMode === 'explicativo' && userSettings?.explanatoryModeEnabled && EVIDENCE_ALLOWED_IN_EXPLANATORY) {
         try {
           // Chamar endpoint interno de research
           const searchProvider = process.env.SEARCH_PROVIDER;

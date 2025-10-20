@@ -14,6 +14,7 @@ export interface JwtPayload {
   userId: string;
   email: string;
   role: "medico" | "estudante";
+  verifiedCrm?: boolean;
 }
 
 declare global {
@@ -54,7 +55,11 @@ export async function authMiddleware(
       return;
     }
 
-    req.authUser = decoded;
+    // Include verifiedCrm from database if not in token (backward compatibility)
+    req.authUser = {
+      ...decoded,
+      verifiedCrm: decoded.verifiedCrm !== undefined ? decoded.verifiedCrm : (user.verifiedCrm || false)
+    };
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {

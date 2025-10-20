@@ -4,17 +4,17 @@ import { medicalToolsAudit } from "@shared/schema";
 
 /**
  * Middleware to check if user has access to medical tools
- * Only users with role 'medico' or 'estudante' can access
+ * Only users with role 'medico' or 'estudante' OR with verified_crm can access
  */
 export function requireMedicalAccess(req: Request, res: Response, next: NextFunction) {
   if (!req.authUser) {
     return res.status(401).json({ error: "Autenticação necessária" });
   }
 
-  const { role } = req.authUser;
+  const { role, verifiedCrm } = req.authUser;
   
-  // Allow access for medico and estudante roles
-  if (role === "medico" || role === "estudante") {
+  // Allow access for medico and estudante roles, or users with verified CRM
+  if (role === "medico" || role === "estudante" || verifiedCrm === true) {
     return next();
   }
 

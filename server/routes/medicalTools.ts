@@ -14,6 +14,16 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || "dummy-key",
 });
 
+// Helper function to get role-specific disclaimer
+function getRoleSpecificDisclaimer(role: string): string {
+  if (role === "medico") {
+    return "Suporte à decisão clínica. Revise com julgamento médico.";
+  } else if (role === "estudante") {
+    return "Conteúdo para prática supervisionada. Não prescrever sem preceptor.";
+  }
+  return "Este conteúdo é apenas informativo.";
+}
+
 // Environment flags for medical tools
 const MED_FULL_UNLOCK = process.env.MED_FULL_UNLOCK !== "false";
 const POSO_MAX_DOSE_MULTIPLIER = parseFloat(process.env.POSO_MAX_DOSE_MULTIPLIER || "1.2");
@@ -73,7 +83,7 @@ router.post("/posologia", authMiddleware, requireMedicalAccess, rateLimitMedical
       });
     }
     
-    // Build AI prompt
+    // Build AI prompt with enhanced safety warnings
     const prompt = `Você é um assistente médico especializado em posologia. Forneça informações de dosagem para:
 
 **Medicamento:** ${principio_ativo}
@@ -81,9 +91,9 @@ router.post("/posologia", authMiddleware, requireMedicalAccess, rateLimitMedical
 ${idade_anos !== undefined ? `**Idade:** ${idade_anos} anos` : ''}
 ${peso_kg ? `**Peso:** ${peso_kg} kg` : ''}
 ${creatinina_clear_mlmin ? `**Clearance de Creatinina:** ${creatinina_clear_mlmin} mL/min` : ''}
-${gravidez ? '**Gestante:** Sim' : ''}
-${lactacao ? '**Lactante:** Sim' : ''}
-${alergias && alergias.length > 0 ? `**Alergias:** ${alergias.join(', ')}` : ''}
+${gravidez ? '**⚠️ GESTANTE: SIM - AVALIAR RISCO/BENEFÍCIO**' : ''}
+${lactacao ? '**⚠️ LACTANTE: SIM - VERIFICAR SEGURANÇA NA AMAMENTAÇÃO**' : ''}
+${alergias && alergias.length > 0 ? `**⚠️ ALERGIAS CONHECIDAS:** ${alergias.join(', ')}` : ''}
 
 Retorne APENAS um JSON com:
 {
@@ -100,12 +110,15 @@ Retorne APENAS um JSON com:
     "hepatico": "ajuste se disfunção hepática",
     "pediatrico": "cálculo mg/kg se aplicável"
   },
-  "alertas": ["alerta1", "alerta2"],
-  "contraindicacoes": ["CI1", "CI2"],
+  "alertas": [${gravidez ? '"⚠️ GRAVIDEZ: avaliar categoria de risco FDA/ANVISA", ' : ''}${lactacao ? '"⚠️ LACTAÇÃO: verificar compatibilidade com amamentação", ' : ''}${alergias && alergias.length > 0 ? '"⚠️ ALERGIAS: risco de reação cruzada", ' : ''}"alerta adicional se houver"],
+  "contraindicacoes": ["CI1 se houver", "CI2"],
   "referencia": "Referência farmacológica breve"
 }
 
-Seja OBJETIVO. Use doses da literatura médica brasileira (Bulário ANVISA, UpToDate).`;
+${gravidez || lactacao ? '\n**ATENÇÃO ESPECIAL:** Droga em gestante/lactante requer avaliação criteriosa de risco-benefício.' : ''}
+${alergias && alergias.length > 0 ? '\n**ATENÇÃO:** Paciente com alergias conhecidas - verificar reação cruzada.' : ''}
+
+Seja OBJETIVO e SEGURO. Use doses da literatura médica brasileira (Bulário ANVISA, UpToDate).`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -137,9 +150,7 @@ Seja OBJETIVO. Use doses da literatura médica brasileira (Bulário ANVISA, UpTo
     res.json({
       success: true,
       data: result,
-      disclaimer: req.authUser!.role === "medico" 
-        ? "Suporte à decisão clínica. Revise com julgamento médico."
-        : "Conteúdo para prática supervisionada. Não prescrever sem preceptor."
+      disclaimer: getRoleSpecificDisclaimer(req.authUser!.role)
     });
     
   } catch (error: any) {
@@ -229,7 +240,8 @@ Retorne APENAS JSON:
     res.json({
       success: true,
       calculadora: nome,
-      data: result
+      data: result,
+      disclaimer: getRoleSpecificDisclaimer(req.authUser!.role)
     });
     
   } catch (error: any) {
@@ -301,9 +313,7 @@ NÃO inclua prescrições detalhadas. Apenas orientações gerais. Lembre que ca
     res.json({
       success: true,
       data: result,
-      disclaimer: req.authUser!.role === "medico" 
-        ? "Suporte à decisão clínica. Revise com julgamento médico e protocolo local."
-        : "Conteúdo para prática supervisionada. Não prescrever sem preceptor."
+      disclaimer: getRoleSpecificDisclaimer(req.authUser!.role)
     });
     
   } catch (error: any) {
@@ -381,7 +391,8 @@ Seja criterioso. Sugira apenas exames com boa relação custo-benefício.`;
     
     res.json({
       success: true,
-      data: result
+      data: result,
+      disclaimer: getRoleSpecificDisclaimer(req.authUser!.role)
     });
     
   } catch (error: any) {
@@ -456,7 +467,8 @@ Liste no máximo 5 diagnósticos diferenciais, ordenados por probabilidade.`;
     
     res.json({
       success: true,
-      data: result
+      data: result,
+      disclaimer: getRoleSpecificDisclaimer(req.authUser!.role)
     });
     
   } catch (error: any) {

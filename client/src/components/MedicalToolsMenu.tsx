@@ -633,7 +633,11 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
             <CardHeader>
               <CardTitle className="text-lg">Resultado</CardTitle>
               {result.disclaimer && (
-                <CardDescription className="text-sm">{result.disclaimer}</CardDescription>
+                <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 rounded-md">
+                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200" data-testid="text-disclaimer">
+                    {result.disclaimer}
+                  </p>
+                </div>
               )}
             </CardHeader>
             <CardContent>

@@ -726,6 +726,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error("Erro ao criar diretório uploads:", error);
   }
 
+  // ===== HELPER FUNCTIONS: Dual-Mode System =====
+  
+  // Detectar triggers de modo explicativo
+  function detectExplanatoryMode(message: string): boolean {
+    const triggers = [
+      'explica', 'me ensina', 'justifica', 'por qu', 'porqu',
+      'base teórica', 'evidência', 'fundamento', 'racional',
+      'diretriz', 'guideline', 'literatura', 'estudo',
+    ];
+    
+    const lowerMessage = message.toLowerCase();
+    return triggers.some(trigger => lowerMessage.includes(trigger));
+  }
+
+  // Construir prompt de Modo Clínico
+  function buildClinicalPrompt(style: string, customTemplate?: string): string {
+    const baseRules = `Você é um REGISTRADOR MÉDICO (clinical scribe). Sua função é documentar prontuários, não ensinar ou aconselhar.
+
+REGRAS OBRIGATÓRIAS:
+1. O usuário é SEMPRE um médico escrevendo prontuário/nota clínica
+2. Responda APENAS com o conteúdo solicitado - SEM introduções, explicações ou comentários
+3. NUNCA dê aulas, explicações teóricas, revisões de conduta ou conselhos genéricos
+4. Mantenha formato CURTO, ESTRUTURADO e OBJETIVO
+5. Português do Brasil, terminologia médica adequada
+6. Tom profissional e conciso
+
+NUNCA inclua:
+❌ "Espero que isso ajude"
+❌ "Recomendo que..."
+❌ "É importante lembrar que..."
+❌ Explicações didáticas
+❌ Revisões de literatura
+❌ Citações de diretrizes`;
+
+    if (style === 'soap') {
+      return `${baseRules}
+
+FORMATO OBRIGATÓRIO (SOAP):
+**S (Subjetivo):** [queixa e história]
+**O (Objetivo):** [sinais vitais e exame físico]
+**A (Avaliação):** [hipóteses diagnósticas]
+**P (Plano):** [conduta e prescrições]`;
+    } else if (style === 'personalizado' && customTemplate) {
+      return `${baseRules}
+
+FORMATO PERSONALIZADO:
+${customTemplate}`;
+    } else {
+      // Tradicional (default)
+      return `${baseRules}
+
+FORMATO PADRÃO (Tradicional MédicoHelp):
+**QUEIXA PRINCIPAL:** [breve]
+**HISTÓRIA CLÍNICA:** [concisa]
+**EXAME FÍSICO:** [objetivo]
+**CONDUTA:** [clara]`;
+    }
+  }
+
+  // Construir prompt de Modo Explicativo
+  function buildExplanatoryPrompt(evidenceContext?: string): string {
+    const basePrompt = `Você é um ASSISTENTE MÉDICO EDUCACIONAL. Sua função é explicar conceitos médicos de forma objetiva e baseada em evidências.
+
+REGRAS:
+1. Linguagem técnica médica, objetiva e profissional
+2. Cite diretrizes nacionais/internacionais quando relevante
+3. Explique o racional científico das condutas
+4. Seja conciso mas completo
+5. Português do Brasil
+
+ESTRUTURA DA RESPOSTA:
+1. **Resumo clínico** do tema
+2. **Diretrizes** (se houver)
+3. **Racional científico** da conduta
+4. **Conclusão prática** (curta)
+
+NUNCA:
+❌ Formatar como prontuário
+❌ Dar conselhos genéricos sem base científica
+❌ Usar tom didático excessivo`;
+
+    if (evidenceContext) {
+      return `${basePrompt}
+
+CONTEXTO DE EVIDÊNCIAS:
+${evidenceContext}
+
+Use este contexto para fundamentar sua explicação, mas não cite explicitamente as fontes.`;
+    }
+
+    return basePrompt;
+  }
+
   // ===== ENDPOINT: Chat Médico (SSE Streaming) =====
   app.post("/api/chat", async (req, res) => {
     const startTime = Date.now();
@@ -744,41 +837,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validar requisição
       const validatedData = chatRequestSchema.parse(req.body);
-      const { message, history = [], userRole = "doctor" } = validatedData;
+      const { 
+        message, 
+        history = [], 
+        userRole = "doctor",
+        mode: requestedMode,
+        documentStyle,
+        customTemplate,
+      } = validatedData;
 
-      // Construir mensagens para OpenAI - Registrador Médico (Clinical Scribe)
-      const systemPrompt = userRole === "doctor"
-        ? `Você é um REGISTRADOR MÉDICO (clinical scribe). Sua função é documentar prontuários, não ensinar ou aconselhar.
+      // Buscar configurações do usuário
+      let userSettings = null;
+      try {
+        userSettings = await storage.getUserSettings(userId);
+      } catch (error) {
+        console.log("User settings not found, using defaults");
+      }
 
-REGRAS OBRIGATÓRIAS:
-1. O usuário é SEMPRE um médico escrevendo prontuário/nota clínica
-2. Responda APENAS com o conteúdo solicitado - SEM introduções, explicações ou comentários
-3. Se pedir "história clínica", retorne SOMENTE a história clínica formatada
-4. Se pedir "evolução", retorne SOMENTE a nota de evolução
-5. NUNCA dê aulas, explicações teóricas, revisões de conduta ou conselhos genéricos
-6. Mantenha formato CURTO, ESTRUTURADO e OBJETIVO
-7. Português do Brasil, terminologia médica adequada
-8. Tom profissional e conciso
+      // Determinar modo (auto-detect se não especificado)
+      let activeMode = requestedMode || 'clinico';
+      if (!requestedMode && detectExplanatoryMode(message)) {
+        activeMode = 'explicativo';
+      }
 
-FORMATO PADRÃO (Tradicional MédicoHelp):
-**QUEIXA PRINCIPAL:** [breve]
-**HISTÓRIA CLÍNICA:** [concisa]
-**EXAME FÍSICO:** [objetivo]
-**CONDUTA:** [clara]
+      // Determinar estilo de documento
+      const style = documentStyle || userSettings?.defaultStyle || 'tradicional';
+      const template = customTemplate || userSettings?.customTemplate;
 
-NUNCA inclua:
-❌ "Espero que isso ajude"
-❌ "Recomendo que..."
-❌ "É importante lembrar que..."
-❌ Explicações didáticas
-❌ Revisões de literatura
+      // Buscar evidências silenciosamente se modo explicativo + habilitado
+      let evidenceContext = '';
+      if (activeMode === 'explicativo' && userSettings?.explanatoryModeEnabled) {
+        try {
+          // Chamar endpoint interno de research
+          const searchProvider = process.env.SEARCH_PROVIDER;
+          const searchApiKey = process.env.SEARCH_API_KEY;
+          
+          if (searchProvider === 'pubmed' && searchApiKey) {
+            const pubmedResponse = await fetch(
+              `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(message)}&retmax=3&retmode=json&api_key=${searchApiKey}`
+            );
+            
+            if (pubmedResponse.ok) {
+              const pubmedData = await pubmedResponse.json();
+              const ids = pubmedData?.esearchresult?.idlist || [];
+              
+              if (ids.length > 0) {
+                const summaryResponse = await fetch(
+                  `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${ids.join(',')}&retmode=json&api_key=${searchApiKey}`
+                );
+                
+                if (summaryResponse.ok) {
+                  const summaryData = await summaryResponse.json();
+                  const articles = ids.map((id: string) => {
+                    const article = summaryData?.result?.[id];
+                    if (article) {
+                      return `${article.title} (${article.source}, ${article.pubdate})`;
+                    }
+                    return null;
+                  }).filter(Boolean);
+                  
+                  evidenceContext = articles.join('\n');
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching evidence:", error);
+          // Continue without evidence - não bloquear a resposta
+        }
+      }
 
-SEMPRE:
-✓ Seja direto e objetivo
-✓ Use apenas o formato solicitado
-✓ Documente como um escrivão profissional
-✓ Se a solicitação for vaga, assuma contexto de prontuário médico`
-        : "Você é um assistente de saúde que fornece informações gerais. Sempre recomende consultar um profissional de saúde para diagnósticos e tratamentos.";
+      // Construir system prompt baseado no modo
+      let systemPrompt: string;
+      
+      if (userRole === "doctor") {
+        if (activeMode === 'explicativo') {
+          systemPrompt = buildExplanatoryPrompt(evidenceContext);
+        } else {
+          // Modo clínico (padrão)
+          systemPrompt = buildClinicalPrompt(style, template);
+        }
+      } else {
+        // Paciente (modo básico)
+        systemPrompt = "Você é um assistente de saúde que fornece informações gerais. Sempre recomende consultar um profissional de saúde para diagnósticos e tratamentos.";
+      }
 
       const messages: any[] = [
         { role: "system", content: systemPrompt },

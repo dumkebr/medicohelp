@@ -274,6 +274,9 @@ export const chatRequestSchema = z.object({
     content: z.string(),
   })).optional().default([]),
   userRole: z.enum(['doctor', 'patient']).optional().default('doctor'),
+  mode: z.enum(['clinico', 'explicativo']).optional().default('clinico'),
+  documentStyle: z.enum(['tradicional', 'soap', 'personalizado']).optional(),
+  customTemplate: z.string().optional(),
 });
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>;

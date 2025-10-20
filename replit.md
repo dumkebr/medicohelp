@@ -20,7 +20,7 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
 
 ### Backend (Express + TypeScript)
 - **Runtime**: Node.js com Express
-- **IA**: OpenAI GPT-5 para chat médico e análise de imagens
+- **IA**: OpenAI GPT-5 (lançado em 7 de agosto de 2025) para chat médico, análise de imagens e resumos científicos
 - **Database**: PostgreSQL (Neon) com Drizzle ORM
 - **Autenticação**: Replit Auth com Passport.js e OIDC
 - **Storage**: DbStorage com persistência em PostgreSQL
@@ -243,14 +243,22 @@ O projeto usa o padrão fullstack JavaScript com:
 
 ### ⚡ Status da API OpenAI
 
-**✅ API TOTALMENTE OPERACIONAL** (atualizado em 20/10/2025)
+**✅ GPT-5 TOTALMENTE OPERACIONAL** (atualizado em 20/10/2025 - 02:17 AM)
 - Conta OpenAI com créditos ativos
-- GPT-4o-mini funcionando sem limitações
+- **GPT-5** (lançado 7/ago/2025) implementado em todos os endpoints
+- max_completion_tokens: 16000 (ajustado para reasoning tokens do GPT-5)
 - Todos os endpoints testados e validados:
-  - ✅ Chat médico (/api/chat)
-  - ✅ Análise de exames (/api/upload)
-  - ✅ Busca PubMed (/api/medsearch)
-  - ✅ Resumos com citações (/api/medsummary)
+  - ✅ Chat médico (/api/chat) - GPT-5 (~40s por resposta)
+  - ✅ Análise de exames (/api/upload) - GPT-5 Vision
+  - ✅ Busca PubMed (/api/medsearch) - E-utilities
+  - ✅ Resumos com citações (/api/medsummary) - GPT-5 (~20-30s)
+
+**Características do GPT-5:**
+- Usa reasoning tokens internos (não retornados na resposta)
+- Respostas mais completas e estruturadas
+- Formato acadêmico/técnico superior
+- Suporta até 128k tokens de output
+- Tempo médio de resposta: 20-40 segundos
 
 ## Funcionalidade: Sistema de Histórico de Consultas
 

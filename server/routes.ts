@@ -112,10 +112,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       // Chamar OpenAI GPT-5
+      // GPT-5 usa reasoning tokens que contam para o limite, então precisa de mais tokens
       const completion = await openai.chat.completions.create({
         model: "gpt-5",
         messages,
-        max_completion_tokens: 2048,
+        max_completion_tokens: 16000,
       });
 
       const answer = completion.choices[0]?.message?.content || "Desculpe, não foi possível processar sua pergunta.";

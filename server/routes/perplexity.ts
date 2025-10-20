@@ -84,8 +84,7 @@ Ao final, inclua uma seção "Fontes:" listando todas as referências numeradas.
 Seja conciso, técnico e baseie-se apenas nas fontes fornecidas.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.2,
+      model: "gpt-5",
       messages: [
         {
           role: "system",

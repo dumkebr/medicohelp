@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Send, Paperclip, Loader2, FileImage, X, Save, Brain, ExternalLink, FileText, BookOpen } from "lucide-react";
+import { Send, Paperclip, Loader2, FileImage, X, Save, Brain, ExternalLink, FileText, BookOpen, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -346,7 +346,15 @@ export default function Atendimento() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold mb-2">Atendimento Médico com IA</h1>
+        <div className="flex items-center justify-between gap-4 mb-2">
+          <h1 className="text-2xl font-bold">Atendimento Médico com IA</h1>
+          {user && (user.role === "medico" || user.role === "estudante") && (
+            <Badge variant="secondary" className="gap-1" data-testid="badge-professional-mode">
+              <Stethoscope className="w-3 h-3" />
+              Modo Profissional {user.role === "estudante" && "(Estudante)"}
+            </Badge>
+          )}
+        </div>
         <p className="text-muted-foreground">
           Faça perguntas clínicas e envie imagens de exames para análise
         </p>

@@ -32,8 +32,10 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 - **File Upload**: Multer.
 - **Validation**: Zod for data schema validation.
 - **Rate Limiting**: Daily request limits (10 per IP) using `express-rate-limit`.
+- **SPA Routing**: connect-history-api-fallback middleware for proper SPA routing (serves index.html for non-API routes while preserving API/auth/static endpoints).
 
 **Key Features & Technical Implementations:**
+- **Frontend Authentication UI**: Complete auth flow with login, register (with conditional CRM/UF for doctors), forgot password, and 6-digit verification code pages. Protected route guards with redirect preservation. User profile management with avatar upload.
 - **AI Medical Chat**: Contextual medical queries, full conversation history, attachment support (images, PDFs).
 - **Exam Analysis**: Multi-file upload, automatic analysis with GPT-5 Vision, contextual medical interpretation.
 - **Patient Management (CRUD)**: Complete patient lifecycle management with fields like name, CPF, birth date, phone, address, and observations. Integration with Memed for prescriptions.

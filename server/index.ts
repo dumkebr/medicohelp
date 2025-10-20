@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import rateLimit from "express-rate-limit";
+import history from "connect-history-api-fallback";
 import perplexityRoutes from "./routes/perplexity";
 import { printVerificationInfo } from "./utils/verification-info";
 
@@ -65,6 +66,24 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
     throw err;
   });
+
+  // SPA fallback: serve index.html for all non-API routes
+  // This must come before Vite setup to ensure proper routing
+  app.use(history({
+    rewrites: [
+      // Don't rewrite API routes
+      { from: /^\/api\/.*$/, to: (context: any) => context.parsedUrl.path },
+      // Don't rewrite auth routes
+      { from: /^\/auth\/.*$/, to: (context: any) => context.parsedUrl.path },
+      // Don't rewrite user routes
+      { from: /^\/users\/.*$/, to: (context: any) => context.parsedUrl.path },
+      // Don't rewrite static assets
+      { from: /^\/static\/.*$/, to: (context: any) => context.parsedUrl.path },
+      { from: /^\/assets\/.*$/, to: (context: any) => context.parsedUrl.path },
+      // Don't rewrite uploads
+      { from: /^\/uploads\/.*$/, to: (context: any) => context.parsedUrl.path },
+    ],
+  }));
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route

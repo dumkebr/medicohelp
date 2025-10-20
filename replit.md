@@ -39,7 +39,7 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 - **AI Medical Chat**: Contextual medical queries, full conversation history, attachment support (images, PDFs).
 - **Exam Analysis**: Multi-file upload, automatic analysis with GPT-5 Vision, contextual medical interpretation.
 - **Patient Management (CRUD)**: Complete patient lifecycle management with fields like name, CPF, birth date, phone, address, and observations. Integration with Memed for prescriptions.
-- **Medical Perplexity (Scientific Search)**: Integration with PubMed (NIH/NCBI E-utilities) for scientific article retrieval and GPT-5-generated summaries with citations.
+- **Clinical Evidence (Evidências Clínicas)**: Optional toggle-based feature in chat that provides scientific references from PubMed (NIH/NCBI E-utilities) for medical queries. Defaults to OFF. When enabled, displays up to 5 scientific references (title, source, authors, year, clickable links) below AI responses with disclaimer "Material de apoio. Não substitui avaliação médica." References are purely supplementary and DO NOT affect medical chat logic. Gracefully degrades when API not configured. Requires SEARCH_PROVIDER and SEARCH_API_KEY environment variables. Non-blocking analytics logging tracks usage.
 - **Consultation History System**: Saves patient consultations, including chat history, attachments, date, and responsible physician, stored in PostgreSQL with JSONB for flexible data.
 - **Design Guidelines**: Professional medical design with primary green colors, Inter typography, consistent spacing, subtle shadows, and visual feedback.
 
@@ -48,16 +48,29 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 - `users`: Stores user authentication details (doctors, students) including roles and CRM.
 - `user_settings`: User-specific preferences like default style.
 - `consultations`: Stores detailed consultation records, linked to patients.
+- `research_analytics` (optional): Tracks usage of clinical evidence feature for analytics (non-blocking, query text, source count, response time).
 
 ## External Dependencies
 
 - **OpenAI API**: For GPT-5 (AI medical chat, image analysis, scientific summaries).
 - **Neon (PostgreSQL)**: Managed PostgreSQL database service.
 - **Memed**: Digital prescription integration.
-- **PubMed (NIH/NCBI E-utilities)**: For scientific literature search.
+- **PubMed (NIH/NCBI E-utilities)**: For scientific literature search in Clinical Evidence feature (optional).
 - **Resend / SMTP**: For email delivery (verification codes, notifications).
 - **Twilio**: For SMS delivery (verification codes).
 - **Google OAuth**: For user authentication.
 - **Apple OAuth**: For user authentication.
 - **Microsoft OAuth**: For user authentication.
 - **GitHub OAuth**: For user authentication.
+
+## Recent Changes (October 20, 2025)
+
+**Clinical Evidence Feature Implementation:**
+- Added optional "Evidências Clínicas" toggle in Atendimento page (defaults to OFF)
+- Created `/api/research` endpoint with PubMed E-utilities integration
+- Implemented scientific references display (up to 5 sources per query) with proper attribution
+- References are reference-only and DO NOT affect medical chat logic
+- Graceful degradation when API keys (SEARCH_PROVIDER, SEARCH_API_KEY) not configured
+- Non-blocking analytics logging for usage tracking
+- Full e2e tests verified toggle behavior, badge synchronization, and chat functionality
+- Routes: Added `/atendimento` route to protected router (in addition to `/` route)

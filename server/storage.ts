@@ -14,7 +14,7 @@ import {
   type InsertConsultation 
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // User operations - Email/Password Auth
@@ -22,6 +22,11 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
+  
+  // OAuth operations
+  getUserByOAuth(provider: string, sub: string): Promise<User | undefined>;
+  linkOAuthProvider(userId: string, provider: string, sub: string): Promise<User | undefined>;
+  getLinkedProviders(userId: string): Promise<string[]>;
   
   // User settings
   getUserSettings(userId: string): Promise<UserSettings | undefined>;
@@ -87,6 +92,42 @@ export class DbStorage implements IStorage {
       .returning();
     
     return result[0];
+  }
+
+  // OAuth operations
+  async getUserByOAuth(provider: string, sub: string): Promise<User | undefined> {
+    const result = await db
+      .select()
+      .from(users)
+      .where(and(
+        eq(users.oauthProvider, provider),
+        eq(users.oauthSub, sub)
+      ))
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async linkOAuthProvider(userId: string, provider: string, sub: string): Promise<User | undefined> {
+    const result = await db
+      .update(users)
+      .set({ 
+        oauthProvider: provider, 
+        oauthSub: sub 
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return result[0];
+  }
+
+  async getLinkedProviders(userId: string): Promise<string[]> {
+    const user = await this.getUserById(userId);
+    if (!user || !user.oauthProvider) {
+      return [];
+    }
+    
+    return [user.oauthProvider];
   }
 
   // User settings

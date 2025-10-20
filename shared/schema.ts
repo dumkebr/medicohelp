@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, index, jsonb, char } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, index, jsonb, char, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -16,7 +16,7 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table - Email/Password Auth com JWT
+// User storage table - Email/Password Auth com JWT + OAuth
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
@@ -26,8 +26,12 @@ export const users = pgTable("users", {
   crm: text("crm"),
   uf: char("uf", { length: 2 }),
   avatarUrl: text("avatar_url"),
+  oauthProvider: text("oauth_provider"),
+  oauthSub: text("oauth_sub"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
+}, (table) => [
+  unique("unique_oauth_provider_sub").on(table.oauthProvider, table.oauthSub),
+]);
 
 export const insertUserSchema = createInsertSchema(users, {
   email: z.string().email("Email inválido"),

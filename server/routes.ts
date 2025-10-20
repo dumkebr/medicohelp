@@ -2,6 +2,7 @@ import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import bcrypt from "bcryptjs";
+import passport from "passport";
 import { storage } from "./storage";
 import { 
   chatRequestSchema, 
@@ -13,6 +14,7 @@ import {
   type AuthResponse 
 } from "@shared/schema";
 import { generateToken, authMiddleware } from "./middleware/auth";
+import { configurePassport } from "./passport-config";
 import OpenAI from "openai";
 import fs from "fs/promises";
 import path from "path";
@@ -55,6 +57,10 @@ async function checkQuota(userId: string): Promise<{ allowed: boolean; remaining
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // ===== SETUP: Passport OAuth =====
+  app.use(passport.initialize());
+  configurePassport();
+
   // ===== SETUP: Replit Auth =====
   // (IMPORTANT) Auth middleware from blueprint:javascript_log_in_with_replit
   await setupAuth(app);
@@ -282,6 +288,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Dados inválidos", details: error.errors });
       }
       res.status(500).json({ error: "Erro ao atualizar usuário" });
+    }
+  });
+
+  // ===== OAUTH ROUTES =====
+  const OAUTH_BASE_URL = process.env.OAUTH_BASE_URL || "http://localhost:5000";
+
+  // Google OAuth (only if configured)
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    app.get("/auth/google", passport.authenticate("google", { 
+      scope: ["profile", "email"],
+      session: false 
+    }));
+    
+    app.get("/auth/google/callback", 
+      passport.authenticate("google", { session: false, failureRedirect: `${OAUTH_BASE_URL}/?error=auth_failed` }),
+      (req, res) => {
+        const user = req.user as any;
+        const token = generateToken({
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+        });
+        res.redirect(`${OAUTH_BASE_URL}/?token=${token}`);
+      }
+    );
+  }
+
+  // Apple OAuth (only if configured)
+  if (process.env.APPLE_CLIENT_ID && process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY) {
+    app.get("/auth/apple", passport.authenticate("apple", { session: false }));
+    
+    app.post("/auth/apple/callback", 
+      passport.authenticate("apple", { session: false, failureRedirect: `${OAUTH_BASE_URL}/?error=auth_failed` }),
+      (req, res) => {
+        const user = req.user as any;
+        const token = generateToken({
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+        });
+        res.redirect(`${OAUTH_BASE_URL}/?token=${token}`);
+      }
+    );
+  }
+
+  // Microsoft OAuth (only if configured)
+  if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
+    app.get("/auth/microsoft", passport.authenticate("microsoft", { 
+      session: false,
+      prompt: "select_account"
+    }));
+    
+    app.get("/auth/microsoft/callback", 
+      passport.authenticate("microsoft", { session: false, failureRedirect: `${OAUTH_BASE_URL}/?error=auth_failed` }),
+      (req, res) => {
+        const user = req.user as any;
+        const token = generateToken({
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+        });
+        res.redirect(`${OAUTH_BASE_URL}/?token=${token}`);
+      }
+    );
+  }
+
+  // GitHub OAuth (only if configured)
+  if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+    app.get("/auth/github", passport.authenticate("github", { 
+      scope: ["user:email"],
+      session: false 
+    }));
+    
+    app.get("/auth/github/callback", 
+      passport.authenticate("github", { session: false, failureRedirect: `${OAUTH_BASE_URL}/?error=auth_failed` }),
+      (req, res) => {
+        const user = req.user as any;
+        const token = generateToken({
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+        });
+        res.redirect(`${OAUTH_BASE_URL}/?token=${token}`);
+      }
+    );
+  }
+
+  // GET /auth/providers - Lista provedores OAuth vinculados (protegido com JWT)
+  app.get("/auth/providers", authMiddleware, async (req, res) => {
+    try {
+      if (!req.authUser) {
+        return res.status(401).json({ error: "Usuário não autenticado" });
+      }
+
+      const providers = await storage.getLinkedProviders(req.authUser.userId);
+      res.json({ providers });
+    } catch (error: any) {
+      console.error("Erro ao buscar provedores:", error);
+      res.status(500).json({ error: "Erro ao buscar provedores OAuth" });
     }
   });
 

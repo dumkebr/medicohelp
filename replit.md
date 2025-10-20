@@ -22,8 +22,11 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
 - **Runtime**: Node.js com Express
 - **IA**: OpenAI GPT-5 (lançado em 7 de agosto de 2025) para chat médico, análise de imagens e resumos científicos
 - **Database**: PostgreSQL (Neon) com Drizzle ORM
-- **Autenticação**: JWT (JSON Web Tokens) com email/password e role-based access control
-- **Password Hashing**: bcrypt com 10 salt rounds
+- **Autenticação**: 
+  - JWT (JSON Web Tokens) com role-based access control
+  - Email/Password: bcrypt com 10 salt rounds
+  - OAuth: Google, Apple, Microsoft, GitHub (Passport.js)
+  - Linking automático por email
 - **Storage**: DbStorage com persistência em PostgreSQL
 - **Upload**: Multer para processamento de arquivos
 - **Validação**: Zod para validação de dados
@@ -50,12 +53,15 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
   id: varchar (UUID - Primary Key, default: gen_random_uuid());
   name: text (not null);
   email: text (not null, unique);
-  password_hash: text;
+  password_hash: text (nullable para OAuth);
   role: 'medico' | 'estudante' (not null);
   crm?: text (obrigatório para médicos);
   uf?: char(2) (obrigatório para médicos);
   avatar_url?: text;
+  oauth_provider?: text (google, apple, microsoft, github);
+  oauth_sub?: text (ID único do provider);
   createdAt: timestamp with timezone (default: now());
+  UNIQUE (oauth_provider, oauth_sub) WHERE oauth_provider IS NOT NULL;
 }
 ```
 
@@ -141,7 +147,9 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
 **PATCH /api/patients/:id** - Atualiza paciente (atualiza no DB)
 **DELETE /api/patients/:id** - Remove paciente (deleta do DB)
 
-### Autenticação (JWT - Email/Password)
+### Autenticação (JWT - Email/Password + OAuth)
+
+#### Registro e Login (Email/Password)
 
 **POST /auth/register** - Registro de médicos e estudantes
 ```json
@@ -181,15 +189,47 @@ Retorna: `{ token: string, user: {...} }` (200)
 - Header: `Authorization: Bearer <token>`
 - Retorna: `{ id, name, email, role, crm, uf, defaultStyle }`
 
-**PUT /users/me** - Atualiza usuário e configurações (protegido com JWT)
+**PUT /users/me** - Atualiza nome e configurações (protegido com JWT)
 ```json
 {
   "name": "Novo Nome",
   "defaultStyle": "soap"
 }
 ```
+**NOTA:** Role, CRM e UF não podem ser alterados por segurança (previne privilege escalation)
 
-Exemplo de criação:
+#### OAuth Login (Google, Apple, Microsoft, GitHub)
+
+**Fluxo OAuth:**
+1. Usuário acessa: `GET /auth/{provider}` (provider = google, apple, microsoft, github)
+2. Redirecionado para autenticação do provider
+3. Callback em: `/auth/{provider}/callback`
+4. Sistema busca/cria usuário:
+   - Se `(oauth_provider, oauth_sub)` existe → retorna usuário existente
+   - Se email existe → vincula OAuth ao usuário existente
+   - Caso contrário → cria novo usuário como `role=estudante`
+5. Redireciona para: `${OAUTH_BASE_URL}/?token={jwt}` ou `/?error=auth_failed`
+
+**GET /auth/providers** - Lista provedores OAuth vinculados (protegido com JWT)
+- Header: `Authorization: Bearer <token>`
+- Retorna: `{ providers: ["google"] }`
+
+**Callbacks:**
+- Google: `/auth/google/callback`
+- Apple: `/auth/apple/callback` (POST)
+- Microsoft: `/auth/microsoft/callback`
+- GitHub: `/auth/github/callback`
+
+**Variáveis de ambiente OAuth:**
+```
+OAUTH_BASE_URL=https://<your-repl>.replit.app
+GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY
+MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET, MICROSOFT_TENANT=common
+GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
+```
+
+Exemplo de criação de paciente:
 ```json
 {
   "nome": "João da Silva",
@@ -214,10 +254,20 @@ O sistema segue design médico profissional com:
 
 ## Variáveis de Ambiente
 
+**Obrigatórias:**
 ```
-OPENAI_API_KEY=sk-... (obrigatório)
+OPENAI_API_KEY=sk-... (GPT-5 API)
 DATABASE_URL=postgresql://... (auto-configurado pelo Replit)
-JWT_SECRET=... (para assinatura de tokens JWT)
+JWT_SECRET=... (min 32 chars - OBRIGATÓRIO para segurança)
+```
+
+**OAuth (Opcionais - um ou mais providers):**
+```
+OAUTH_BASE_URL=https://<your-repl>.replit.app
+GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY
+MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET, MICROSOFT_TENANT=common
+GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
 ```
 
 ## Dependências Principais
@@ -228,8 +278,10 @@ JWT_SECRET=... (para assinatura de tokens JWT)
 - @neondatabase/serverless: PostgreSQL driver
 - drizzle-orm: ORM para TypeScript
 - drizzle-kit: CLI para migrações
-- bcryptjs: Password hashing
-- jsonwebtoken: JWT authentication
+- bcryptjs: Password hashing (10 rounds)
+- jsonwebtoken: JWT authentication (7 day expiration)
+- passport: OAuth framework
+- passport-google-oauth20, passport-apple, passport-microsoft, passport-github2: OAuth strategies
 - multer: Upload de arquivos
 
 **Frontend:**
@@ -255,8 +307,11 @@ O projeto usa o padrão fullstack JavaScript com:
 - ✅ Análise de exames com visão computacional
 - ✅ CRUD completo de pacientes
 - ✅ **Persistência PostgreSQL (Neon)** - Pacientes salvos permanentemente
-- ✅ **Infraestrutura Replit Auth** - Login, logout, sessões persistentes
+- ✅ **Autenticação JWT** - Email/password com role-based access control
+- ✅ **OAuth Login** - Google, Apple, Microsoft, GitHub (link por email)
+- ✅ **Infraestrutura Replit Auth** - Login, logout, sessões persistentes (legacy)
 - ✅ **Sistema de Histórico de Consultas** - Prontuário digital completo
+- ✅ **Segurança**: Privilege escalation bloqueado, JWT_SECRET obrigatório
 - ✅ Sistema de cotas (10 consultas/dia)
 - ✅ Modo claro/escuro
 - ✅ Design médico profissional

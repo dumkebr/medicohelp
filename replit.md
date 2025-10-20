@@ -241,6 +241,17 @@ O projeto usa o padrão fullstack JavaScript com:
 2. Proteger rotas da API com middleware `isAuthenticated`
 3. Adicionar botão de logout no header
 
+### ⚡ Status da API OpenAI
+
+**✅ API TOTALMENTE OPERACIONAL** (atualizado em 20/10/2025)
+- Conta OpenAI com créditos ativos
+- GPT-4o-mini funcionando sem limitações
+- Todos os endpoints testados e validados:
+  - ✅ Chat médico (/api/chat)
+  - ✅ Análise de exames (/api/upload)
+  - ✅ Busca PubMed (/api/medsearch)
+  - ✅ Resumos com citações (/api/medsummary)
+
 ## Funcionalidade: Sistema de Histórico de Consultas
 
 O sistema agora oferece prontuário digital completo com:

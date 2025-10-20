@@ -26,7 +26,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Configuração do multer para upload de arquivos
+// Configuração do multer para upload de arquivos (exames)
 const upload = multer({
   dest: "uploads/",
   limits: {
@@ -40,6 +40,37 @@ const upload = multer({
       cb(null, true);
     } else {
       cb(new Error("Tipo de arquivo não suportado. Use JPEG, PNG ou PDF."));
+    }
+  },
+});
+
+// Configuração do multer para upload de avatars
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/avatars/");
+  },
+  filename: (req, file, cb) => {
+    const userId = (req as any).authUser?.userId;
+    if (!userId) {
+      return cb(new Error("Usuário não autenticado"), "");
+    }
+    const ext = path.extname(file.originalname);
+    cb(null, `${userId}${ext}`);
+  },
+});
+
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits: {
+    fileSize: 2 * 1024 * 1024, // 2MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png/;
+    const mimetype = allowedTypes.test(file.mimetype);
+    if (mimetype) {
+      cb(null, true);
+    } else {
+      cb(new Error("Tipo de arquivo não suportado. Use JPEG ou PNG."));
     }
   },
 });
@@ -290,6 +321,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Erro ao atualizar usuário" });
     }
   });
+
+  // POST /users/me/avatar - Upload de avatar (protegido com JWT)
+  app.post("/users/me/avatar", authMiddleware, avatarUpload.single("file"), async (req, res) => {
+    try {
+      if (!req.authUser) {
+        return res.status(401).json({ error: "Usuário não autenticado" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "Nenhum arquivo enviado" });
+      }
+
+      const avatarUrl = `/static/avatars/${req.file.filename}`;
+      await storage.updateUser(req.authUser.userId, { avatarUrl });
+
+      res.json({ avatarUrl });
+    } catch (error: any) {
+      console.error("Erro ao fazer upload do avatar:", error);
+      res.status(500).json({ error: "Erro ao fazer upload do avatar" });
+    }
+  });
+
+  // Servir arquivos estáticos de avatars
+  app.use("/static/avatars", (req, res, next) => {
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    next();
+  });
+  app.use("/static/avatars", require("express").static(path.join(process.cwd(), "uploads/avatars")));
 
   // ===== OAUTH ROUTES =====
   const OAUTH_BASE_URL = process.env.OAUTH_BASE_URL || "http://localhost:5000";

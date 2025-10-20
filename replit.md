@@ -81,7 +81,7 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
 - Perguntas clínicas com contexto médico
 - Histórico completo de conversação
 - Suporte a anexos (imagens e PDFs)
-- Limite de 50 consultas diárias por usuário
+- Limite de 10 consultas diárias por usuário
 
 ### 2. Análise de Exames
 - Upload de múltiplos arquivos (até 10 por vez)
@@ -100,10 +100,10 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
 - Feedback visual (toasts) para todas as operações
 
 ### 4. Sistema de Cotas
-- Limite diário de 50 requisições
-- Contador em tempo real no header
-- Reset automático a cada dia
-- Controle por usuário (userId)
+- Limite diário de 10 requisições por IP
+- Headers RateLimit-* para monitoramento
+- Reset automático a cada 24 horas
+- Implementado com express-rate-limit
 
 ## Endpoints da API
 
@@ -210,7 +210,7 @@ O projeto usa o padrão fullstack JavaScript com:
 - ✅ **Persistência PostgreSQL (Neon)** - Pacientes salvos permanentemente
 - ✅ **Infraestrutura Replit Auth** - Login, logout, sessões persistentes
 - ✅ **Sistema de Histórico de Consultas** - Prontuário digital completo
-- ✅ Sistema de cotas (50 consultas/dia)
+- ✅ Sistema de cotas (10 consultas/dia)
 - ✅ Modo claro/escuro
 - ✅ Design médico profissional
 
@@ -268,7 +268,7 @@ O sistema agora oferece prontuário digital completo com:
 - Sistema em Beta Gratuito
 - IA como ferramenta de apoio, não substitui julgamento médico
 - **Todos os dados persistem no PostgreSQL** (pacientes e consultas não são perdidos)
-- Limite de 50 consultas/uploads por dia por usuário
+- Limite de 10 consultas/uploads por dia por usuário
 - Autenticação disponível mas não obrigatória no momento
 
 **⚠️ AVISO DE SEGURANÇA (Beta/Demo):**

@@ -52,7 +52,9 @@ export type User = typeof users.$inferSelect;
 export const userSettings = pgTable("user_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  defaultStyle: text("default_style").notNull().default("tradicional").$type<"tradicional" | "soap">(),
+  defaultStyle: text("default_style").notNull().default("tradicional").$type<"tradicional" | "soap" | "personalizado">(),
+  customTemplate: text("custom_template"),
+  explanatoryModeEnabled: boolean("explanatory_mode_enabled").default(false).notNull(),
   showPediatria: boolean("show_pediatria").default(true).notNull(),
   showGestante: boolean("show_gestante").default(true).notNull(),
   showEmergencia: boolean("show_emergencia").default(true).notNull(),
@@ -61,7 +63,7 @@ export const userSettings = pgTable("user_settings", {
 });
 
 export const insertUserSettingsSchema = createInsertSchema(userSettings, {
-  defaultStyle: z.enum(["tradicional", "soap"]),
+  defaultStyle: z.enum(["tradicional", "soap", "personalizado"]),
 }).omit({
   id: true,
 });

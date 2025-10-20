@@ -1,0 +1,64 @@
+Refine MédicoHelp dual-mode behavior: Clinical mode (default) and Explanatory mode (with optional Evidence access).
+
+Objective:
+Ensure MédicoHelp operates in two distinct modes:
+
+---
+
+### 1️⃣ MODO CLÍNICO (PADRÃO)
+- Respostas diretas, estruturadas e prontas para prontuário médico.
+- Linguagem profissional, sem explicações, justificativas ou revisões teóricas.
+- Sempre segue o estilo configurado no perfil do médico:
+  - Tradicional (MédicoHelp)
+  - SOAP
+  - Personalizado (modelo próprio)
+- Estrutura típica:
+  **QUEIXA PRINCIPAL**, **HISTÓRIA CLÍNICA**, **EXAME FÍSICO**, **CONDUTA**, **EVOLUÇÃO**.
+- Regras:
+  - Não iniciar com frases de análise ou raciocínio (“É importante lembrar que...”).
+  - Não citar diretrizes, referências ou orientações teóricas.
+  - Foco absoluto em prontuário.
+  - Exemplos:
+    - Entrada: “faça história clínica de herpes zoster”
+      → Saída: **QUEIXA PRINCIPAL:** Lesões vesiculares dolorosas em trajeto dérmico há 3 dias.  
+        **HISTÓRIA CLÍNICA:** Início súbito com ardência e dor em trajeto nervoso...  
+        **EXAME FÍSICO:** Lesões vesiculares agrupadas em trajeto de nervo...  
+        **CONDUTA:** Analgesia, antiviral oral, orientações.
+
+---
+
+### 2️⃣ MODO EXPLICATIVO (ATIVADO AUTOMATICAMENTE)
+- Ativa quando o médico usa comandos como:
+  “explica”, “me ensina”, “justifica”, “por quê”, “base teórica”, “evidência”, “fundamento”.
+- Pode acessar e resumir automaticamente informações do módulo:
+  **Evidências Clínicas (Base Científica)** (antigo Perplexity).
+- O uso das Evidências Clínicas é silencioso — não exibe links nem citações, apenas aplica o conhecimento de forma resumida e prática.
+- Linguagem: objetiva e médica, sem “achismos”.
+- Estrutura:
+  - Resumo clínico do tema.
+  - Diretrizes nacionais/internacionais (se houver).
+  - Racional da conduta.
+  - Conclusão prática (curta).
+- Exemplo:
+  - Entrada: “me explica a conduta para herpes zoster”
+    → Saída:
+      “A conduta baseia-se em reduzir dor e replicação viral. Antivirais (aciclovir, valaciclovir) reduzem complicações se iniciados até 72h. Analgesia e acompanhamento para neuralgia pós-herpética. Fonte: diretrizes de infecções virais cutâneas.”
+
+---
+
+### 3️⃣ COMPORTAMENTO GERAL
+- Padrão inicial: 🩺 **Modo Clínico**
+- O modo pode ser alternado manualmente no cabeçalho do chat:
+  🩺 “Modo Clínico” / 📘 “Modo Explicativo”
+- Tooltip:  
+  “Responde em formato de prontuário (modo clínico).  
+  Use o modo explicativo para ver fundamentos e evidências médicas.”
+- Nunca misturar os modos: se estiver em modo clínico, não citar diretrizes; se explicativo, não formatar como prontuário.
+
+---
+
+### 4️⃣ SEGURANÇA E PERSONALIZAÇÃO
+- O médico pode definir no perfil se o modo explicativo usa ou não “Evidências Clínicas”.
+  (checkbox: “Permitir uso de Evidências Clínicas em modo explicativo”)
+- Logs devem registrar quando a IA acessou evidências externas.
+- Nenhum dado pessoal ou de paciente é usado para pesquisa.

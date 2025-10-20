@@ -32,6 +32,7 @@ import OpenAI from "openai";
 import fs from "fs/promises";
 import path from "path";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { retryWithBackoff } from "./utils/retry";
 
 // Referência ao blueprint javascript_openai para integração OpenAI
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
@@ -725,8 +726,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error("Erro ao criar diretório uploads:", error);
   }
 
-  // ===== ENDPOINT: Chat Médico =====
+  // ===== ENDPOINT: Chat Médico (SSE Streaming) =====
   app.post("/api/chat", async (req, res) => {
+    const startTime = Date.now();
+    
     try {
       const userId = req.headers["x-user-id"] as string || "demo-doctor";
       
@@ -768,37 +771,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { role: "user", content: message },
       ];
 
-      // Chamar OpenAI GPT-5
-      // GPT-5 usa reasoning tokens que contam para o limite, então precisa de mais tokens
-      const completion = await openai.chat.completions.create({
-        model: "gpt-5",
-        messages,
-        max_completion_tokens: 16000,
-      });
+      // Set up SSE headers
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      res.flushHeaders();
 
-      const answer = completion.choices[0]?.message?.content || "Desculpe, não foi possível processar sua pergunta.";
+      // Helper to send SSE event
+      const sendEvent = (event: string, data: any) => {
+        res.write(`event: ${event}\n`);
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      };
 
-      // Incrementar quota
-      await storage.incrementQuota(userId);
-      const newQuota = await checkQuota(userId);
+      let fullAnswer = "";
+      let tokenCount = 0;
 
-      res.json({
-        answer,
-        remaining: newQuota.remaining,
-      });
+      try {
+        // Call OpenAI with retry logic and streaming
+        await retryWithBackoff(async () => {
+          const stream = await openai.chat.completions.create({
+            model: "gpt-5",
+            messages,
+            max_completion_tokens: 16000,
+            stream: true,
+          });
+
+          // Process stream chunks
+          for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content;
+            
+            if (content) {
+              fullAnswer += content;
+              tokenCount++;
+
+              // Send chunk to client
+              sendEvent("chunk", { content });
+            }
+          }
+
+          // Stream completed successfully
+          return fullAnswer;
+        }, 3, 2000, 45000); // 3 attempts, 2s base delay, 45s timeout
+
+        // Increment quota after successful completion
+        await storage.incrementQuota(userId);
+        const newQuota = await checkQuota(userId);
+
+        // Calculate duration
+        const duration = Date.now() - startTime;
+
+        // Log analytics
+        console.log(`Chat completion: ${tokenCount} tokens in ${duration}ms for user ${userId}`);
+
+        // Send completion event with metadata
+        sendEvent("complete", {
+          remaining: newQuota.remaining,
+          duration,
+          tokens: tokenCount,
+        });
+
+        res.end();
+      } catch (streamError: any) {
+        console.error("Erro no streaming do chat:", streamError);
+        
+        // Send error event to client
+        sendEvent("error", {
+          message: streamError.message?.includes("Timeout") 
+            ? "⚠️ Conexão lenta. Tente novamente ou verifique sua chave API."
+            : "Erro ao processar chat. Por favor, tente novamente.",
+        });
+
+        res.end();
+      }
     } catch (error: any) {
       console.error("Erro no chat:", error);
       
-      if (error.name === "ZodError") {
-        return res.status(400).json({
-          error: "Dados inválidos",
-          details: error.errors,
+      // If headers not sent yet, send JSON error
+      if (!res.headersSent) {
+        if (error.name === "ZodError") {
+          return res.status(400).json({
+            error: "Dados inválidos",
+            details: error.errors,
+          });
+        }
+
+        return res.status(500).json({
+          error: error.message || "Erro ao processar chat",
         });
       }
 
-      res.status(500).json({
-        error: error.message || "Erro ao processar chat",
-      });
+      // Otherwise send SSE error
+      res.write(`event: error\n`);
+      res.write(`data: ${JSON.stringify({ message: error.message || "Erro desconhecido" })}\n\n`);
+      res.end();
     }
   });
 

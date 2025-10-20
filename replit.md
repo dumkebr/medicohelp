@@ -156,17 +156,18 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 ## Recent Changes (October 20, 2025)
 
 **Dual-Mode AI System Implementation (Latest):**
-- Implemented two distinct AI modes: Modo Clínico (default) and Modo Explicativo
-- **Modo Clínico**: Clinical scribe for structured documentation (Tradicional/SOAP/Personalizado)
-- **Modo Explicativo**: Educational responses with optional silent PubMed evidence integration
-- Added automatic mode detection based on trigger phrases (e.g., "explica", "me ensina", "por quê")
-- Frontend: Toggle buttons in chat interface with tooltips explaining each mode
-- Backend: Mode-specific system prompts and evidence integration logic
-- Database: Added `explanatory_mode_enabled` and `custom_template` columns to `user_settings`
-- Profile settings: New configuration for evidence in Explanatory Mode + custom template support
-- Documentation styles: Added "Personalizado" option with user-defined templates
-- Silent evidence integration: PubMed searches enrich Explanatory Mode without visible citations
-- Maintains backward compatibility with legacy evidence toggle
+- ✅ Implemented two distinct AI modes: Modo Clínico (default) and Modo Explicativo
+- ✅ **Modo Clínico**: Clinical scribe for structured documentation (Tradicional/SOAP/Personalizado)
+- ✅ **Modo Explicativo**: Educational responses with optional silent PubMed evidence integration
+- ✅ Added automatic mode detection based on trigger phrases (e.g., "explica", "me ensina", "por quê")
+- ✅ Frontend: Toggle buttons in chat interface with tooltips explaining each mode
+- ✅ Backend: Mode-specific system prompts and evidence integration logic
+- ✅ Database: Added `explanatory_mode_enabled` and `custom_template` columns to `user_settings`
+- ✅ Profile settings: New configuration for evidence in Explanatory Mode + custom template support
+- ✅ Documentation styles: Added "Personalizado" option with user-defined templates
+- ✅ Silent evidence integration: PubMed searches enrich Explanatory Mode without visible citations
+- ✅ Maintains backward compatibility with legacy evidence toggle
+- ✅ **Persistence Fix**: Corrected GET/PUT `/users/me` endpoints to properly save and return `customTemplate` and `explanatoryModeEnabled` fields (validated by architect)
 
 **Chat Performance Optimization with SSE Streaming (Production Ready):**
 - Implemented Server-Sent Events (SSE) for `/api/chat` endpoint with real-time streaming

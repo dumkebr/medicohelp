@@ -83,6 +83,12 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
 - Suporte a anexos (imagens e PDFs)
 - Limite de 10 consultas diárias por usuário
 
+### 1.1. Perplexity Médico (Busca Científica)
+- **Busca no PubMed**: GET /api/medsearch?q=termo - Retorna até 8 artigos científicos
+- **Resumo com Citações**: POST /api/medsummary - Gera resumo técnico com citações [n] e bibliografia
+- Integração com E-utilities (NIH/NCBI)
+- Suporte a literatura médica atualizada
+
 ### 2. Análise de Exames
 - Upload de múltiplos arquivos (até 10 por vez)
 - Análise automática com GPT-5 Vision

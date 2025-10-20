@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Send, Paperclip, Loader2, FileImage, X, Save, Brain, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,8 +62,28 @@ export default function Atendimento() {
     },
   });
 
+  // AbortController ref for cancelling streams
+  const streamAbortController = useRef<AbortController | null>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (streamAbortController.current) {
+        streamAbortController.current.abort();
+      }
+    };
+  }, []);
+
   // SSE Chat handler with streaming
   const handleChatStream = async (userMessage: string, chatHistory: any[], enableEvidence: boolean) => {
+    // Cancel any previous stream
+    if (streamAbortController.current) {
+      streamAbortController.current.abort();
+    }
+
+    // Create new AbortController for this request
+    const abortController = new AbortController();
+    streamAbortController.current = abortController;
     setIsStreaming(true);
     setStreamingMessage("");
     setCurrentUserMessage(userMessage);
@@ -72,6 +92,11 @@ export default function Atendimento() {
     let references: ScientificReference[] | undefined;
 
     try {
+      // Timeout safeguard: fail after 60 seconds
+      const timeoutId = setTimeout(() => {
+        abortController.abort();
+      }, 60000);
+
       // Create SSE connection via fetch with streaming
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -83,7 +108,10 @@ export default function Atendimento() {
           message: userMessage,
           history: chatHistory,
         }),
+        signal: abortController.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error("Erro ao conectar com o servidor");
@@ -98,6 +126,7 @@ export default function Atendimento() {
 
       let buffer = "";
       let currentEvent = "";
+      let dataBuffer: string[] = []; // Buffer for multi-line data payloads
 
       while (true) {
         const { done, value } = await reader.read();
@@ -109,15 +138,20 @@ export default function Atendimento() {
         buffer = lines.pop() || ""; // Keep incomplete line in buffer
 
         for (let i = 0; i < lines.length; i++) {
-          const line = lines[i].trim();
+          const line = lines[i];
           
           if (line.startsWith("event:")) {
             currentEvent = line.slice(6).trim();
           } else if (line.startsWith("data:")) {
-            const dataStr = line.slice(5).trim();
+            // Buffer data lines (multi-line data is separated by empty lines)
+            dataBuffer.push(line.slice(5).trim());
+          } else if (line.trim() === "" && dataBuffer.length > 0) {
+            // Empty line signals end of multi-line data payload
+            const fullData = dataBuffer.join("\n");
+            dataBuffer = [];
             
             try {
-              const data = JSON.parse(dataStr);
+              const data = JSON.parse(fullData);
 
               if (currentEvent === "chunk") {
                 fullResponse += data.content;
@@ -129,20 +163,16 @@ export default function Atendimento() {
                 throw new Error(data.message);
               }
             } catch (parseError) {
-              console.error("Failed to parse SSE data:", dataStr, parseError);
+              console.error("Failed to parse SSE data:", fullData, parseError);
             }
             
             currentEvent = ""; // Reset after processing
           }
-          // Empty lines separate events, but we don't need to handle them explicitly
         }
       }
 
-      console.log("[Chat Stream] Stream completed, fullResponse length:", fullResponse.length);
-      
       // CRITICAL: Disable streaming state FIRST to re-enable button immediately
       setIsStreaming(false);
-      console.log("[Chat Stream] isStreaming set to false");
       
       // Fetch scientific references if evidence mode is enabled
       if (enableEvidence && fullResponse) {
@@ -167,19 +197,20 @@ export default function Atendimento() {
       setStreamingMessage("");
       setCurrentUserMessage("");
       
-      console.log("[Chat Stream] All states cleared, ready for next message");
-      
     } catch (error: any) {
       console.error("Erro no chat stream:", error);
       setStreamingMessage("");
       setCurrentUserMessage("");
       setIsStreaming(false); // Explicitly disable streaming state on error
       
-      toast({
-        variant: "destructive",
-        title: "Erro ao processar mensagem",
-        description: error.message || "⚠️ Conexão lenta. Tente novamente ou verifique sua chave API.",
-      });
+      // Don't show error toast for intentional cancellations
+      if (error.name !== "AbortError") {
+        toast({
+          variant: "destructive",
+          title: "Erro ao processar mensagem",
+          description: error.message || "⚠️ Conexão lenta. Tente novamente ou verifique sua chave API.",
+        });
+      }
     }
   };
 
@@ -306,9 +337,6 @@ export default function Atendimento() {
   };
 
   const isLoading = isStreaming || uploadMutation.isPending;
-  
-  // Debug logging for button state
-  console.log("[Button State] isLoading:", isLoading, "isStreaming:", isStreaming, "uploadPending:", uploadMutation.isPending);
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">

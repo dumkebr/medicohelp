@@ -18,6 +18,7 @@ import Pacientes from "@/pages/pacientes";
 import HistoricoPaciente from "@/pages/historico-paciente";
 import MeuPerfil from "@/pages/meu-perfil";
 import Sobre from "@/pages/sobre";
+import EmBreve from "@/pages/em-breve";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import ForgotPassword from "@/pages/forgot-password";
@@ -76,6 +77,9 @@ function ProtectedRouter() {
         <Route path="/profile" component={MeuPerfil} />
         <Route path="/meu-perfil" component={MeuPerfil} />
         <Route path="/sobre" component={Sobre} />
+        <Route path="/pediatria" component={EmBreve} />
+        <Route path="/gestante" component={EmBreve} />
+        <Route path="/emergencia" component={EmBreve} />
         <Route component={NotFound} />
       </Switch>
     </ProtectedRoute>

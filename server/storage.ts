@@ -11,7 +11,8 @@ import {
   type UserWithSettings,
   consultations, 
   type Consultation, 
-  type InsertConsultation 
+  type InsertConsultation,
+  researchAnalytics 
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNotNull } from "drizzle-orm";
@@ -52,6 +53,9 @@ export interface IStorage {
   getQuotaUsed(userId: string): Promise<number>;
   incrementQuota(userId: string): Promise<void>;
   resetQuota(userId: string): Promise<void>;
+  
+  // Research analytics (optional)
+  logResearchQuery(userId: string | null, query: string, provider: string, resultsCount: number): Promise<void>;
 }
 
 export class DbStorage implements IStorage {
@@ -294,6 +298,21 @@ export class DbStorage implements IStorage {
 
   async resetQuota(userId: string): Promise<void> {
     this.quotas.delete(userId);
+  }
+
+  // Research analytics (optional)
+  async logResearchQuery(userId: string | null, query: string, provider: string, resultsCount: number): Promise<void> {
+    try {
+      await db.insert(researchAnalytics).values({
+        userId,
+        query,
+        provider,
+        resultsCount,
+      });
+    } catch (error) {
+      // Log error but don't throw - analytics should never block the main flow
+      console.error("Error logging research query:", error);
+    }
   }
 }
 

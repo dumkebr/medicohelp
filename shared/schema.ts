@@ -290,3 +290,49 @@ export type RequestCodeRequest = z.infer<typeof requestCodeSchema>;
 export type VerifyCodeRequest = z.infer<typeof verifyCodeSchema>;
 export type ForgotPasswordRequest = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordRequest = z.infer<typeof resetPasswordSchema>;
+
+// ===== CLINICAL EVIDENCE / RESEARCH SCHEMAS =====
+
+// Analytics table for clinical evidence feature usage (optional)
+export const researchAnalytics = pgTable("research_analytics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  query: text("query").notNull(),
+  provider: text("provider").notNull(), // "pubmed", "perplexity", etc.
+  resultsCount: integer("results_count").default(0).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index("idx_research_analytics_user_id").on(table.userId),
+  index("idx_research_analytics_created_at").on(table.createdAt),
+]);
+
+export const insertResearchAnalyticsSchema = createInsertSchema(researchAnalytics).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertResearchAnalytics = z.infer<typeof insertResearchAnalyticsSchema>;
+export type ResearchAnalytics = typeof researchAnalytics.$inferSelect;
+
+// Scientific reference interface
+export interface ScientificReference {
+  title: string;
+  url: string;
+  source?: string; // "PubMed", "Ministério da Saúde", etc.
+  authors?: string;
+  year?: string;
+}
+
+// Research request schema
+export const researchRequestSchema = z.object({
+  query: z.string().min(1, "Query não pode estar vazia"),
+  maxSources: z.number().min(1).max(10).optional().default(5),
+});
+
+export type ResearchRequest = z.infer<typeof researchRequestSchema>;
+
+// Research response interface
+export interface ResearchResponse {
+  answer: string;
+  references: ScientificReference[];
+}

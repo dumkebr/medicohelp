@@ -17,13 +17,16 @@ import {
   verifyCodeSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
-  type AuthResponse 
+  researchRequestSchema,
+  type AuthResponse,
+  type ResearchResponse 
 } from "@shared/schema";
 import { generateToken, authMiddleware } from "./middleware/auth";
 import { configurePassport } from "./passport-config";
 import { createVerificationCode, verifyCode, markEmailVerified, markPhoneVerified } from "./services/verification";
 import { sendVerificationEmail, isEmailConfigured } from "./services/email";
 import { sendVerificationSMS, isSmsConfigured } from "./services/sms";
+import { isResearchAvailable, searchScientificLiterature } from "./services/research";
 import OpenAI from "openai";
 import fs from "fs/promises";
 import path from "path";
@@ -782,6 +785,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(500).json({
         error: error.message || "Erro ao processar chat",
+      });
+    }
+  });
+
+  // ===== ENDPOINT: Clinical Evidence Research =====
+  // IMPORTANT: This endpoint is REFERENCE-ONLY and should NEVER affect medical output logic
+  app.post("/api/research", authMiddleware, async (req, res) => {
+    try {
+      // Check if research service is configured
+      if (!isResearchAvailable()) {
+        return res.status(503).json({
+          error: "Serviço de evidências clínicas não configurado",
+          message: "Configure SEARCH_PROVIDER e SEARCH_API_KEY para ativar este recurso",
+        });
+      }
+
+      // Validate request
+      const validatedData = researchRequestSchema.parse(req.body);
+      const { query, maxSources = 5 } = validatedData;
+
+      // Search for scientific literature
+      const references = await searchScientificLiterature(query, maxSources);
+
+      // Log analytics (optional, non-blocking)
+      const userId = req.authUser?.userId || null;
+      const provider = process.env.SEARCH_PROVIDER || "pubmed";
+      await storage.logResearchQuery(userId, query, provider, references.length);
+
+      // Return response (REFERENCE-ONLY)
+      const response: ResearchResponse = {
+        answer: "", // Empty - this is handled by the regular chat endpoint
+        references,
+      };
+
+      res.json(response);
+    } catch (error: any) {
+      console.error("Erro na pesquisa científica:", error);
+      
+      if (error.name === "ZodError") {
+        return res.status(400).json({
+          error: "Dados inválidos",
+          details: error.errors,
+        });
+      }
+
+      res.status(500).json({
+        error: error.message || "Erro ao buscar evidências clínicas",
       });
     }
   });

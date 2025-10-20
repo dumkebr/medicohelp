@@ -1,10 +1,17 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Send, Paperclip, Loader2, FileImage, X, Save } from "lucide-react";
+import { Send, Paperclip, Loader2, FileImage, X, Save, Brain, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -14,11 +21,12 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { FileAttachment, Patient } from "@shared/schema";
+import type { FileAttachment, Patient, ScientificReference } from "@shared/schema";
 
 interface ChatHistoryItem {
   user: string;
   assistant: string;
+  references?: ScientificReference[];
 }
 
 export default function Atendimento() {
@@ -27,21 +35,42 @@ export default function Atendimento() {
   const [files, setFiles] = useState<File[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
   const [savedAttachments, setSavedAttachments] = useState<any[]>([]);
+  const [evidenceEnabled, setEvidenceEnabled] = useState(false);
+  const [isResearchAvailable, setIsResearchAvailable] = useState(true);
   const { toast } = useToast();
 
   const { data: patients } = useQuery<Patient[]>({
     queryKey: ["/api/patients"],
   });
 
+  const researchMutation = useMutation({
+    mutationFn: async (query: string) => {
+      const response = await apiRequest("POST", "/api/research", {
+        query,
+        maxSources: 5,
+      });
+      return response as unknown as { answer: string; references: ScientificReference[] };
+    },
+    onError: (error: any) => {
+      if (error.message?.includes("não configurado")) {
+        setIsResearchAvailable(false);
+        setEvidenceEnabled(false);
+      }
+    },
+  });
+
   const chatMutation = useMutation({
-    mutationFn: async (data: { message: string; history: any[] }) => {
+    mutationFn: async (data: { message: string; history: any[]; enableEvidence: boolean }) => {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-User-Id": "demo-doctor",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          message: data.message,
+          history: data.history,
+        }),
       });
       if (!response.ok) {
         const error = await response.json();
@@ -49,10 +78,23 @@ export default function Atendimento() {
       }
       return response.json();
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
+      let references: ScientificReference[] | undefined;
+
+      // If evidence mode is enabled, search for scientific references
+      if (variables.enableEvidence) {
+        try {
+          const researchData = await researchMutation.mutateAsync(variables.message);
+          references = researchData.references;
+        } catch (error) {
+          console.error("Erro ao buscar evidências:", error);
+        }
+      }
+
       setHistory(prev => [...prev, {
         user: variables.message,
-        assistant: data.answer
+        assistant: data.answer,
+        references,
       }]);
       setMessage("");
       setFiles([]);
@@ -180,6 +222,7 @@ export default function Atendimento() {
     chatMutation.mutate({
       message: enrichedMessage,
       history: chatHistory,
+      enableEvidence: evidenceEnabled,
     });
   };
 
@@ -262,9 +305,47 @@ export default function Atendimento() {
                   <p className="text-sm font-semibold text-primary">Você:</p>
                   <p className="text-sm whitespace-pre-wrap">{item.user}</p>
                 </div>
-                <div className="space-y-2 bg-muted/30 p-4 rounded-lg">
+                <div className="space-y-3 bg-muted/30 p-4 rounded-lg">
                   <p className="text-sm font-semibold text-primary">Médico Help:</p>
                   <p className="text-sm whitespace-pre-wrap">{item.assistant}</p>
+                  
+                  {item.references && item.references.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-border space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Brain className="w-4 h-4 text-muted-foreground" />
+                        <p className="text-xs font-semibold text-muted-foreground">
+                          Referências Científicas
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        {item.references.slice(0, 5).map((ref, refIndex) => (
+                          <a
+                            key={refIndex}
+                            href={ref.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-start gap-2 text-xs hover-elevate p-2 rounded-md transition-colors"
+                            data-testid={`link-reference-${refIndex}`}
+                          >
+                            <ExternalLink className="w-3 h-3 mt-0.5 text-muted-foreground flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-foreground line-clamp-2">
+                                {ref.title}
+                              </p>
+                              {(ref.source || ref.authors || ref.year) && (
+                                <p className="text-muted-foreground mt-1">
+                                  {[ref.source, ref.authors, ref.year].filter(Boolean).join(" • ")}
+                                </p>
+                              )}
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground italic mt-2">
+                        Material de apoio. Não substitui avaliação médica.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -274,6 +355,43 @@ export default function Atendimento() {
 
       <Card data-testid="card-chat-input">
         <CardContent className="p-6 space-y-4">
+          <div className="flex items-center gap-3 pb-2 border-b border-border">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="evidence-mode"
+                    checked={evidenceEnabled}
+                    onCheckedChange={setEvidenceEnabled}
+                    disabled={!isResearchAvailable || isLoading}
+                    data-testid="switch-evidence-mode"
+                  />
+                  <Label
+                    htmlFor="evidence-mode"
+                    className={`text-sm font-medium cursor-pointer flex items-center gap-2 ${
+                      !isResearchAvailable ? "opacity-50" : ""
+                    }`}
+                  >
+                    <Brain className="w-4 h-4" />
+                    Evidências Clínicas
+                    {evidenceEnabled && (
+                      <Badge variant="secondary" className="text-xs">
+                        Ativo
+                      </Badge>
+                    )}
+                  </Label>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>
+                  {isResearchAvailable
+                    ? "Fornece fontes de referência bibliográfica — uso apenas como apoio clínico."
+                    : "Evidências Clínicas indisponível (API não configurada)"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+
           <Textarea
             placeholder="Digite sua pergunta clínica... (Ctrl+Enter para enviar)"
             value={message}

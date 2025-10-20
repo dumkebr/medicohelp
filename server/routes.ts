@@ -1,8 +1,18 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
+import bcrypt from "bcryptjs";
 import { storage } from "./storage";
-import { chatRequestSchema, insertPatientSchema, insertConsultationSchema } from "@shared/schema";
+import { 
+  chatRequestSchema, 
+  insertPatientSchema, 
+  insertConsultationSchema,
+  registerSchema,
+  loginSchema,
+  updateUserSchema,
+  type AuthResponse 
+} from "@shared/schema";
+import { generateToken, authMiddleware } from "./middleware/auth";
 import OpenAI from "openai";
 import fs from "fs/promises";
 import path from "path";
@@ -49,15 +59,229 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // (IMPORTANT) Auth middleware from blueprint:javascript_log_in_with_replit
   await setupAuth(app);
 
-  // ===== ENDPOINT: Get authenticated user =====
+  // ===== ENDPOINT: Get authenticated user (Replit Auth - Legacy) =====
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await storage.getUserById(userId);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // ===== JWT AUTHENTICATION ROUTES =====
+  
+  // POST /auth/register - Registro de médicos e estudantes
+  app.post("/auth/register", async (req, res) => {
+    try {
+      const validatedData = registerSchema.parse(req.body);
+      const { name, email, password, role, crm, uf } = validatedData;
+
+      // Verificar se o email já existe
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ error: "Email já cadastrado" });
+      }
+
+      // Hash da senha
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      // Criar usuário
+      const user = await storage.createUser({
+        name,
+        email,
+        passwordHash,
+        role,
+        crm: role === "medico" ? crm : undefined,
+        uf: role === "medico" ? uf : undefined,
+      });
+
+      // Criar configurações padrão do usuário
+      await storage.createUserSettings({
+        userId: user.id,
+        defaultStyle: "tradicional",
+      });
+
+      // Gerar token JWT
+      const token = generateToken({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+      });
+
+      const response: AuthResponse = {
+        token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          crm: user.crm || undefined,
+          uf: user.uf || undefined,
+          avatarUrl: user.avatarUrl || undefined,
+        },
+      };
+
+      res.status(201).json(response);
+    } catch (error: any) {
+      console.error("Erro no registro:", error);
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: "Dados inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: "Erro ao registrar usuário" });
+    }
+  });
+
+  // POST /auth/login - Login com email e senha
+  app.post("/auth/login", async (req, res) => {
+    try {
+      const validatedData = loginSchema.parse(req.body);
+      const { email, password } = validatedData;
+
+      // Buscar usuário por email
+      const user = await storage.getUserByEmail(email);
+      if (!user || !user.passwordHash) {
+        return res.status(401).json({ error: "Email ou senha inválidos" });
+      }
+
+      // Verificar senha
+      const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: "Email ou senha inválidos" });
+      }
+
+      // Gerar token JWT
+      const token = generateToken({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+      });
+
+      const response: AuthResponse = {
+        token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          crm: user.crm || undefined,
+          uf: user.uf || undefined,
+          avatarUrl: user.avatarUrl || undefined,
+        },
+      };
+
+      res.json(response);
+    } catch (error: any) {
+      console.error("Erro no login:", error);
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: "Dados inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: "Erro ao fazer login" });
+    }
+  });
+
+  // GET /auth/me - Retorna usuário autenticado (protegido com JWT)
+  app.get("/auth/me", authMiddleware, async (req, res) => {
+    try {
+      if (!req.authUser) {
+        return res.status(401).json({ error: "Usuário não autenticado" });
+      }
+
+      const user = await storage.getUserById(req.authUser.userId);
+      if (!user) {
+        return res.status(404).json({ error: "Usuário não encontrado" });
+      }
+
+      res.json({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        crm: user.crm || undefined,
+        uf: user.uf || undefined,
+        avatarUrl: user.avatarUrl || undefined,
+      });
+    } catch (error) {
+      console.error("Erro ao buscar usuário:", error);
+      res.status(500).json({ error: "Erro ao buscar usuário" });
+    }
+  });
+
+  // ===== USER SETTINGS ROUTES =====
+
+  // GET /users/me - Retorna usuário com configurações (protegido com JWT)
+  app.get("/users/me", authMiddleware, async (req, res) => {
+    try {
+      if (!req.authUser) {
+        return res.status(401).json({ error: "Usuário não autenticado" });
+      }
+
+      const userWithSettings = await storage.getUserWithSettings(req.authUser.userId);
+      if (!userWithSettings) {
+        return res.status(404).json({ error: "Usuário não encontrado" });
+      }
+
+      res.json({
+        id: userWithSettings.id,
+        name: userWithSettings.name,
+        email: userWithSettings.email,
+        role: userWithSettings.role,
+        crm: userWithSettings.crm || undefined,
+        uf: userWithSettings.uf || undefined,
+        avatarUrl: userWithSettings.avatarUrl || undefined,
+        defaultStyle: userWithSettings.defaultStyle,
+      });
+    } catch (error) {
+      console.error("Erro ao buscar usuário:", error);
+      res.status(500).json({ error: "Erro ao buscar usuário" });
+    }
+  });
+
+  // PUT /users/me - Atualiza nome e configurações (protegido com JWT)
+  // NOTA: Role, CRM e UF não podem ser alterados por segurança (previne privilege escalation)
+  app.put("/users/me", authMiddleware, async (req, res) => {
+    try {
+      if (!req.authUser) {
+        return res.status(401).json({ error: "Usuário não autenticado" });
+      }
+
+      const validatedData = updateUserSchema.parse(req.body);
+      const { name, defaultStyle } = validatedData;
+
+      // Atualizar nome se fornecido
+      if (name) {
+        await storage.updateUser(req.authUser.userId, { name });
+      }
+
+      // Atualizar configurações se fornecido
+      if (defaultStyle) {
+        await storage.updateUserSettings(req.authUser.userId, defaultStyle);
+      }
+
+      // Retornar usuário atualizado
+      const userWithSettings = await storage.getUserWithSettings(req.authUser.userId);
+      if (!userWithSettings) {
+        return res.status(404).json({ error: "Usuário não encontrado" });
+      }
+
+      res.json({
+        id: userWithSettings.id,
+        name: userWithSettings.name,
+        email: userWithSettings.email,
+        role: userWithSettings.role,
+        crm: userWithSettings.crm || undefined,
+        uf: userWithSettings.uf || undefined,
+        avatarUrl: userWithSettings.avatarUrl || undefined,
+        defaultStyle: userWithSettings.defaultStyle,
+      });
+    } catch (error: any) {
+      console.error("Erro ao atualizar usuário:", error);
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: "Dados inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: "Erro ao atualizar usuário" });
     }
   });
 

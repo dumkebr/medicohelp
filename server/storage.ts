@@ -1,11 +1,33 @@
-import { type Patient, type InsertPatient, patients, users, type User, type UpsertUser, consultations, type Consultation, type InsertConsultation } from "@shared/schema";
+import { 
+  type Patient, 
+  type InsertPatient, 
+  patients, 
+  users, 
+  type User, 
+  type InsertUser,
+  userSettings,
+  type UserSettings,
+  type InsertUserSettings,
+  type UserWithSettings,
+  consultations, 
+  type Consultation, 
+  type InsertConsultation 
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
-  // User operations (IMPORTANT - mandatory for Replit Auth from blueprint:javascript_log_in_with_replit)
-  getUser(id: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  // User operations - Email/Password Auth
+  getUserById(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
+  
+  // User settings
+  getUserSettings(userId: string): Promise<UserSettings | undefined>;
+  createUserSettings(settings: InsertUserSettings): Promise<UserSettings>;
+  updateUserSettings(userId: string, defaultStyle: "tradicional" | "soap"): Promise<UserSettings | undefined>;
+  getUserWithSettings(userId: string): Promise<UserWithSettings | undefined>;
   
   // Pacientes
   getPatient(id: string): Promise<Patient | undefined>;
@@ -27,8 +49,8 @@ export interface IStorage {
 }
 
 export class DbStorage implements IStorage {
-  // User operations (IMPORTANT - mandatory for Replit Auth from blueprint:javascript_log_in_with_replit)
-  async getUser(id: string): Promise<User | undefined> {
+  // User operations - Email/Password Auth
+  async getUserById(id: string): Promise<User | undefined> {
     const result = await db
       .select()
       .from(users)
@@ -38,20 +60,76 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
     const result = await db
       .insert(users)
       .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
       .returning();
     
     return result[0];
+  }
+
+  async updateUser(id: string, updates: Partial<InsertUser>): Promise<User | undefined> {
+    const result = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  // User settings
+  async getUserSettings(userId: string): Promise<UserSettings | undefined> {
+    const result = await db
+      .select()
+      .from(userSettings)
+      .where(eq(userSettings.userId, userId))
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async createUserSettings(settings: InsertUserSettings): Promise<UserSettings> {
+    const result = await db
+      .insert(userSettings)
+      .values(settings)
+      .returning();
+    
+    return result[0];
+  }
+
+  async updateUserSettings(userId: string, defaultStyle: "tradicional" | "soap"): Promise<UserSettings | undefined> {
+    const result = await db
+      .update(userSettings)
+      .set({ defaultStyle })
+      .where(eq(userSettings.userId, userId))
+      .returning();
+    
+    return result[0];
+  }
+
+  async getUserWithSettings(userId: string): Promise<UserWithSettings | undefined> {
+    const user = await this.getUserById(userId);
+    if (!user) return undefined;
+
+    const settings = await this.getUserSettings(userId);
+    if (!settings) return undefined;
+
+    return {
+      ...user,
+      defaultStyle: settings.defaultStyle,
+    };
   }
 
   // Pacientes usando PostgreSQL

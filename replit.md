@@ -22,11 +22,11 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
 - **Runtime**: Node.js com Express
 - **IA**: OpenAI GPT-5 (lançado em 7 de agosto de 2025) para chat médico, análise de imagens e resumos científicos
 - **Database**: PostgreSQL (Neon) com Drizzle ORM
-- **Autenticação**: Replit Auth com Passport.js e OIDC
+- **Autenticação**: JWT (JSON Web Tokens) com email/password e role-based access control
+- **Password Hashing**: bcrypt com 10 salt rounds
 - **Storage**: DbStorage com persistência em PostgreSQL
 - **Upload**: Multer para processamento de arquivos
 - **Validação**: Zod para validação de dados
-- **Sessões**: connect-pg-simple para sessões persistentes
 
 ### Estrutura de Dados (PostgreSQL + Drizzle)
 
@@ -47,22 +47,24 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
 **Usuários (Tabela `users`):**
 ```typescript
 {
-  id: serial (Primary Key);
-  replitId: varchar(255) (unique);
-  username: varchar(255);
-  email?: varchar(255);
-  firstName?: varchar(255);
-  lastName?: varchar(255);
-  createdAt: timestamp (default: now());
+  id: varchar (UUID - Primary Key, default: gen_random_uuid());
+  name: text (not null);
+  email: text (not null, unique);
+  password_hash: text;
+  role: 'medico' | 'estudante' (not null);
+  crm?: text (obrigatório para médicos);
+  uf?: char(2) (obrigatório para médicos);
+  avatar_url?: text;
+  createdAt: timestamp with timezone (default: now());
 }
 ```
 
-**Sessões (Tabela `sessions`):**
+**Configurações de Usuário (Tabela `user_settings`):**
 ```typescript
 {
-  sid: varchar(255) (Primary Key);
-  sess: json;
-  expire: timestamp;
+  id: varchar (UUID - Primary Key, default: gen_random_uuid());
+  user_id: varchar (FK -> users.id, cascade delete);
+  default_style: 'tradicional' | 'soap' (default: 'tradicional');
 }
 ```
 
@@ -139,11 +141,53 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
 **PATCH /api/patients/:id** - Atualiza paciente (atualiza no DB)
 **DELETE /api/patients/:id** - Remove paciente (deleta do DB)
 
-### Autenticação (Replit Auth)
-**GET /api/login** - Redireciona para login Replit Auth
-**GET /api/callback** - Callback OAuth após autenticação
-**GET /api/auth/user** - Retorna usuário autenticado atual (protegido)
-**POST /api/logout** - Faz logout do usuário
+### Autenticação (JWT - Email/Password)
+
+**POST /auth/register** - Registro de médicos e estudantes
+```json
+// Médico (requer CRM + UF)
+{
+  "name": "Dr. João Silva",
+  "email": "joao.silva@medico.com",
+  "password": "senha123",
+  "role": "medico",
+  "crm": "123456",
+  "uf": "SP"
+}
+
+// Estudante (sem CRM)
+{
+  "name": "Maria Santos",
+  "email": "maria@estudante.com",
+  "password": "senha123",
+  "role": "estudante"
+}
+```
+Retorna: `{ token: string, user: {...} }` (201)
+
+**POST /auth/login** - Login com email/senha
+```json
+{
+  "email": "joao.silva@medico.com",
+  "password": "senha123"
+}
+```
+Retorna: `{ token: string, user: {...} }` (200)
+
+**GET /auth/me** - Retorna usuário autenticado (protegido com JWT)
+- Header: `Authorization: Bearer <token>`
+
+**GET /users/me** - Retorna usuário com configurações (protegido com JWT)
+- Header: `Authorization: Bearer <token>`
+- Retorna: `{ id, name, email, role, crm, uf, defaultStyle }`
+
+**PUT /users/me** - Atualiza usuário e configurações (protegido com JWT)
+```json
+{
+  "name": "Novo Nome",
+  "defaultStyle": "soap"
+}
+```
 
 Exemplo de criação:
 ```json
@@ -173,8 +217,7 @@ O sistema segue design médico profissional com:
 ```
 OPENAI_API_KEY=sk-... (obrigatório)
 DATABASE_URL=postgresql://... (auto-configurado pelo Replit)
-SESSION_SECRET=... (auto-configurado pelo Replit Auth)
-REPLIT_DB_URL=... (auto-configurado pelo Replit)
+JWT_SECRET=... (para assinatura de tokens JWT)
 ```
 
 ## Dependências Principais
@@ -185,10 +228,8 @@ REPLIT_DB_URL=... (auto-configurado pelo Replit)
 - @neondatabase/serverless: PostgreSQL driver
 - drizzle-orm: ORM para TypeScript
 - drizzle-kit: CLI para migrações
-- passport: Autenticação
-- openid-client: OIDC para Replit Auth
-- express-session: Gerenciamento de sessões
-- connect-pg-simple: Sessões no PostgreSQL
+- bcryptjs: Password hashing
+- jsonwebtoken: JWT authentication
 - multer: Upload de arquivos
 
 **Frontend:**

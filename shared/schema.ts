@@ -1,12 +1,11 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, index, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, index, jsonb, char } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // ===== AUTHENTICATION TABLES =====
-// (IMPORTANT) These tables are mandatory for Replit Auth from blueprint:javascript_log_in_with_replit
 
-// Session storage table
+// Session storage table (legacy - pode ser removida se não usar Replit Auth)
 export const sessions = pgTable(
   "sessions",
   {
@@ -17,19 +16,103 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table
+// User storage table - Email/Password Auth com JWT
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey(),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash"),
+  role: text("role").notNull().$type<"medico" | "estudante">(),
+  crm: text("crm"),
+  uf: char("uf", { length: 2 }),
+  avatarUrl: text("avatar_url"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export type UpsertUser = typeof users.$inferInsert;
+export const insertUserSchema = createInsertSchema(users, {
+  email: z.string().email("Email inválido"),
+  role: z.enum(["medico", "estudante"]),
+  uf: z.string().length(2).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// User settings table
+export const userSettings = pgTable("user_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  defaultStyle: text("default_style").notNull().default("tradicional").$type<"tradicional" | "soap">(),
+});
+
+export const insertUserSettingsSchema = createInsertSchema(userSettings, {
+  defaultStyle: z.enum(["tradicional", "soap"]),
+}).omit({
+  id: true,
+});
+
+export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
+export type UserSettings = typeof userSettings.$inferSelect;
+
+// Auth request/response schemas
+export const registerSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
+  role: z.enum(["medico", "estudante"]),
+  crm: z.string().optional(),
+  uf: z.string().length(2, "UF deve ter 2 caracteres").optional(),
+}).refine((data) => {
+  if (data.role === "medico") {
+    return !!data.crm && !!data.uf;
+  }
+  return true;
+}, {
+  message: "CRM e UF são obrigatórios para médicos",
+  path: ["crm"],
+}).refine((data) => {
+  if (data.role === "estudante") {
+    return !data.crm && !data.uf;
+  }
+  return true;
+}, {
+  message: "Estudantes não devem ter CRM ou UF",
+  path: ["crm"],
+});
+
+export const loginSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(1, "Senha é obrigatória"),
+});
+
+export const updateUserSchema = z.object({
+  name: z.string().min(1).optional(),
+  defaultStyle: z.enum(["tradicional", "soap"]).optional(),
+});
+
+export type RegisterRequest = z.infer<typeof registerSchema>;
+export type LoginRequest = z.infer<typeof loginSchema>;
+export type UpdateUserRequest = z.infer<typeof updateUserSchema>;
+
+export interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: "medico" | "estudante";
+    crm?: string;
+    uf?: string;
+    avatarUrl?: string;
+  };
+}
+
+export interface UserWithSettings extends User {
+  defaultStyle: "tradicional" | "soap";
+}
 
 // ===== APPLICATION TABLES =====
 

@@ -22,6 +22,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { FileAttachment, Patient, ScientificReference } from "@shared/schema";
+import { MedicalToolsMenu } from "@/components/MedicalToolsMenu";
+import { useAuth } from "@/lib/auth";
 
 interface ChatHistoryItem {
   user: string;
@@ -42,6 +44,7 @@ export default function Atendimento() {
   const [streamingMessage, setStreamingMessage] = useState("");
   const [currentUserMessage, setCurrentUserMessage] = useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const { data: patients } = useQuery<Patient[]>({
     queryKey: ["/api/patients"],
@@ -559,6 +562,8 @@ export default function Atendimento() {
                 </Badge>
               )}
             </div>
+
+            {user && <MedicalToolsMenu userRole={user.role} />}
           </div>
 
           <Textarea

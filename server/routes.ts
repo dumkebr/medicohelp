@@ -18,6 +18,7 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   researchRequestSchema,
+  insertNotificationsWaitlistSchema,
   type AuthResponse,
   type ResearchResponse 
 } from "@shared/schema";
@@ -281,6 +282,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         uf: userWithSettings.uf || undefined,
         avatarUrl: userWithSettings.avatarUrl || undefined,
         defaultStyle: userWithSettings.defaultStyle,
+        showPediatria: userWithSettings.showPediatria,
+        showGestante: userWithSettings.showGestante,
+        showEmergencia: userWithSettings.showEmergencia,
       });
     } catch (error) {
       console.error("Erro ao buscar usuário:", error);
@@ -297,7 +301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const validatedData = updateUserSchema.parse(req.body);
-      const { name, defaultStyle } = validatedData;
+      const { name, defaultStyle, showPediatria, showGestante, showEmergencia } = validatedData;
 
       // Atualizar nome se fornecido
       if (name) {
@@ -305,8 +309,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Atualizar configurações se fornecido
-      if (defaultStyle) {
-        await storage.updateUserSettings(req.authUser.userId, defaultStyle);
+      const settingsUpdate: Partial<{ defaultStyle: "tradicional" | "soap"; showPediatria: boolean; showGestante: boolean; showEmergencia: boolean }> = {};
+      if (defaultStyle !== undefined) settingsUpdate.defaultStyle = defaultStyle;
+      if (showPediatria !== undefined) settingsUpdate.showPediatria = showPediatria;
+      if (showGestante !== undefined) settingsUpdate.showGestante = showGestante;
+      if (showEmergencia !== undefined) settingsUpdate.showEmergencia = showEmergencia;
+
+      if (Object.keys(settingsUpdate).length > 0) {
+        await storage.updateUserSettings(req.authUser.userId, settingsUpdate);
       }
 
       // Retornar usuário atualizado
@@ -324,6 +334,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         uf: userWithSettings.uf || undefined,
         avatarUrl: userWithSettings.avatarUrl || undefined,
         defaultStyle: userWithSettings.defaultStyle,
+        showPediatria: userWithSettings.showPediatria,
+        showGestante: userWithSettings.showGestante,
+        showEmergencia: userWithSettings.showEmergencia,
       });
     } catch (error: any) {
       console.error("Erro ao atualizar usuário:", error);
@@ -832,6 +845,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(500).json({
         error: error.message || "Erro ao buscar evidências clínicas",
+      });
+    }
+  });
+
+  // ===== ENDPOINT: Notifications Waitlist (Em breve modules) =====
+  app.post("/api/notify/feature", async (req, res) => {
+    try {
+      // Validate request
+      const validatedData = insertNotificationsWaitlistSchema.parse(req.body);
+      const { feature, email } = validatedData;
+
+      // Add to waitlist (with deduplication)
+      const result = await storage.addToWaitlist(feature, email);
+
+      res.json({
+        success: true,
+        message: "Email cadastrado com sucesso! Você será notificado quando o recurso estiver disponível.",
+        data: result,
+      });
+    } catch (error: any) {
+      console.error("Erro ao cadastrar na waitlist:", error);
+      
+      if (error.name === "ZodError") {
+        return res.status(400).json({
+          error: "Dados inválidos",
+          details: error.errors,
+        });
+      }
+
+      res.status(500).json({
+        error: error.message || "Erro ao cadastrar email na waitlist",
       });
     }
   });

@@ -21,7 +21,8 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 
 **Backend:**
 - **Runtime**: Node.js with Express.
-- **AI**: OpenAI GPT-5 for medical chat, image analysis, and scientific summaries.
+- **AI**: OpenAI GPT-4o for medical chat (with SSE streaming), GPT-5 Vision for image analysis and scientific summaries.
+- **Streaming**: Server-Sent Events (SSE) for real-time chat responses with exponential backoff retry (3 attempts, 2s base delay, 45s timeout).
 - **Database**: PostgreSQL (Neon) with Drizzle ORM.
 - **Authentication**:
   - JWT for role-based access control.
@@ -36,7 +37,7 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 
 **Key Features & Technical Implementations:**
 - **Frontend Authentication UI**: Complete auth flow with login, register (with conditional CRM/UF for doctors), forgot password, and 6-digit verification code pages. Protected route guards with redirect preservation. User profile management with avatar upload.
-- **AI Medical Chat**: Contextual medical queries, full conversation history, attachment support (images, PDFs).
+- **AI Medical Chat with Streaming**: Contextual medical queries with SSE streaming for real-time responses, full conversation history, attachment support (images, PDFs). Progressive UI updates show responses as they stream in. Automatic fallback to non-streaming mode if needed. Disabled send button during streaming prevents duplicate requests. Analytics logging tracks completion duration and token count.
 - **Exam Analysis**: Multi-file upload, automatic analysis with GPT-5 Vision, contextual medical interpretation.
 - **Patient Management (CRUD)**: Complete patient lifecycle management with fields like name, CPF, birth date, phone, address, and observations. Integration with Memed for prescriptions.
 - **Clinical Evidence (Evidências Clínicas)**: Optional toggle-based feature in chat that provides scientific references from PubMed (NIH/NCBI E-utilities) for medical queries. Defaults to OFF. When enabled, displays up to 5 scientific references (title, source, authors, year, clickable links) below AI responses with disclaimer "Material de apoio. Não substitui avaliação médica." References are purely supplementary and DO NOT affect medical chat logic. Gracefully degrades when API not configured. Requires SEARCH_PROVIDER and SEARCH_API_KEY environment variables. Non-blocking analytics logging tracks usage.
@@ -65,12 +66,31 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 
 ## Recent Changes (October 20, 2025)
 
-**Clinical Evidence Feature Implementation:**
+**Chat Performance Optimization with SSE Streaming (Latest):**
+- Implemented Server-Sent Events (SSE) for `/api/chat` endpoint with real-time streaming
+- Added exponential backoff retry logic: 3 attempts, 2s base delay, 45s timeout per attempt
+- Switched to GPT-4o model for better streaming compatibility and faster responses
+- Frontend now progressively renders chat responses as chunks arrive
+- Added streaming state management: `isStreaming`, `streamingMessage`, `currentUserMessage`
+- Spinner shows while waiting for first token with "Gerando resposta..." placeholder
+- Send button automatically disabled during streaming to prevent duplicate requests
+- Graceful error handling with user-friendly timeout message: "⚠️ Conexão lenta. Tente novamente ou verifique sua chave API."
+- Automatic fallback to non-streaming mode if streaming fails
+- Analytics logging for completion duration and token count
+- Created retry utility (`server/utils/retry.ts`) for robust API calls
+
+**"Em Breve" Modules with Waitlist:**
+- Implemented three preview modules: Pediatria, Gestante, Emergência
+- User-controlled visibility toggles in profile settings (all enabled by default)
+- Waitlist system with email signup and duplicate detection (409 error on duplicates)
+- Routes: `/pediatria`, `/gestante`, `/emergencia`
+- Database table: `notifications_waitlist` with unique constraint on (feature, email)
+
+**Clinical Evidence Feature:**
 - Added optional "Evidências Clínicas" toggle in Atendimento page (defaults to OFF)
 - Created `/api/research` endpoint with PubMed E-utilities integration
 - Implemented scientific references display (up to 5 sources per query) with proper attribution
 - References are reference-only and DO NOT affect medical chat logic
 - Graceful degradation when API keys (SEARCH_PROVIDER, SEARCH_API_KEY) not configured
 - Non-blocking analytics logging for usage tracking
-- Full e2e tests verified toggle behavior, badge synchronization, and chat functionality
 - Routes: Added `/atendimento` route to protected router (in addition to `/` route)

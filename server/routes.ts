@@ -786,13 +786,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let fullAnswer = "";
       let tokenCount = 0;
 
+      let streamingFailed = false;
+      
       try {
-        // Call OpenAI with retry logic and streaming
+        // Try streaming with retry logic (using GPT-4o for better compatibility)
         await retryWithBackoff(async () => {
           const stream = await openai.chat.completions.create({
-            model: "gpt-5",
+            model: "gpt-4o",
             messages,
-            max_completion_tokens: 16000,
+            max_tokens: 4096,
             stream: true,
           });
 
@@ -812,57 +814,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Stream completed successfully
           return fullAnswer;
         }, 3, 2000, 45000); // 3 attempts, 2s base delay, 45s timeout
-
-        // Increment quota after successful completion
-        await storage.incrementQuota(userId);
-        const newQuota = await checkQuota(userId);
-
-        // Calculate duration
-        const duration = Date.now() - startTime;
-
-        // Log analytics
-        console.log(`Chat completion: ${tokenCount} tokens in ${duration}ms for user ${userId}`);
-
-        // Send completion event with metadata
-        sendEvent("complete", {
-          remaining: newQuota.remaining,
-          duration,
-          tokens: tokenCount,
-        });
-
-        res.end();
       } catch (streamError: any) {
-        console.error("Erro no streaming do chat:", streamError);
-        
-        // Send error event to client
-        sendEvent("error", {
-          message: streamError.message?.includes("Timeout") 
-            ? "⚠️ Conexão lenta. Tente novamente ou verifique sua chave API."
-            : "Erro ao processar chat. Por favor, tente novamente.",
-        });
-
-        res.end();
+        // Check if it's an organization verification error
+        if (streamError.message?.includes("organization must be verified") || 
+            streamError.message?.includes("streaming")) {
+          console.log("⚠️ Streaming not available, falling back to non-streaming mode...");
+          streamingFailed = true;
+        } else {
+          throw streamError; // Re-throw if it's a different error
+        }
       }
+
+      // Fallback to non-streaming mode if streaming failed
+      if (streamingFailed) {
+        console.log("Using fallback: GPT-4o non-streaming mode");
+        const completion = await retryWithBackoff(async () => {
+          return await openai.chat.completions.create({
+            model: "gpt-4o", // Use GPT-4o for fallback (better streaming support)
+            messages,
+            max_tokens: 4096,
+            stream: false,
+          });
+        }, 2, 1000, 20000); // Reduced: 2 attempts, 1s base delay, 20s timeout
+
+        fullAnswer = completion.choices[0]?.message?.content || "Desculpe, não foi possível processar sua pergunta.";
+        tokenCount = fullAnswer.length;
+
+        // Send the complete response as one chunk
+        sendEvent("chunk", { content: fullAnswer });
+      }
+
+      // Increment quota after successful completion
+      await storage.incrementQuota(userId);
+      const newQuota = await checkQuota(userId);
+
+      // Calculate duration
+      const duration = Date.now() - startTime;
+
+      // Log analytics
+      console.log(`Chat completion: ${tokenCount} tokens in ${duration}ms for user ${userId}`);
+
+      // Send completion event with metadata
+      sendEvent("complete", {
+        remaining: newQuota.remaining,
+        duration,
+        tokens: tokenCount,
+      });
+
+      res.end();
+      
     } catch (error: any) {
       console.error("Erro no chat:", error);
       
-      // If headers not sent yet, send JSON error
+      // Send error event to client via SSE
       if (!res.headersSent) {
-        if (error.name === "ZodError") {
-          return res.status(400).json({
-            error: "Dados inválidos",
-            details: error.errors,
-          });
-        }
-
-        return res.status(500).json({
-          error: error.message || "Erro ao processar chat",
-        });
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+        res.flushHeaders();
       }
-
-      // Otherwise send SSE error
+      
       res.write(`event: error\n`);
-      res.write(`data: ${JSON.stringify({ message: error.message || "Erro desconhecido" })}\n\n`);
+      res.write(`data: ${JSON.stringify({
+        message: error.message?.includes("Timeout") 
+          ? "⚠️ Conexão lenta. Tente novamente ou verifique sua chave API."
+          : error.name === "ZodError"
+          ? "Dados inválidos"
+          : "Erro ao processar chat. Por favor, tente novamente.",
+      })}\n\n`);
       res.end();
     }
   });

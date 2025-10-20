@@ -97,6 +97,7 @@ export default function Atendimento() {
       }
 
       let buffer = "";
+      let currentEvent = "";
 
       while (true) {
         const { done, value } = await reader.read();
@@ -105,30 +106,44 @@ export default function Atendimento() {
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
+        buffer = lines.pop() || ""; // Keep incomplete line in buffer
 
-        for (const line of lines) {
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          
           if (line.startsWith("event:")) {
-            const event = line.slice(6).trim();
-            const nextLine = lines.shift();
+            currentEvent = line.slice(6).trim();
+          } else if (line.startsWith("data:")) {
+            const dataStr = line.slice(5).trim();
             
-            if (nextLine?.startsWith("data:")) {
-              const data = JSON.parse(nextLine.slice(5).trim());
+            try {
+              const data = JSON.parse(dataStr);
 
-              if (event === "chunk") {
+              if (currentEvent === "chunk") {
                 fullResponse += data.content;
                 setStreamingMessage(fullResponse);
-              } else if (event === "complete") {
+              } else if (currentEvent === "complete") {
                 // Stream completed successfully
                 console.log(`Chat completed: ${data.tokens} tokens in ${data.duration}ms`);
-              } else if (event === "error") {
+              } else if (currentEvent === "error") {
                 throw new Error(data.message);
               }
+            } catch (parseError) {
+              console.error("Failed to parse SSE data:", dataStr, parseError);
             }
+            
+            currentEvent = ""; // Reset after processing
           }
+          // Empty lines separate events, but we don't need to handle them explicitly
         }
       }
 
+      console.log("[Chat Stream] Stream completed, fullResponse length:", fullResponse.length);
+      
+      // CRITICAL: Disable streaming state FIRST to re-enable button immediately
+      setIsStreaming(false);
+      console.log("[Chat Stream] isStreaming set to false");
+      
       // Fetch scientific references if evidence mode is enabled
       if (enableEvidence && fullResponse) {
         try {
@@ -146,23 +161,25 @@ export default function Atendimento() {
         references,
       }]);
 
-      // Clear inputs
+      // Clear inputs and streaming state markers
       setMessage("");
       setFiles([]);
       setStreamingMessage("");
       setCurrentUserMessage("");
+      
+      console.log("[Chat Stream] All states cleared, ready for next message");
+      
     } catch (error: any) {
       console.error("Erro no chat stream:", error);
       setStreamingMessage("");
       setCurrentUserMessage("");
+      setIsStreaming(false); // Explicitly disable streaming state on error
       
       toast({
         variant: "destructive",
         title: "Erro ao processar mensagem",
         description: error.message || "⚠️ Conexão lenta. Tente novamente ou verifique sua chave API.",
       });
-    } finally {
-      setIsStreaming(false);
     }
   };
 
@@ -289,6 +306,9 @@ export default function Atendimento() {
   };
 
   const isLoading = isStreaming || uploadMutation.isPending;
+  
+  // Debug logging for button state
+  console.log("[Button State] isLoading:", isLoading, "isStreaming:", isStreaming, "uploadPending:", uploadMutation.isPending);
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">

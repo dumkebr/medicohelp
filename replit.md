@@ -64,11 +64,15 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
 - Suporte a imagens (JPEG, PNG) e PDFs
 - Interpretação médica contextualizada
 
-### 3. Gestão de Pacientes
-- Cadastro completo de pacientes
+### 3. Gestão de Pacientes (CRUD Completo)
+- **Create**: Cadastro completo de novos pacientes
+- **Read**: Listagem e visualização de detalhes
+- **Update**: Edição de informações do paciente
+- **Delete**: Remoção com confirmação via AlertDialog
 - Campos: nome, CPF, data de nascimento, telefone, endereço, observações
-- Listagem organizada por data de cadastro
+- Listagem organizada por data de cadastro (mais recentes primeiro)
 - Integração com Memed para prescrições
+- Feedback visual (toasts) para todas as operações
 
 ### 4. Sistema de Cotas
 - Limite diário de 50 requisições
@@ -97,9 +101,14 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
 - Campo: files[] (múltiplos arquivos)
 - Header: X-User-Id
 
-### Pacientes
+### Pacientes (CRUD Completo)
 **GET /api/patients** - Lista todos os pacientes
+**GET /api/patients/:id** - Busca paciente por ID
 **POST /api/patients** - Cria novo paciente
+**PATCH /api/patients/:id** - Atualiza paciente
+**DELETE /api/patients/:id** - Remove paciente
+
+Exemplo de criação:
 ```json
 {
   "nome": "João da Silva",

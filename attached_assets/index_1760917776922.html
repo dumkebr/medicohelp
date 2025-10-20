@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Médico Help</title>
+  <style>
+    :root { --green:#00B37E; --green-dark:#007A5E; --bg:#FFFFFF; --fg:#222; --card:#FFFFFF; --border:#E5E5E5; --muted:#5a5a5a; }
+    .dark { --bg:#012F25; --fg:#F3F7F6; --card:#013e32; --border:#0b5a49; --muted:#cdd8d5; }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font:15.5px/1.45 system-ui,-apple-system,Segoe UI,Arial,sans-serif;display:flex}
+    aside{width:260px;border-right:1px solid var(--border);background:var(--card);min-height:100vh;position:sticky;top:0}
+    .brand{display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid var(--border)}
+    .brand img{width:28px;height:28px}
+    .brand strong{font-size:18px}
+    .menu{padding:10px}
+    .menu .item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:var(--fg)}
+    .menu .item:hover{background:rgba(0,179,126,0.08)}
+    .menu .item .dot{width:8px;height:8px;background:var(--green);border-radius:50%}
+    .menu .item.active{background:rgba(0,179,126,0.12); font-weight:700;}
+    main{flex:1}
+    header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card)}
+    .wrap{max-width:960px;margin:0 auto;padding:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+    .row{display:flex;gap:8px}
+    textarea{width:100%;min-height:110px;resize:vertical;border-radius:10px;padding:10px;border:1px solid var(--border);background:transparent;color:inherit}
+    input, select{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:transparent;color:inherit}
+    button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;background:var(--green);color:#fff}
+    .secondary{background:var(--green-dark)}
+    .msg{margin:10px 0}
+    .user{font-weight:700;color:var(--green-dark)}
+    .assistant{white-space:pre-wrap}
+    .status{font-size:12px;color:var(--muted)}
+    .files{margin-top:8px}
+    .pill{display:inline-block;background:rgba(0,179,126,0.12);color:var(--green-dark);padding:4px 10px;border-radius:999px;font-size:12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .actions{display:flex;gap:8px;justify-content:flex-end}
+    .list{display:grid;gap:8px}
+    .item-row{display:flex;justify-content:space-between;align-items:center;padding:10px;border:1px solid var(--border);border-radius:10px}
+    .link{color:var(--green-dark);text-decoration:none;font-weight:700}
+  </style>
+</head>
+<body>
+  <aside>
+    <div class="brand">
+      <img src="./logo.svg" alt="Médico Help logo" />
+      <strong>MédicoHelp</strong>
+    </div>
+    <div class="menu">
+      <div class="item active" data-view="atendimento"><span class="dot"></span> Atendimento médico</div>
+      <div class="item" data-view="galeria"><span class="dot"></span> Galeria</div>
+      <div class="item" data-view="gpts"><span class="dot"></span> GPTs</div>
+      <div class="item" data-view="medicohelp"><span class="dot"></span> Medicohelp</div>
+      <hr style="border:none;border-top:1px solid var(--border); margin:10px 0;">
+      <div class="item" data-view="novoPaciente"><span class="dot"></span> <strong>Novo paciente</strong></div>
+      <div class="item" data-view="listaPacientes"><span class="dot"></span> Todos os pacientes</div>
+    </div>
+  </aside>
+  <main>
+    <header>
+      <div><span class="pill">Beta gratuito</span></div>
+      <div class="status">
+        <span id="quota"></span>
+        &nbsp;•&nbsp;
+        <button id="themeBtn" class="secondary">Alternar tema</button>
+      </div>
+    </header>
+    <div class="wrap">
+      <!-- Views -->
+      <div id="view-atendimento" class="view">
+        <div id="history" class="card"></div>
+        <div class="card" style="margin-top:10px;">
+          <div class="row"><textarea id="input" placeholder="Digite sua pergunta clínica..."></textarea></div>
+          <div class="row files"><input type="file" id="fileInput" accept="image/*,application/pdf" multiple /></div>
+          <div class="row" style="margin-top:8px; justify-content:space-between;">
+            <div class="status">Envie até 10 fotos/PDF por vez (conta 1 da cota)</div>
+            <div><button id="send">Enviar</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-novoPaciente" class="view" style="display:none;">
+        <div class="card">
+          <h3>Novo paciente</h3>
+          <div class="grid">
+            <div><label>Nome completo</label><input id="pNome" placeholder="Ex.: João da Silva"/></div>
+            <div><label>CPF</label><input id="pCpf" placeholder="000.000.000-00"/></div>
+            <div><label>Data de nascimento</label><input id="pNasc" type="date"/></div>
+            <div><label>Telefone</label><input id="pTel" placeholder="(00) 00000-0000"/></div>
+          </div>
+          <div style="margin-top:10px;">
+            <label>Endereço</label>
+            <input id="pEnd" placeholder="Rua, número, bairro, cidade"/>
+          </div>
+          <div style="margin-top:10px;">
+            <label>Observações</label>
+            <textarea id="pObs" placeholder="Alergias, comorbidades, convênio..." style="width:100%;min-height:80px"></textarea>
+          </div>
+          <div class="actions" style="margin-top:10px;">
+            <button id="btnSalvarPaciente">Salvar paciente</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-listaPacientes" class="view" style="display:none;">
+        <div class="card">
+          <h3>Pacientes cadastrados</h3>
+          <div id="listaPac" class="list"></div>
+        </div>
+      </div>
+
+      <div id="view-medicohelp" class="view" style="display:none;">
+        <div class="card">
+          <h3>Bem-vindo ao MédicoHelp</h3>
+          <p class="status">Versão Beta • Limite diário exibido no topo • Use o menu para navegar</p>
+          <p><a class="link" href="https://memed.com.br" target="_blank">Abrir Memed</a> — após cadastrar o paciente, prescreva no Memed.</p>
+          <p><a class="link" href="https://cid.who.int/browse" target="_blank">CID-10/11</a> • <a class="link" href="https://bvsms.saude.gov.br/biblioteca/" target="_blank">Guias Ministério da Saúde</a></p>
+        </div>
+      </div>
+
+      <div id="view-galeria" class="view" style="display:none;">
+        <div class="card"><h3>Galeria</h3><p class="status">Em breve.</p></div>
+      </div>
+
+      <div id="view-gpts" class="view" style="display:none;">
+        <div class="card"><h3>GPTs</h3><p class="status">Em breve.</p></div>
+      </div>
+
+    </div>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

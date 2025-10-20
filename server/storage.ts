@@ -1,8 +1,12 @@
-import { type Patient, type InsertPatient, patients } from "@shared/schema";
+import { type Patient, type InsertPatient, patients, users, type User, type UpsertUser } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
+  // User operations (IMPORTANT - mandatory for Replit Auth from blueprint:javascript_log_in_with_replit)
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  
   // Pacientes
   getPatient(id: string): Promise<Patient | undefined>;
   getAllPatients(): Promise<Patient[]>;
@@ -17,6 +21,33 @@ export interface IStorage {
 }
 
 export class DbStorage implements IStorage {
+  // User operations (IMPORTANT - mandatory for Replit Auth from blueprint:javascript_log_in_with_replit)
+  async getUser(id: string): Promise<User | undefined> {
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const result = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    
+    return result[0];
+  }
+
   // Pacientes usando PostgreSQL
   async getPatient(id: string): Promise<Patient | undefined> {
     const result = await db

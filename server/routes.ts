@@ -6,6 +6,7 @@ import { chatRequestSchema, insertPatientSchema } from "@shared/schema";
 import OpenAI from "openai";
 import fs from "fs/promises";
 import path from "path";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 // Referência ao blueprint javascript_openai para integração OpenAI
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
@@ -44,6 +45,22 @@ async function checkQuota(userId: string): Promise<{ allowed: boolean; remaining
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // ===== SETUP: Replit Auth =====
+  // (IMPORTANT) Auth middleware from blueprint:javascript_log_in_with_replit
+  await setupAuth(app);
+
+  // ===== ENDPOINT: Get authenticated user =====
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
   // Criar diretório de uploads se não existir
   try {
     await fs.mkdir("uploads", { recursive: true });

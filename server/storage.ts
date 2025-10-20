@@ -39,7 +39,7 @@ export interface IStorage {
   // User settings
   getUserSettings(userId: string): Promise<UserSettings | undefined>;
   createUserSettings(settings: InsertUserSettings): Promise<UserSettings>;
-  updateUserSettings(userId: string, updates: Partial<Pick<UserSettings, "defaultStyle" | "showPediatria" | "showGestante" | "showEmergencia" | "historyRetentionMax" | "historyRetentionDays">>): Promise<UserSettings | undefined>;
+  updateUserSettings(userId: string, updates: Partial<Pick<UserSettings, "defaultStyle" | "customTemplate" | "explanatoryModeEnabled" | "showPediatria" | "showGestante" | "showEmergencia" | "historyRetentionMax" | "historyRetentionDays">>): Promise<UserSettings | undefined>;
   getUserWithSettings(userId: string): Promise<UserWithSettings | undefined>;
   
   // Notifications waitlist
@@ -186,7 +186,7 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
-  async updateUserSettings(userId: string, updates: Partial<Pick<UserSettings, "defaultStyle" | "showPediatria" | "showGestante" | "showEmergencia">>): Promise<UserSettings | undefined> {
+  async updateUserSettings(userId: string, updates: Partial<Pick<UserSettings, "defaultStyle" | "customTemplate" | "explanatoryModeEnabled" | "showPediatria" | "showGestante" | "showEmergencia" | "historyRetentionMax" | "historyRetentionDays">>): Promise<UserSettings | undefined> {
     const result = await db
       .update(userSettings)
       .set(updates)
@@ -206,6 +206,8 @@ export class DbStorage implements IStorage {
     return {
       ...user,
       defaultStyle: settings.defaultStyle,
+      customTemplate: settings.customTemplate || undefined,
+      explanatoryModeEnabled: settings.explanatoryModeEnabled,
       showPediatria: settings.showPediatria,
       showGestante: settings.showGestante,
       showEmergencia: settings.showEmergencia,

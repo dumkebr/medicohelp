@@ -125,7 +125,9 @@ export const loginSchema = z.object({
 
 export const updateUserSchema = z.object({
   name: z.string().min(1).optional(),
-  defaultStyle: z.enum(["tradicional", "soap"]).optional(),
+  defaultStyle: z.enum(["tradicional", "soap", "personalizado"]).optional(),
+  customTemplate: z.string().optional(),
+  explanatoryModeEnabled: z.boolean().optional(),
   showPediatria: z.boolean().optional(),
   showGestante: z.boolean().optional(),
   showEmergencia: z.boolean().optional(),
@@ -151,7 +153,9 @@ export interface AuthResponse {
 }
 
 export interface UserWithSettings extends User {
-  defaultStyle: "tradicional" | "soap";
+  defaultStyle: "tradicional" | "soap" | "personalizado";
+  customTemplate?: string;
+  explanatoryModeEnabled: boolean;
   showPediatria: boolean;
   showGestante: boolean;
   showEmergencia: boolean;

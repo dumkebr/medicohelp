@@ -283,6 +283,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         uf: userWithSettings.uf || undefined,
         avatarUrl: userWithSettings.avatarUrl || undefined,
         defaultStyle: userWithSettings.defaultStyle,
+        customTemplate: userWithSettings.customTemplate || undefined,
+        explanatoryModeEnabled: userWithSettings.explanatoryModeEnabled,
         showPediatria: userWithSettings.showPediatria,
         showGestante: userWithSettings.showGestante,
         showEmergencia: userWithSettings.showEmergencia,
@@ -302,7 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const validatedData = updateUserSchema.parse(req.body);
-      const { name, defaultStyle, showPediatria, showGestante, showEmergencia } = validatedData;
+      const { name, defaultStyle, customTemplate, explanatoryModeEnabled, showPediatria, showGestante, showEmergencia } = validatedData;
 
       // Atualizar nome se fornecido
       if (name) {
@@ -310,8 +312,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Atualizar configurações se fornecido
-      const settingsUpdate: Partial<{ defaultStyle: "tradicional" | "soap"; showPediatria: boolean; showGestante: boolean; showEmergencia: boolean }> = {};
+      const settingsUpdate: Partial<{ defaultStyle: "tradicional" | "soap" | "personalizado"; customTemplate: string; explanatoryModeEnabled: boolean; showPediatria: boolean; showGestante: boolean; showEmergencia: boolean }> = {};
       if (defaultStyle !== undefined) settingsUpdate.defaultStyle = defaultStyle;
+      if (customTemplate !== undefined) settingsUpdate.customTemplate = customTemplate;
+      if (explanatoryModeEnabled !== undefined) settingsUpdate.explanatoryModeEnabled = explanatoryModeEnabled;
       if (showPediatria !== undefined) settingsUpdate.showPediatria = showPediatria;
       if (showGestante !== undefined) settingsUpdate.showGestante = showGestante;
       if (showEmergencia !== undefined) settingsUpdate.showEmergencia = showEmergencia;
@@ -335,6 +339,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         uf: userWithSettings.uf || undefined,
         avatarUrl: userWithSettings.avatarUrl || undefined,
         defaultStyle: userWithSettings.defaultStyle,
+        customTemplate: userWithSettings.customTemplate || undefined,
+        explanatoryModeEnabled: userWithSettings.explanatoryModeEnabled,
         showPediatria: userWithSettings.showPediatria,
         showGestante: userWithSettings.showGestante,
         showEmergencia: userWithSettings.showEmergencia,

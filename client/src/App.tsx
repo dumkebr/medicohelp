@@ -53,7 +53,7 @@ function App() {
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-muted-foreground" data-testid="text-quota">
-                      Limite diário: 50 consultas
+                      Limite diário: 10 consultas
                     </span>
                     <ThemeToggle />
                   </div>

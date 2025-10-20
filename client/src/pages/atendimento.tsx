@@ -356,40 +356,42 @@ export default function Atendimento() {
       <Card data-testid="card-chat-input">
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center gap-3 pb-2 border-b border-border">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="evidence-mode"
-                    checked={evidenceEnabled}
-                    onCheckedChange={setEvidenceEnabled}
-                    disabled={!isResearchAvailable || isLoading}
-                    data-testid="switch-evidence-mode"
-                  />
-                  <Label
-                    htmlFor="evidence-mode"
-                    className={`text-sm font-medium cursor-pointer flex items-center gap-2 ${
-                      !isResearchAvailable ? "opacity-50" : ""
-                    }`}
-                  >
-                    <Brain className="w-4 h-4" />
-                    Evidências Clínicas
-                    {evidenceEnabled && (
-                      <Badge variant="secondary" className="text-xs">
-                        Ativo
-                      </Badge>
-                    )}
-                  </Label>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p>
-                  {isResearchAvailable
-                    ? "Fornece fontes de referência bibliográfica — uso apenas como apoio clínico."
-                    : "Evidências Clínicas indisponível (API não configurada)"}
-                </p>
-              </TooltipContent>
-            </Tooltip>
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="evidence-mode"
+                      checked={evidenceEnabled}
+                      onCheckedChange={setEvidenceEnabled}
+                      disabled={!isResearchAvailable || isLoading}
+                      data-testid="switch-evidence-mode"
+                    />
+                    <Label
+                      htmlFor="evidence-mode"
+                      className={`text-sm font-medium cursor-pointer flex items-center gap-2 ${
+                        !isResearchAvailable ? "opacity-50" : ""
+                      }`}
+                    >
+                      <Brain className="w-4 h-4" />
+                      Evidências Clínicas
+                    </Label>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>
+                    {isResearchAvailable
+                      ? "Fornece fontes de referência bibliográfica — uso apenas como apoio clínico."
+                      : "Evidências Clínicas indisponível (API não configurada)"}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+              {evidenceEnabled && (
+                <Badge variant="secondary" className="text-xs" data-testid="badge-evidence-active">
+                  Ativo
+                </Badge>
+              )}
+            </div>
           </div>
 
           <Textarea

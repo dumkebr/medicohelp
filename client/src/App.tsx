@@ -68,6 +68,7 @@ function ProtectedRouter() {
     <ProtectedRoute>
       <Switch>
         <Route path="/" component={Atendimento} />
+        <Route path="/atendimento" component={Atendimento} />
         <Route path="/novo-paciente" component={NovoPaciente} />
         <Route path="/pacientes/:id/historico" component={HistoricoPaciente} />
         <Route path="/pacientes/:id/editar" component={EditarPaciente} />

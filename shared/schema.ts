@@ -356,6 +356,31 @@ export type VerifyCodeRequest = z.infer<typeof verifyCodeSchema>;
 export type ForgotPasswordRequest = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordRequest = z.infer<typeof resetPasswordSchema>;
 
+// ===== MEDICAL TOOLS AUDIT TABLE =====
+
+export const medicalToolsAudit = pgTable("medical_tools_audit", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: text("role").notNull(),
+  tool: text("tool").notNull(),
+  payloadSummary: text("payload_summary"),
+  status: text("status").notNull().$type<"ok" | "fail">(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index("idx_medical_tools_audit_user_created").on(table.userId, table.createdAt),
+  index("idx_medical_tools_audit_tool").on(table.tool),
+]);
+
+export const insertMedicalToolsAuditSchema = createInsertSchema(medicalToolsAudit, {
+  status: z.enum(["ok", "fail"]),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertMedicalToolsAudit = z.infer<typeof insertMedicalToolsAuditSchema>;
+export type MedicalToolsAudit = typeof medicalToolsAudit.$inferSelect;
+
 // ===== CLINICAL EVIDENCE / RESEARCH SCHEMAS =====
 
 // Analytics table for clinical evidence feature usage (optional)

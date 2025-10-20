@@ -1,0 +1,57 @@
+Enable full medical feature access for doctors AND medical students (interns).
+
+Who gets full access:
+- if req.user.role IN ['medico', 'estudante'] OR req.user.verified_crm === true:
+  UNLOCK:
+  1) Posologia completa (adulto/pediatria) c/ ajustes renais/hepáticos e limites máx.
+  2) Calculadoras clínicas (Alvarado, CURB-65, Centor/McIsaac, Wells DVT/PE, PERC, CHA2DS2-VASc, qSOFA, etc.)
+  3) Condutas e planos curtos (sem substituir protocolo local)
+  4) Diferenciais, pedidos de exame e interpretação básica de resultados
+  5) Geração de anamnese/evolução conforme estilo do perfil (Tradicional/SOAP/Personalizado)
+  6) Evidências Clínicas no modo explicativo (se SEARCH_PROVIDER configurado)
+
+Keep restricted only for non-medical roles (leigos/anônimos).
+
+UI:
+- Header chip quando desbloqueado: "Modo Profissional ativo"
+- Banner discreto em respostas médicas:
+  • role='medico': "Suporte à decisão clínica. Revise com julgamento médico."
+  • role='estudante': "Conteúdo para prática supervisionada. Não prescrever sem preceptor."
+- Menu “Ferramentas” ao lado do chat:
+  • Posologia • Calculadoras • Condutas • Exames • Diferenciais
+- Toggle já existente: 🩺 Modo Clínico (padrão) / 📘 Modo Explicativo.
+  - Em Explicativo, permitir uso de Evidências Clínicas (se habilitado).
+
+Endpoints (JWT):
+- POST /tools/posologia {principio_ativo, indicacao, idade_anos, peso_kg?, creatinina_clear_mlmin?, gravidez?, lactacao?, alergias?}
+  -> retorna esquema(s), ajustes, alertas, referência curta
+- POST /tools/calculadora/:nome {variaveis:{}}
+  -> score, faixa de risco, interpretação breve
+- POST /tools/conduta {quadro,resumo?} -> plano objetivo (sem receita)
+- POST /tools/exames/pedir {quadro} -> lista sugerida com justificativa curta
+- POST /tools/diferenciais {quadro} -> top-5 com red flags
+
+Guarda inteligente (apenas o mínimo):
+- Pediatria/neonatos: exigir peso/idade p/ drogas mg/kg → se faltar, retornar “dados insuficientes”.
+- Gravidez/lactação: exibir alerta se droga contraindicada.
+- Sedação/opiáceos/doses > limite: exigir confirmação (“Confirmar uso profissional”) e cap por POSO_MAX_DOSE_MULTIPLIER.
+- Zero dados do paciente em chamadas de pesquisa externa.
+
+Audit & Rate-limit:
+- Log em DB: {user_id, role, tool, payload_summary, timestamp, ok|fail}
+- Limit por user: 60 req/h por ferramenta (chat streaming conta à parte).
+- Env flags:
+  MED_FULL_UNLOCK=true
+  EVIDENCE_ALLOWED_IN_EXPLANATORY=true
+  POSO_MAX_DOSE_MULTIPLIER=1.2
+  CALC_ENABLE=["alvarado","curb65","centor","wells_dvt","wells_pe","perc","chadsvasc","qsofa"]
+
+Tests rápidos:
+- Como 'medico':
+  • posologia valaciclovir adulto com ClCr=25 → ajuste renal aplicado
+  • calculadora Alvarado → score e faixa
+  • conduta “cistite não complicada” → plano curto
+- Como 'estudante':
+  • posologia pediátrica sem peso → “dados insuficientes” ou faixa; com peso → OK
+  • calculadoras OK; conduta exibida c/ banner de supervisão
+- Como leigo: ferramentas bloqueadas

@@ -15,10 +15,13 @@ import {
   researchAnalytics,
   notificationsWaitlist,
   type NotificationsWaitlist,
-  type InsertNotificationsWaitlist
+  type InsertNotificationsWaitlist,
+  chatHistoryItems,
+  type ChatHistoryItem,
+  type InsertChatHistoryItem
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, isNotNull } from "drizzle-orm";
+import { eq, desc, and, isNotNull, lt, sql as drizzleSql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations - Email/Password Auth
@@ -36,7 +39,7 @@ export interface IStorage {
   // User settings
   getUserSettings(userId: string): Promise<UserSettings | undefined>;
   createUserSettings(settings: InsertUserSettings): Promise<UserSettings>;
-  updateUserSettings(userId: string, updates: Partial<Pick<UserSettings, "defaultStyle" | "showPediatria" | "showGestante" | "showEmergencia">>): Promise<UserSettings | undefined>;
+  updateUserSettings(userId: string, updates: Partial<Pick<UserSettings, "defaultStyle" | "showPediatria" | "showGestante" | "showEmergencia" | "historyRetentionMax" | "historyRetentionDays">>): Promise<UserSettings | undefined>;
   getUserWithSettings(userId: string): Promise<UserWithSettings | undefined>;
   
   // Notifications waitlist
@@ -62,6 +65,18 @@ export interface IStorage {
   
   // Research analytics (optional)
   logResearchQuery(userId: string | null, query: string, provider: string, resultsCount: number): Promise<void>;
+  
+  // Chat history
+  getChatHistoryByUser(userId: string, limit: number, cursor?: string): Promise<ChatHistoryItem[]>;
+  getChatHistoryItem(id: string, userId: string): Promise<ChatHistoryItem | undefined>;
+  createChatHistoryItem(item: InsertChatHistoryItem): Promise<ChatHistoryItem>;
+  pinChatHistoryItem(id: string, userId: string): Promise<boolean>;
+  unpinChatHistoryItem(id: string, userId: string): Promise<boolean>;
+  deleteChatHistoryItem(id: string, userId: string): Promise<boolean>;
+  deleteChatHistoryBulk(userId: string): Promise<number>;
+  getChatHistoryStats(userId: string): Promise<{ total: number; pinned: number; lastCreatedAt: Date | null }>;
+  cleanupOldHistory(userId: string, maxItems: number, maxDays: number): Promise<number>;
+  exportChatHistory(userId: string, limit: number): Promise<ChatHistoryItem[]>;
 }
 
 export class DbStorage implements IStorage {

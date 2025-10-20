@@ -1,0 +1,72 @@
+Add "Histórico de Pesquisas" with auto-retention and pin support.
+
+DB (Postgres):
+- user_settings: add columns if not exist:
+  history_retention_max int default 100,       -- mantém as últimas N pesquisas
+  history_retention_days int default 30        -- ou N dias, o que vencer primeiro
+
+- chat_history:
+  id uuid pk default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  title text,                     -- 1ª linha ou resumo da pergunta
+  prompt text not null,           -- pergunta do usuário
+  response text,                  -- resposta final do chat (sem streaming)
+  created_at timestamptz default now(),
+  pinned boolean default false
+  -- index on (user_id, created_at desc)
+
+Backend:
+- Após cada resposta do /api/chat (quando finalizar o streaming):
+  * gerar title = primeira linha (até 80 chars) do prompt
+  * salvar registro em chat_history { user_id, title, prompt, response }
+- Endpoints (JWT):
+  GET    /history?cursor=<id>&limit=20            -> paginação (ordenar por created_at desc)
+  GET    /history/:id                              -> item completo
+  POST   /history/:id/pin                          -> pinned=true
+  POST   /history/:id/unpin                        -> pinned=false
+  DELETE /history/:id                              -> apaga item
+  DELETE /history                                  -> apaga tudo NÃO PINNED (bulk clear)
+  GET    /history/stats                            -> { total, pinned, last_created_at }
+- Job de limpeza:
+  * Executar no start e a cada 24h (cron interno simples):
+    - Remover itens NON-PINNED que ultrapassem `history_retention_max` (mantendo os mais recentes)
+    - Remover itens NON-PINNED com idade > `history_retention_days`
+  * Logar quantos foram removidos
+- Segurança: só o dono acessa/gera histórico (req.user.id). Rate-limit leve nos endpoints (ex. 60 req/h por IP).
+
+Frontend:
+- Nova aba na tela de “Atendimento”: [Chat] [Histórico]
+- Listagem com:
+  * título (title), data/hora curta, pin (⭐), botão abrir (ver completo), botão apagar
+  * filtro/ busca simples (client-side) por termo no título
+  * paginação “Carregar mais”
+- Detalhe do item:
+  * mostrar pergunta (prompt) e resposta completa
+  * ações: Fixar/Desafixar, Apagar
+- Ações rápidas:
+  * “Limpar não fixados” (chama DELETE /history)
+  * “Configurar retenção” (atalho para Meu Perfil)
+
+Meu Perfil (ajuste):
+- Adicionar campos:
+  * “Manter últimas [100] pesquisas”
+  * “Excluir itens com mais de [30] dias”
+  * salvar em user_settings (history_retention_max, history_retention_days)
+
+Integração com Pacientes (opcional):
+- Se o usuário desativar gestão de pacientes no perfil, o histórico continua funcionando normalmente (independente de paciente).
+- Se gestão de pacientes estiver ativa e o item do histórico for “associado” a um paciente (futuro), exibir um chip com o nome; senão, nada.
+
+Exportar:
+- Endpoint opcional (JWT) GET /history/export?format=json
+  * Retorna os itens do usuário (limitado a 500 mais recentes) em JSON.
+  * Botão “Exportar JSON” na aba Histórico.
+
+UX:
+- Mostrar aviso discreto: “Histórico guarda apenas últimas N pesquisas ou até N dias. Itens fixados não são apagados.”
+- Loading states previsíveis e toasts para sucesso/erro.
+- Respeitar tema visual atual (verde/acinzentado).
+
+Tests (console log):
+- Ao subir o servidor, imprimir retenção atual (N/dias) e cron habilitado.
+- Exibir exemplos de curl para GET /history, POST /history/:id/pin, DELETE /history.

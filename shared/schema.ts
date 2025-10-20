@@ -56,6 +56,8 @@ export const userSettings = pgTable("user_settings", {
   showPediatria: boolean("show_pediatria").default(true).notNull(),
   showGestante: boolean("show_gestante").default(true).notNull(),
   showEmergencia: boolean("show_emergencia").default(true).notNull(),
+  historyRetentionMax: integer("history_retention_max").default(100).notNull(),
+  historyRetentionDays: integer("history_retention_days").default(30).notNull(),
 });
 
 export const insertUserSettingsSchema = createInsertSchema(userSettings, {
@@ -66,6 +68,27 @@ export const insertUserSettingsSchema = createInsertSchema(userSettings, {
 
 export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
 export type UserSettings = typeof userSettings.$inferSelect;
+
+// Chat history table (persistência de pesquisas)
+export const chatHistoryItems = pgTable("chat_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: text("title"),
+  prompt: text("prompt").notNull(),
+  response: text("response"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  pinned: boolean("pinned").default(false).notNull(),
+}, (table) => [
+  index("idx_chat_history_user_created").on(table.userId, table.createdAt),
+]);
+
+export const insertChatHistoryItemSchema = createInsertSchema(chatHistoryItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertChatHistoryItem = z.infer<typeof insertChatHistoryItemSchema>;
+export type ChatHistoryItem = typeof chatHistoryItems.$inferSelect;
 
 // Auth request/response schemas
 export const registerSchema = z.object({
@@ -104,6 +127,8 @@ export const updateUserSchema = z.object({
   showPediatria: z.boolean().optional(),
   showGestante: z.boolean().optional(),
   showEmergencia: z.boolean().optional(),
+  historyRetentionMax: z.number().int().min(1).max(500).optional(),
+  historyRetentionDays: z.number().int().min(1).max(365).optional(),
 });
 
 export type RegisterRequest = z.infer<typeof registerSchema>;

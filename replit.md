@@ -21,27 +21,52 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
 ### Backend (Express + TypeScript)
 - **Runtime**: Node.js com Express
 - **IA**: OpenAI GPT-5 para chat médico e análise de imagens
-- **Storage**: Memória (MemStorage) para pacientes e controle de cota
+- **Database**: PostgreSQL (Neon) com Drizzle ORM
+- **Autenticação**: Replit Auth com Passport.js e OIDC
+- **Storage**: DbStorage com persistência em PostgreSQL
 - **Upload**: Multer para processamento de arquivos
 - **Validação**: Zod para validação de dados
+- **Sessões**: connect-pg-simple para sessões persistentes
 
-### Estrutura de Dados
+### Estrutura de Dados (PostgreSQL + Drizzle)
 
-**Pacientes:**
+**Pacientes (Tabela `patients`):**
 ```typescript
 {
-  id: string;
-  nome: string;
-  cpf?: string;
-  dataNascimento?: string;
-  telefone?: string;
-  endereco?: string;
-  observacoes?: string;
-  createdAt: Date;
+  id: serial (Primary Key);
+  nome: varchar(255);
+  cpf?: varchar(14);
+  dataNascimento?: varchar(10);
+  telefone?: varchar(20);
+  endereco?: text;
+  observacoes?: text;
+  createdAt: timestamp (default: now());
 }
 ```
 
-**Chat:**
+**Usuários (Tabela `users`):**
+```typescript
+{
+  id: serial (Primary Key);
+  replitId: varchar(255) (unique);
+  username: varchar(255);
+  email?: varchar(255);
+  firstName?: varchar(255);
+  lastName?: varchar(255);
+  createdAt: timestamp (default: now());
+}
+```
+
+**Sessões (Tabela `sessions`):**
+```typescript
+{
+  sid: varchar(255) (Primary Key);
+  sess: json;
+  expire: timestamp;
+}
+```
+
+**Chat (In-memory):**
 ```typescript
 {
   message: string;
@@ -101,12 +126,18 @@ MédicoHelp é uma plataforma médica profissional que utiliza inteligência art
 - Campo: files[] (múltiplos arquivos)
 - Header: X-User-Id
 
-### Pacientes (CRUD Completo)
-**GET /api/patients** - Lista todos os pacientes
+### Pacientes (CRUD Completo - PostgreSQL)
+**GET /api/patients** - Lista todos os pacientes (persistidos no DB)
 **GET /api/patients/:id** - Busca paciente por ID
-**POST /api/patients** - Cria novo paciente
-**PATCH /api/patients/:id** - Atualiza paciente
-**DELETE /api/patients/:id** - Remove paciente
+**POST /api/patients** - Cria novo paciente (persiste no DB)
+**PATCH /api/patients/:id** - Atualiza paciente (atualiza no DB)
+**DELETE /api/patients/:id** - Remove paciente (deleta do DB)
+
+### Autenticação (Replit Auth)
+**GET /api/login** - Redireciona para login Replit Auth
+**GET /api/callback** - Callback OAuth após autenticação
+**GET /api/auth/user** - Retorna usuário autenticado atual (protegido)
+**POST /api/logout** - Faz logout do usuário
 
 Exemplo de criação:
 ```json
@@ -135,17 +166,31 @@ O sistema segue design médico profissional com:
 
 ```
 OPENAI_API_KEY=sk-... (obrigatório)
+DATABASE_URL=postgresql://... (auto-configurado pelo Replit)
+SESSION_SECRET=... (auto-configurado pelo Replit Auth)
+REPLIT_DB_URL=... (auto-configurado pelo Replit)
 ```
 
 ## Dependências Principais
 
+**Backend:**
 - openai: ^4.0.0
 - express: ^4.18.2
-- multer: ^1.4.5-lts.1
+- @neondatabase/serverless: PostgreSQL driver
+- drizzle-orm: ORM para TypeScript
+- drizzle-kit: CLI para migrações
+- passport: Autenticação
+- openid-client: OIDC para Replit Auth
+- express-session: Gerenciamento de sessões
+- connect-pg-simple: Sessões no PostgreSQL
+- multer: Upload de arquivos
+
+**Frontend:**
 - react: ^18.x
 - @tanstack/react-query: ^5.x
-- wouter: para roteamento
-- shadcn/ui: componentes de UI
+- wouter: Roteamento
+- shadcn/ui: Componentes de UI
+- zod: Validação de schemas
 
 ## Desenvolvimento
 
@@ -156,18 +201,81 @@ O projeto usa o padrão fullstack JavaScript com:
 - TypeScript em todo o código
 - Validação com Zod
 
-## Próximas Fases (Não MVP)
+## Status de Implementação
 
-- Autenticação de médicos com Replit Auth
-- Persistência em PostgreSQL
-- Histórico de consultas por paciente
-- Exportação de prontuários em PDF
-- Análise avançada de imagens médicas
-- Dashboard com estatísticas
+### ✅ Concluído (Fase Beta)
+- ✅ Chat médico com IA (GPT-5)
+- ✅ Análise de exames com visão computacional
+- ✅ CRUD completo de pacientes
+- ✅ **Persistência PostgreSQL (Neon)** - Pacientes salvos permanentemente
+- ✅ **Infraestrutura Replit Auth** - Login, logout, sessões persistentes
+- ✅ **Sistema de Histórico de Consultas** - Prontuário digital completo
+- ✅ Sistema de cotas (50 consultas/dia)
+- ✅ Modo claro/escuro
+- ✅ Design médico profissional
+
+### 🚧 Em Desenvolvimento
+- ⏸️ Exportação de prontuários em PDF (próximo)
+- ⏸️ Análise avançada de imagens médicas
+- ⏸️ Dashboard com estatísticas
+
+### 📋 Arquitetura de Autenticação
+
+**Modo Atual:** Híbrido (Demo + Auth disponível)
+- Aplicação funciona sem login obrigatório (modo demo)
+- Infraestrutura Replit Auth completamente implementada:
+  - Tabelas `users` e `sessions` criadas no PostgreSQL
+  - Endpoints `/api/login`, `/api/callback`, `/api/logout`, `/api/auth/user`
+  - Hook `useAuth()` disponível no frontend
+  - Middleware `isAuthenticated` implementado
+  - Landing page criada para não-autenticados
+
+**Para ativar autenticação obrigatória:**
+1. Atualizar `App.tsx` para usar `useAuth()` e renderizar `<Landing />` se não autenticado
+2. Proteger rotas da API com middleware `isAuthenticated`
+3. Adicionar botão de logout no header
+
+## Funcionalidade: Sistema de Histórico de Consultas
+
+O sistema agora oferece prontuário digital completo com:
+
+### Salvar Consultas
+- Seleção de paciente durante o atendimento
+- Botão "Salvar Consulta" após conversa com a IA
+- Armazena automaticamente:
+  - Queixa principal (primeira mensagem)
+  - Histórico completo da conversa
+  - Anexos enviados (imagens, PDFs)
+  - Data e hora do atendimento
+  - ID do médico responsável
+
+### Visualizar Histórico
+- Página dedicada por paciente (`/pacientes/:id/historico`)
+- Listagem cronológica de todas as consultas
+- Visualização completa de cada atendimento:
+  - Conversa user ↔ IA Médica
+  - Anexos enviados
+  - Data e responsável
+- Botão "Histórico" na lista de pacientes
+
+### Tecnologia
+- **Armazenamento**: PostgreSQL com tabela `consultations`
+- **Relacionamento**: Consultas vinculadas a pacientes (cascade delete)
+- **Formato**: JSONB para histórico e anexos (flexível e performático)
 
 ## Observações Importantes
 
 - Sistema em Beta Gratuito
 - IA como ferramenta de apoio, não substitui julgamento médico
-- Dados armazenados em memória (reinicia ao recarregar servidor)
+- **Todos os dados persistem no PostgreSQL** (pacientes e consultas não são perdidos)
 - Limite de 50 consultas/uploads por dia por usuário
+- Autenticação disponível mas não obrigatória no momento
+
+**⚠️ AVISO DE SEGURANÇA (Beta/Demo):**
+- As rotas da API atualmente **NÃO requerem autenticação** (modo demo)
+- Para uso em produção com dados reais de pacientes (PHI - Protected Health Information), é **OBRIGATÓRIO**:
+  1. Ativar autenticação obrigatória (adicionar `isAuthenticated` em todas as rotas sensíveis)
+  2. Proteger endpoints de consultas, pacientes e chat
+  3. Configurar HTTPS/TLS para criptografia em trânsito
+  4. Implementar logs de auditoria para acesso a dados médicos
+- A infraestrutura de auth está implementada, apenas aguardando ativação

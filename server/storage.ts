@@ -1,4 +1,4 @@
-import { type Patient, type InsertPatient, patients, users, type User, type UpsertUser } from "@shared/schema";
+import { type Patient, type InsertPatient, patients, users, type User, type UpsertUser, consultations, type Consultation, type InsertConsultation } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
@@ -13,6 +13,12 @@ export interface IStorage {
   createPatient(patient: InsertPatient): Promise<Patient>;
   updatePatient(id: string, patient: Partial<InsertPatient>): Promise<Patient | undefined>;
   deletePatient(id: string): Promise<boolean>;
+  
+  // Consultas
+  getConsultation(id: string): Promise<Consultation | undefined>;
+  getConsultationsByPatient(patientId: string): Promise<Consultation[]>;
+  createConsultation(consultation: InsertConsultation): Promise<Consultation>;
+  deleteConsultation(id: string): Promise<boolean>;
   
   // Quota tracking
   getQuotaUsed(userId: string): Promise<number>;
@@ -89,6 +95,43 @@ export class DbStorage implements IStorage {
     const result = await db
       .delete(patients)
       .where(eq(patients.id, id))
+      .returning();
+    
+    return result.length > 0;
+  }
+
+  // Consultas usando PostgreSQL
+  async getConsultation(id: string): Promise<Consultation | undefined> {
+    const result = await db
+      .select()
+      .from(consultations)
+      .where(eq(consultations.id, id))
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async getConsultationsByPatient(patientId: string): Promise<Consultation[]> {
+    return await db
+      .select()
+      .from(consultations)
+      .where(eq(consultations.patientId, patientId))
+      .orderBy(desc(consultations.createdAt));
+  }
+
+  async createConsultation(insertConsultation: InsertConsultation): Promise<Consultation> {
+    const result = await db
+      .insert(consultations)
+      .values(insertConsultation)
+      .returning();
+    
+    return result[0];
+  }
+
+  async deleteConsultation(id: string): Promise<boolean> {
+    const result = await db
+      .delete(consultations)
+      .where(eq(consultations.id, id))
       .returning();
     
     return result.length > 0;

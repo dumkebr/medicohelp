@@ -53,6 +53,25 @@ export const insertPatientSchema = createInsertSchema(patients).omit({
 export type InsertPatient = z.infer<typeof insertPatientSchema>;
 export type Patient = typeof patients.$inferSelect;
 
+// Consultas (histórico de atendimentos)
+export const consultations = pgTable("consultations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  patientId: varchar("patient_id").notNull().references(() => patients.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // ID do médico que fez a consulta (opcional)
+  complaint: text("complaint").notNull(), // Queixa principal / primeira mensagem
+  history: jsonb("history").notNull(), // Array de mensagens do chat
+  attachments: jsonb("attachments"), // Array de anexos (imagens, PDFs)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertConsultationSchema = createInsertSchema(consultations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
+export type Consultation = typeof consultations.$inferSelect;
+
 // Mensagens de Chat
 export interface ChatMessage {
   role: 'user' | 'assistant';

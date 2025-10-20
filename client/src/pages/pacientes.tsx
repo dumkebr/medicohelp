@@ -15,7 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ExternalLink, Plus, User, Pencil, Trash2 } from "lucide-react";
+import { ExternalLink, Plus, User, Pencil, Trash2, FileText } from "lucide-react";
 import type { Patient } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
@@ -141,6 +141,17 @@ export default function Pacientes() {
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      data-testid={`button-historico-${patient.id}`}
+                    >
+                      <Link href={`/pacientes/${patient.id}/historico`}>
+                        <FileText className="w-4 h-4 mr-2" />
+                        Histórico
+                      </Link>
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"

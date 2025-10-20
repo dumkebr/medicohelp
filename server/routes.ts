@@ -2,7 +2,7 @@ import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { chatRequestSchema, insertPatientSchema } from "@shared/schema";
+import { chatRequestSchema, insertPatientSchema, insertConsultationSchema } from "@shared/schema";
 import OpenAI from "openai";
 import fs from "fs/promises";
 import path from "path";
@@ -358,6 +358,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Erro ao deletar paciente:", error);
       res.status(500).json({
         error: "Erro ao deletar paciente",
+      });
+    }
+  });
+
+  // ===== ENDPOINTS: Gestão de Consultas =====
+  // IMPORTANTE: Essas rotas lidam com informações sensíveis (prontuários médicos - PHI)
+  // Para ativar autenticação obrigatória, adicione isAuthenticated antes de async:
+  // app.get("/api/patients/:patientId/consultations", isAuthenticated, async (req, res) => {
+
+  // Listar consultas de um paciente
+  app.get("/api/patients/:patientId/consultations", async (req, res) => {
+    try {
+      const consultations = await storage.getConsultationsByPatient(req.params.patientId);
+      res.json(consultations);
+    } catch (error: any) {
+      console.error("Erro ao listar consultas:", error);
+      res.status(500).json({
+        error: "Erro ao listar consultas",
+      });
+    }
+  });
+
+  // Criar nova consulta
+  app.post("/api/consultations", async (req, res) => {
+    try {
+      const validatedData = insertConsultationSchema.parse(req.body);
+      const consultation = await storage.createConsultation(validatedData);
+      res.status(201).json(consultation);
+    } catch (error: any) {
+      console.error("Erro ao criar consulta:", error);
+      
+      if (error.name === "ZodError") {
+        return res.status(400).json({
+          error: "Dados inválidos",
+          details: error.errors,
+        });
+      }
+
+      res.status(500).json({
+        error: "Erro ao criar consulta",
+      });
+    }
+  });
+
+  // Obter consulta por ID
+  app.get("/api/consultations/:id", async (req, res) => {
+    try {
+      const consultation = await storage.getConsultation(req.params.id);
+      
+      if (!consultation) {
+        return res.status(404).json({
+          error: "Consulta não encontrada",
+        });
+      }
+
+      res.json(consultation);
+    } catch (error: any) {
+      console.error("Erro ao buscar consulta:", error);
+      res.status(500).json({
+        error: "Erro ao buscar consulta",
+      });
+    }
+  });
+
+  // Deletar consulta
+  app.delete("/api/consultations/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteConsultation(req.params.id);
+      
+      if (!deleted) {
+        return res.status(404).json({
+          error: "Consulta não encontrada",
+        });
+      }
+
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("Erro ao deletar consulta:", error);
+      res.status(500).json({
+        error: "Erro ao deletar consulta",
       });
     }
   });

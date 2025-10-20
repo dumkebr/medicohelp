@@ -1,12 +1,20 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { Send, Paperclip, Loader2, FileImage, X } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Send, Paperclip, Loader2, FileImage, X, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import type { FileAttachment } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { FileAttachment, Patient } from "@shared/schema";
 
 interface ChatHistoryItem {
   user: string;
@@ -17,7 +25,13 @@ export default function Atendimento() {
   const [message, setMessage] = useState("");
   const [history, setHistory] = useState<ChatHistoryItem[]>([]);
   const [files, setFiles] = useState<File[]>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>("");
+  const [savedAttachments, setSavedAttachments] = useState<any[]>([]);
   const { toast } = useToast();
+
+  const { data: patients } = useQuery<Patient[]>({
+    queryKey: ["/api/patients"],
+  });
 
   const chatMutation = useMutation({
     mutationFn: async (data: { message: string; history: any[] }) => {
@@ -67,11 +81,60 @@ export default function Atendimento() {
       }
       return response.json();
     },
+    onSuccess: (data) => {
+      if (data.attachments) {
+        setSavedAttachments(prev => [...prev, ...data.attachments]);
+      }
+    },
     onError: (error: any) => {
       toast({
         variant: "destructive",
         title: "Erro no upload",
         description: error.message || "Não foi possível enviar os arquivos.",
+      });
+    },
+  });
+
+  const saveConsultationMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedPatientId) {
+        throw new Error("Selecione um paciente");
+      }
+      if (history.length === 0) {
+        throw new Error("Não há histórico de conversa para salvar");
+      }
+
+      const chatHistory = history.flatMap(h => [
+        { role: "user", content: h.user },
+        { role: "assistant", content: h.assistant },
+      ]);
+
+      return await apiRequest("POST", "/api/consultations", {
+        patientId: selectedPatientId,
+        userId: "demo-doctor",
+        complaint: history[0].user,
+        history: chatHistory,
+        attachments: savedAttachments.length > 0 ? savedAttachments : null,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Consulta salva",
+        description: "O histórico foi registrado com sucesso no prontuário do paciente.",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${selectedPatientId}/consultations`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      setHistory([]);
+      setMessage("");
+      setFiles([]);
+      setSavedAttachments([]);
+      setSelectedPatientId("");
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Erro ao salvar consulta",
+        description: error.message || "Não foi possível salvar o histórico.",
       });
     },
   });
@@ -137,6 +200,58 @@ export default function Atendimento() {
           Faça perguntas clínicas e envie imagens de exames para análise
         </p>
       </div>
+
+      {history.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Salvar Histórico no Prontuário</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
+                  <SelectTrigger data-testid="select-paciente">
+                    <SelectValue placeholder="Selecione um paciente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {patients && patients.length > 0 ? (
+                      patients.map((patient) => (
+                        <SelectItem key={patient.id} value={patient.id}>
+                          {patient.nome}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled>
+                        Nenhum paciente cadastrado
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                onClick={() => saveConsultationMutation.mutate()}
+                disabled={!selectedPatientId || saveConsultationMutation.isPending}
+                data-testid="button-salvar-consulta"
+              >
+                {saveConsultationMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Salvar Consulta
+                  </>
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Ao salvar, todo o histórico desta conversa será registrado no prontuário do paciente
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {history.length > 0 && (
         <Card data-testid="card-chat-history">

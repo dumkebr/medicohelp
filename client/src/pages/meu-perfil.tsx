@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -18,7 +19,9 @@ import { Camera, Loader2, Eye, EyeOff } from "lucide-react";
 
 const profileSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
-  defaultStyle: z.enum(["tradicional", "soap"]),
+  defaultStyle: z.enum(["tradicional", "soap", "personalizado"]),
+  customTemplate: z.string().optional(),
+  explanatoryModeEnabled: z.boolean(),
   showPediatria: z.boolean(),
   showGestante: z.boolean(),
   showEmergencia: z.boolean(),
@@ -38,6 +41,8 @@ export default function MeuPerfil() {
     defaultValues: {
       name: "",
       defaultStyle: "tradicional",
+      customTemplate: "",
+      explanatoryModeEnabled: false,
       showPediatria: true,
       showGestante: true,
       showEmergencia: true,
@@ -49,6 +54,8 @@ export default function MeuPerfil() {
       form.reset({
         name: user.name,
         defaultStyle: user.defaultStyle,
+        customTemplate: user.customTemplate || "",
+        explanatoryModeEnabled: user.explanatoryModeEnabled || false,
         showPediatria: user.showPediatria,
         showGestante: user.showGestante,
         showEmergencia: user.showEmergencia,
@@ -320,9 +327,61 @@ export default function MeuPerfil() {
                         <SelectItem value="soap" data-testid="option-soap">
                           SOAP
                         </SelectItem>
+                        <SelectItem value="personalizado" data-testid="option-personalizado">
+                          Personalizado
+                        </SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormDescription>
+                      Formato padrão usado no Modo Clínico (prontuário médico)
+                    </FormDescription>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {form.watch("defaultStyle") === "personalizado" && (
+                <FormField
+                  control={form.control}
+                  name="customTemplate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Template personalizado</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder="**SEÇÃO 1:** [descrição]&#10;**SEÇÃO 2:** [descrição]&#10;**CONDUTA:** [descrição]"
+                          className="min-h-[120px]"
+                          data-testid="input-custom-template"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Defina seu próprio formato de prontuário usando markdown
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              <FormField
+                control={form.control}
+                name="explanatoryModeEnabled"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Evidências Clínicas no Modo Explicativo</FormLabel>
+                      <FormDescription>
+                        Permite buscar automaticamente evidências científicas (PubMed) quando usar Modo Explicativo. Evidências são integradas de forma silenciosa para enriquecer explicações.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="toggle-explanatory-mode-enabled"
+                      />
+                    </FormControl>
                   </FormItem>
                 )}
               />

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Send, Paperclip, Loader2, FileImage, X, Save, Brain, ExternalLink } from "lucide-react";
+import { Send, Paperclip, Loader2, FileImage, X, Save, Brain, ExternalLink, FileText, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +35,7 @@ export default function Atendimento() {
   const [files, setFiles] = useState<File[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
   const [savedAttachments, setSavedAttachments] = useState<any[]>([]);
+  const [mode, setMode] = useState<'clinico' | 'explicativo'>('clinico');
   const [evidenceEnabled, setEvidenceEnabled] = useState(false);
   const [isResearchAvailable, setIsResearchAvailable] = useState(true);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -107,6 +108,7 @@ export default function Atendimento() {
         body: JSON.stringify({
           message: userMessage,
           history: chatHistory,
+          mode: mode,
         }),
         signal: abortController.signal,
       });
@@ -479,7 +481,48 @@ export default function Atendimento() {
 
       <Card data-testid="card-chat-input">
         <CardContent className="p-6 space-y-4">
-          <div className="flex items-center gap-3 pb-2 border-b border-border">
+          <div className="flex items-center gap-4 pb-2 border-b border-border flex-wrap">
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={mode === 'clinico' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setMode('clinico')}
+                      disabled={isLoading}
+                      data-testid="button-mode-clinico"
+                      className="gap-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Modo Clínico
+                    </Button>
+                    <Button
+                      variant={mode === 'explicativo' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setMode('explicativo')}
+                      disabled={isLoading}
+                      data-testid="button-mode-explicativo"
+                      className="gap-2"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      Modo Explicativo
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm">
+                  <p className="font-semibold mb-1">
+                    {mode === 'clinico' ? '🩺 Modo Clínico' : '📘 Modo Explicativo'}
+                  </p>
+                  <p className="text-xs">
+                    {mode === 'clinico'
+                      ? 'Respostas diretas e estruturadas para prontuário médico. Sem explicações teóricas.'
+                      : 'Explicações educacionais com fundamentos científicos e diretrizes. Pode acessar evidências clínicas se habilitado no perfil.'}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
             <div className="flex items-center gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>

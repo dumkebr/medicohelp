@@ -912,10 +912,10 @@ Use este contexto para fundamentar sua explicação, mas não cite explicitament
       
       if (userRole === "doctor") {
         if (activeMode === 'explicativo') {
-          systemPrompt = buildExplanatoryPrompt(evidenceContext);
+          systemPrompt = buildExplanatoryPrompt(evidenceContext || undefined);
         } else {
           // Modo clínico (padrão)
-          systemPrompt = buildClinicalPrompt(style, template);
+          systemPrompt = buildClinicalPrompt(style, template || undefined);
         }
       } else {
         // Paciente (modo básico)

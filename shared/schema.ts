@@ -53,6 +53,9 @@ export const userSettings = pgTable("user_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   defaultStyle: text("default_style").notNull().default("tradicional").$type<"tradicional" | "soap">(),
+  showPediatria: boolean("show_pediatria").default(true).notNull(),
+  showGestante: boolean("show_gestante").default(true).notNull(),
+  showEmergencia: boolean("show_emergencia").default(true).notNull(),
 });
 
 export const insertUserSettingsSchema = createInsertSchema(userSettings, {
@@ -98,6 +101,9 @@ export const loginSchema = z.object({
 export const updateUserSchema = z.object({
   name: z.string().min(1).optional(),
   defaultStyle: z.enum(["tradicional", "soap"]).optional(),
+  showPediatria: z.boolean().optional(),
+  showGestante: z.boolean().optional(),
+  showEmergencia: z.boolean().optional(),
 });
 
 export type RegisterRequest = z.infer<typeof registerSchema>;
@@ -119,6 +125,9 @@ export interface AuthResponse {
 
 export interface UserWithSettings extends User {
   defaultStyle: "tradicional" | "soap";
+  showPediatria: boolean;
+  showGestante: boolean;
+  showEmergencia: boolean;
 }
 
 // ===== APPLICATION TABLES =====
@@ -161,6 +170,28 @@ export const insertConsultationSchema = createInsertSchema(consultations).omit({
 
 export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
 export type Consultation = typeof consultations.$inferSelect;
+
+// Notifications Waitlist (Em breve modules)
+export const notificationsWaitlist = pgTable("notifications_waitlist", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  feature: text("feature").notNull(), // "pediatria", "gestante", "emergencia"
+  email: text("email").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  unique("unique_feature_email").on(table.feature, table.email),
+  index("idx_notifications_waitlist_feature").on(table.feature),
+]);
+
+export const insertNotificationsWaitlistSchema = createInsertSchema(notificationsWaitlist, {
+  feature: z.string().min(1),
+  email: z.string().email("Email inválido"),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertNotificationsWaitlist = z.infer<typeof insertNotificationsWaitlistSchema>;
+export type NotificationsWaitlist = typeof notificationsWaitlist.$inferSelect;
 
 // Verification Codes (Email + SMS)
 export const verificationCodes = pgTable("verification_codes", {

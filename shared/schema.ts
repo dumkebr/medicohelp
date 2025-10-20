@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, index, jsonb, char, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, index, jsonb, char, unique, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -26,6 +26,9 @@ export const users = pgTable("users", {
   crm: text("crm"),
   uf: char("uf", { length: 2 }),
   avatarUrl: text("avatar_url"),
+  phone: text("phone"),
+  phoneVerified: boolean("phone_verified").default(false).notNull(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
   oauthProvider: text("oauth_provider"),
   oauthSub: text("oauth_sub"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -159,6 +162,34 @@ export const insertConsultationSchema = createInsertSchema(consultations).omit({
 export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
 export type Consultation = typeof consultations.$inferSelect;
 
+// Verification Codes (Email + SMS)
+export const verificationCodes = pgTable("verification_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id"), // Opcional - pode ser null se estiver criando novo usuário
+  channel: text("channel").notNull().$type<"email" | "sms">(),
+  purpose: text("purpose").notNull().$type<"signup" | "reset">(),
+  codeHash: text("code_hash").notNull(), // Hash bcrypt do código
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  attempts: integer("attempts").default(0).notNull(),
+  consumed: boolean("consumed").default(false).notNull(),
+  emailOrPhone: text("email_or_phone").notNull(), // Email ou telefone para quem foi enviado
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index("idx_verification_codes_email_or_phone").on(table.emailOrPhone),
+  index("idx_verification_codes_expires_at").on(table.expiresAt),
+]);
+
+export const insertVerificationCodeSchema = createInsertSchema(verificationCodes, {
+  channel: z.enum(["email", "sms"]),
+  purpose: z.enum(["signup", "reset"]),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertVerificationCode = z.infer<typeof insertVerificationCodeSchema>;
+export type VerificationCode = typeof verificationCodes.$inferSelect;
+
 // Mensagens de Chat
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -207,3 +238,55 @@ export interface QuotaInfo {
   limit: number;
   remaining: number;
 }
+
+// ===== VERIFICATION CODE SCHEMAS =====
+
+export const requestCodeSchema = z.object({
+  purpose: z.enum(["signup", "reset"]),
+  channel: z.enum(["email", "sms"]),
+  email: z.string().email("Email inválido").optional(),
+  phone: z.string().optional(),
+}).refine((data) => {
+  if (data.channel === "email") {
+    return !!data.email;
+  }
+  if (data.channel === "sms") {
+    return !!data.phone;
+  }
+  return false;
+}, {
+  message: "Email é obrigatório para channel='email' e phone é obrigatório para channel='sms'",
+  path: ["email"],
+});
+
+export const verifyCodeSchema = z.object({
+  purpose: z.enum(["signup", "reset"]),
+  email: z.string().email("Email inválido").optional(),
+  phone: z.string().optional(),
+  code: z.string().length(6, "Código deve ter 6 dígitos"),
+}).refine((data) => {
+  return !!data.email || !!data.phone;
+}, {
+  message: "Email ou phone é obrigatório",
+  path: ["email"],
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Email inválido").optional(),
+  phone: z.string().optional(),
+  channel: z.enum(["email", "sms"]).optional(),
+}).refine((data) => {
+  return !!data.email || !!data.phone;
+}, {
+  message: "Email ou phone é obrigatório",
+  path: ["email"],
+});
+
+export const resetPasswordSchema = z.object({
+  newPassword: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
+});
+
+export type RequestCodeRequest = z.infer<typeof requestCodeSchema>;
+export type VerifyCodeRequest = z.infer<typeof verifyCodeSchema>;
+export type ForgotPasswordRequest = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordRequest = z.infer<typeof resetPasswordSchema>;

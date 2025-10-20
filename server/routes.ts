@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import bcrypt from "bcryptjs";
 import passport from "passport";
+import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { 
   chatRequestSchema, 
@@ -11,10 +12,17 @@ import {
   registerSchema,
   loginSchema,
   updateUserSchema,
+  requestCodeSchema,
+  verifyCodeSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
   type AuthResponse 
 } from "@shared/schema";
 import { generateToken, authMiddleware } from "./middleware/auth";
 import { configurePassport } from "./passport-config";
+import { createVerificationCode, verifyCode, markEmailVerified, markPhoneVerified } from "./services/verification";
+import { sendVerificationEmail, isEmailConfigured } from "./services/email";
+import { sendVerificationSMS, isSmsConfigured } from "./services/sms";
 import OpenAI from "openai";
 import fs from "fs/promises";
 import path from "path";
@@ -446,6 +454,250 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Erro ao buscar provedores:", error);
       res.status(500).json({ error: "Erro ao buscar provedores OAuth" });
+    }
+  });
+
+  // ===== VERIFICATION CODE ROUTES =====
+  
+  // Rate limiters
+  const requestCodeLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 10, // 10 requests per hour per IP
+    message: "Muitas solicitações de código. Tente novamente mais tarde.",
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  const verifyCodeLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 30, // 30 requests per hour per IP
+    message: "Muitas tentativas de verificação. Tente novamente mais tarde.",
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  // POST /auth/request-code - Solicitar código de verificação (email ou SMS)
+  app.post("/auth/request-code", requestCodeLimiter, async (req, res) => {
+    try {
+      const validatedData = requestCodeSchema.parse(req.body);
+      const { purpose, channel, email, phone } = validatedData;
+
+      // Check if channel is configured
+      if (channel === "email" && !isEmailConfigured()) {
+        return res.status(503).json({ 
+          error: "Serviço de email não configurado" 
+        });
+      }
+
+      if (channel === "sms" && !isSmsConfigured()) {
+        return res.status(503).json({ 
+          error: "Serviço de SMS não configurado" 
+        });
+      }
+
+      const emailOrPhone = email || phone!;
+
+      // For reset password, verify user exists
+      if (purpose === "reset") {
+        const user = email 
+          ? await storage.getUserByEmail(email)
+          : await storage.getUserByPhone(phone!);
+        
+        if (!user) {
+          // Don't reveal if user exists or not (security)
+          return res.status(204).send();
+        }
+      }
+
+      // Generate and send code
+      const code = await createVerificationCode(emailOrPhone, channel, purpose);
+
+      if (channel === "email") {
+        await sendVerificationEmail(email!, code, purpose);
+      } else if (channel === "sms") {
+        await sendVerificationSMS(phone!, code, purpose);
+      }
+
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("Erro ao solicitar código:", error);
+      
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: "Dados inválidos", details: error.errors });
+      }
+      
+      if (error.message.includes("aguarde") || error.message.includes("Limite")) {
+        return res.status(429).json({ error: error.message });
+      }
+
+      res.status(500).json({ error: "Erro ao enviar código de verificação" });
+    }
+  });
+
+  // POST /auth/verify-code - Verificar código
+  app.post("/auth/verify-code", verifyCodeLimiter, async (req, res) => {
+    try {
+      const validatedData = verifyCodeSchema.parse(req.body);
+      const { purpose, email, phone, code } = validatedData;
+
+      const emailOrPhone = email || phone!;
+
+      const result = await verifyCode(emailOrPhone, code, purpose);
+
+      if (!result.valid) {
+        return res.status(400).json({ error: result.error });
+      }
+
+      if (purpose === "signup") {
+        // Auto-login: issue JWT token
+        const user = email
+          ? await storage.getUserByEmail(email)
+          : await storage.getUserByPhone(phone!);
+
+        if (!user) {
+          return res.status(404).json({ error: "Usuário não encontrado" });
+        }
+
+        // Mark as verified
+        if (email) {
+          await markEmailVerified(user.id);
+        } else if (phone) {
+          await markPhoneVerified(user.id);
+        }
+
+        const token = generateToken({
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+        });
+
+        const response: AuthResponse = {
+          token,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            crm: user.crm || undefined,
+            uf: user.uf || undefined,
+            avatarUrl: user.avatarUrl || undefined,
+          },
+        };
+
+        return res.json(response);
+      } else if (purpose === "reset") {
+        // Issue reset token (15 min TTL)
+        const user = email
+          ? await storage.getUserByEmail(email)
+          : await storage.getUserByPhone(phone!);
+
+        if (!user) {
+          return res.status(404).json({ error: "Usuário não encontrado" });
+        }
+
+        const resetToken = generateToken({
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+        }, "15m");
+
+        return res.json({ resetToken });
+      }
+    } catch (error: any) {
+      console.error("Erro ao verificar código:", error);
+      
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: "Dados inválidos", details: error.errors });
+      }
+
+      res.status(500).json({ error: "Erro ao verificar código" });
+    }
+  });
+
+  // POST /auth/forgot-password - Alias para request-code com purpose=reset
+  app.post("/auth/forgot-password", requestCodeLimiter, async (req, res) => {
+    try {
+      const validatedData = forgotPasswordSchema.parse(req.body);
+      const { email, phone, channel } = validatedData;
+
+      // Determine channel if not provided
+      const determinedChannel = channel || (email ? "email" : "sms");
+
+      // Check if channel is configured
+      if (determinedChannel === "email" && !isEmailConfigured()) {
+        return res.status(503).json({ 
+          error: "Serviço de email não configurado" 
+        });
+      }
+
+      if (determinedChannel === "sms" && !isSmsConfigured()) {
+        return res.status(503).json({ 
+          error: "Serviço de SMS não configurado" 
+        });
+      }
+
+      const emailOrPhone = email || phone!;
+
+      // Verify user exists
+      const user = email 
+        ? await storage.getUserByEmail(email)
+        : await storage.getUserByPhone(phone!);
+      
+      if (!user) {
+        // Don't reveal if user exists or not (security)
+        return res.status(204).send();
+      }
+
+      // Generate and send code
+      const code = await createVerificationCode(emailOrPhone, determinedChannel, "reset");
+
+      if (determinedChannel === "email") {
+        await sendVerificationEmail(email!, code, "reset");
+      } else if (determinedChannel === "sms") {
+        await sendVerificationSMS(phone!, code, "reset");
+      }
+
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("Erro ao solicitar reset de senha:", error);
+      
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: "Dados inválidos", details: error.errors });
+      }
+      
+      if (error.message.includes("aguarde") || error.message.includes("Limite")) {
+        return res.status(429).json({ error: error.message });
+      }
+
+      res.status(500).json({ error: "Erro ao solicitar reset de senha" });
+    }
+  });
+
+  // POST /auth/reset-password - Reset password com reset token
+  app.post("/auth/reset-password", authMiddleware, async (req, res) => {
+    try {
+      if (!req.authUser) {
+        return res.status(401).json({ error: "Token de reset inválido ou expirado" });
+      }
+
+      const validatedData = resetPasswordSchema.parse(req.body);
+      const { newPassword } = validatedData;
+
+      // Hash new password
+      const passwordHash = await bcrypt.hash(newPassword, 10);
+
+      // Update password
+      await storage.updateUser(req.authUser.userId, { passwordHash });
+
+      res.json({ message: "Senha redefinida com sucesso" });
+    } catch (error: any) {
+      console.error("Erro ao redefinir senha:", error);
+      
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: "Dados inválidos", details: error.errors });
+      }
+
+      res.status(500).json({ error: "Erro ao redefinir senha" });
     }
   });
 

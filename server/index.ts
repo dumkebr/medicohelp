@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import rateLimit from "express-rate-limit";
 import perplexityRoutes from "./routes/perplexity";
+import { printVerificationInfo } from "./utils/verification-info";
 
 const app = express();
 app.use(express.json());
@@ -87,6 +88,10 @@ app.use((req, res, next) => {
     },
     () => {
       log(`serving on port ${port}`);
+      
+      // Print verification code info
+      const baseUrl = process.env.OAUTH_BASE_URL || `http://localhost:${port}`;
+      printVerificationInfo(baseUrl);
     },
   );
 })();

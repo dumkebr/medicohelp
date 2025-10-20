@@ -24,8 +24,8 @@ declare global {
   }
 }
 
-export function generateToken(payload: JwtPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+export function generateToken(payload: JwtPayload, expiresIn: string = "7d"): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 
 export function verifyToken(token: string): JwtPayload {

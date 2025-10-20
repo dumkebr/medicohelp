@@ -20,6 +20,7 @@ export interface IStorage {
   // User operations - Email/Password Auth
   getUserById(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByPhone(phone: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
   
@@ -70,6 +71,16 @@ export class DbStorage implements IStorage {
       .select()
       .from(users)
       .where(eq(users.email, email))
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async getUserByPhone(phone: string): Promise<User | undefined> {
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.phone, phone))
       .limit(1);
     
     return result[0];

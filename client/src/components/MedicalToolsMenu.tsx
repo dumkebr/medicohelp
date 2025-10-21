@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Calculator, Pill, Stethoscope, FileText, AlertCircle, Loader2, Copy, Printer, History, Check } from "lucide-react";
+import { Calculator, Pill, Stethoscope, FileText, AlertCircle, Loader2, Copy, Printer, History, Check, Activity } from "lucide-react";
 import { ALL_CALCULATORS, CalculatorSchema, CalculatorResult } from "@/lib/calculatorSchemas";
+import { Partogram } from "@/components/Partogram";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -271,7 +272,7 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
         </DialogHeader>
 
         <Tabs defaultValue="posologia" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="posologia" data-testid="tab-posologia">
               <Pill className="w-4 h-4 mr-1" />
               Posologia
@@ -279,6 +280,10 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
             <TabsTrigger value="calculadora" data-testid="tab-calculadora">
               <Calculator className="w-4 h-4 mr-1" />
               Calculadoras
+            </TabsTrigger>
+            <TabsTrigger value="partograma" data-testid="tab-partograma">
+              <Activity className="w-4 h-4 mr-1" />
+              Partograma
             </TabsTrigger>
             <TabsTrigger value="conduta" data-testid="tab-conduta">
               <FileText className="w-4 h-4 mr-1" />
@@ -546,6 +551,11 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          {/* PARTOGRAMA */}
+          <TabsContent value="partograma" className="space-y-4">
+            <Partogram />
           </TabsContent>
 
           {/* CONDUTA */}

@@ -260,19 +260,20 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
           </Badge>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Stethoscope className="w-5 h-5" />
-            Ferramentas Profissionais
-          </DialogTitle>
-          <DialogDescription>
-            Ferramentas de apoio à decisão clínica para {userRole === "medico" ? "médicos" : "estudantes de medicina"}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-[900px] max-h-[90vh] overflow-y-auto p-0">
+        <div className="max-w-[900px] mx-auto p-6 md:p-8">
+          <DialogHeader className="text-center mb-6">
+            <DialogTitle className="flex items-center justify-center gap-2 text-[1.3rem] font-semibold text-[#222]">
+              <Stethoscope className="w-5 h-5" />
+              Ferramentas Profissionais
+            </DialogTitle>
+            <DialogDescription className="text-[0.95rem] text-[#777] mt-2">
+              Ferramentas de apoio à decisão clínica para {userRole === "medico" ? "médicos" : "estudantes de medicina"}
+            </DialogDescription>
+          </DialogHeader>
 
-        <Tabs defaultValue="posologia" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <Tabs defaultValue="posologia" className="w-full">
+            <TabsList className="grid w-full grid-cols-6 bg-[#f8f9f9] rounded-t-xl p-1 gap-1">
             <TabsTrigger value="posologia" data-testid="tab-posologia">
               <Pill className="w-4 h-4 mr-1" />
               Posologia
@@ -690,28 +691,29 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
           </TabsContent>
         </Tabs>
 
-        {/* Result Display */}
-        {result && (
-          <Card className="mt-4">
-            <CardHeader>
-              <CardTitle className="text-lg">Resultado</CardTitle>
-              {result.disclaimer && (
-                <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 rounded-md">
-                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200" data-testid="text-disclaimer">
-                    {result.disclaimer}
-                  </p>
+          {/* Result Display */}
+          {result && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-lg">Resultado</CardTitle>
+                {result.disclaimer && (
+                  <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 rounded-md">
+                    <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200" data-testid="text-disclaimer">
+                      {result.disclaimer}
+                    </p>
+                  </div>
+                )}
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <pre className="text-xs bg-muted p-4 rounded-md overflow-x-auto whitespace-pre-wrap">
+                    {JSON.stringify(result, null, 2)}
+                  </pre>
                 </div>
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <pre className="text-xs bg-muted p-4 rounded-md overflow-x-auto whitespace-pre-wrap">
-                  {JSON.stringify(result, null, 2)}
-                </pre>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

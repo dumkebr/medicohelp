@@ -1,0 +1,89 @@
+TITLE: Refine the UI layout and styling of the "Ferramentas Profissionais" modal to match MédicoHelp aesthetics
+
+GOAL:
+Unify and polish the design of the "Ferramentas Profissionais" modal (Posologia, Calculadoras, Conduta, Exames, Diferenciais) to visually match MédicoHelp’s main layout — clean, white background, green accents, rounded borders, soft shadows, and responsive alignment.
+
+TASKS:
+
+1. GENERAL STRUCTURE:
+- Use a responsive centered container with:
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+    background: #ffffff;
+    border-radius: 1.25rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+- Remove excess whitespace above and below.
+- Make sure content scrolls smoothly when needed (overflow-y: auto).
+
+2. TAB BAR (Posologia / Calculadoras / Conduta / Exames / Diferenciais):
+- Background: #f8f9f9;
+- Rounded corners (top-left and top-right 12px);
+- Selected tab: white background + green underline (#3cb371) 3px thick.
+- Hover effect: light green background (#e9f8f0).
+- Font: "Inter", weight 500, 15px, color #333.
+- Even spacing between tabs, center-aligned.
+
+3. HEADER:
+- Title (“Ferramentas Profissionais”, “Calculadoras Clínicas” etc.) centered.
+- Font-size: 1.3rem, weight 600, color #222.
+- Subtitle below (ex: “Ferramentas de apoio à decisão clínica para médicos”) em cinza #777, tamanho 0.95rem.
+
+4. BODY (CONTENT AREA):
+- Remove fixed heights.
+- Use flex layout: display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+- Margin-top between header and first input: 1rem.
+- All form cards com borda sutil (#e5e7eb), border-radius: 10px, padding: 1rem 1.5rem, background: #fff.
+- Shadow leve: 0 2px 6px rgba(0,0,0,0.04).
+- Inputs e selects:
+    border-radius: 8px;
+    border: 1px solid #dcdcdc;
+    height: 42px;
+    padding: 0 10px;
+    transition: all 0.2s ease;
+    focus-border-color: #3cb371;
+- Botões principais (ex: “Calcular”, “Consultar Posologia”):
+    background: #3cb371;
+    color: #fff;
+    font-weight: 600;
+    height: 45px;
+    border-radius: 10px;
+    transition: background 0.2s;
+    hover: background: #2f9e62;
+
+5. RESULTS CARD:
+- Aparece abaixo do form com animação fade-in (0.3s).
+- Fundo branco, borda verde clara (#dff5e1), borda-radius: 12px, padding: 1rem 1.5rem.
+- Título “Resultado” com ícone 📋.
+- Resultado principal (ex: “Score: 7 pontos”) em verde escuro (#2a7b4b), negrito.
+- Interpretação em cinza escuro (#444).
+- Rodapé com referência científica (italico, menor, cor #888).
+
+6. ACTION BUTTONS:
+- Alinhar à direita: [Copiar] [Imprimir] [Salvar].
+- Ícones simples (lucide-react ou heroicons outline).
+- Hover: verde translúcido (#e9f8f0).
+
+7. RESPONSIVE DESIGN:
+- Em telas menores (<768px):
+    - Reduzir padding lateral para 1rem.
+    - Tabs transformam-se em scroll horizontal suave (scroll-snap-type: x mandatory).
+    - Font-size geral reduzido 10%.
+- Em telas grandes: centralizar tudo no modal, sem scroll duplo.
+
+8. MISC:
+- Adicionar animação suave entre troca de abas (fade ou slide 0.2s).
+- Garantir que o fechamento da modal preserva o estado da aba selecionada.
+- Adicionar ícones representativos nos títulos:
+    • 💊 Posologia
+    • 📊 Calculadoras
+    • 📋 Conduta
+    • 🧪 Exames
+    • ⚖️ Diferenciais
+
+ACCEPTANCE:
+✅ A modal abre sem espaço branco, centralizada e visualmente harmônica.
+✅ Cada aba mostra conteúdo alinhado e estilizado.
+✅ Inputs, botões e resultados seguem padrão MédicoHelp.
+✅ Troca de abas suave e responsiva.
+✅ Nenhum overflow ou duplo scroll.

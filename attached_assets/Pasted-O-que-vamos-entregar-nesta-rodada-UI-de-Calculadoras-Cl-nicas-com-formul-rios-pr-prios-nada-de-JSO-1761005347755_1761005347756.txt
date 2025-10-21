@@ -1,0 +1,170 @@
+O que vamos entregar nesta rodada
+
+UI de Calculadoras Clínicas com formulários próprios (nada de JSON!).
+
+Engine com esquema declarativo (cada calculadora define: entradas → cálculo → faixas de interpretação).
+
+Histórico local (últimas 20) + Copiar/Imprimir.
+
+Calculadoras iniciais: CURB-65, Alvarado, Wells TVP, Wells TEP, CHA₂DS₂-VASc, HAS-BLED, qSOFA, SIRS, GCS, IMC.
+
+Obstetrícia: Idade gestacional por DUM, por DPP, por USG prévia (com DPP e IG “hoje”).
+
+🧩 PROMPT 1 — Framework + calculadoras clínicas
+
+Cole no Replit (na caixa do agent).
+
+TITLE: Build Clinical Calculators module with friendly forms (no JSON inputs)
+
+GOAL
+Create a calculators module with:
+- A selector list of calculators
+- Per-calculator friendly form (labels, hints, validation)
+- Result card with value + interpretation + references
+- Actions: Copy result, Print (A4), Save last 20 (local history)
+- Medical disclaimer banner (apoio à decisão)
+
+TECH / STRUCTURE
+- Add /calculators route or tab
+- Data-driven schema for calculators:
+  {
+    id: "curb65",
+    name: "CURB-65 (Pneumonia)",
+    inputs: [
+      { key:"confusion", label:"Confusão", type:"boolean" },
+      { key:"urea", label:"Ureia > 7 mmol/L (ou BUN > 20 mg/dL)", type:"boolean" },
+      { key:"resp_rate", label:"FR ≥ 30 irpm", type:"boolean" },
+      { key:"bp", label:"PAS < 90 ou PAD ≤ 60", type:"boolean" },
+      { key:"age65", label:"Idade ≥ 65 anos", type:"boolean" }
+    ],
+    compute: (v) => { score = sum booleans; return {score}; },
+    interpret: (s) => [
+      {range:[0,1], text:"Risco baixo; considerar ambulatorial"},
+      {range:[2,2], text:"Risco moderado; internação ou observação"},
+      {range:[3,5], text:"Risco alto; avaliar UTI"}
+    ],
+    refs: ["Lim WS et al. Thorax 2003"]
+  }
+
+UI
+- Left: dropdown/search calculators
+- Right: dynamic form for selected calculator
+- Submit -> result card: SCORE + interpretation text + refs
+- Buttons: Copiar, Imprimir
+- Save last 20 calculations to localStorage (date, calc name, key inputs, result)
+
+CALCULATORS TO INCLUDE
+1) CURB-65 (as above)
+2) Alvarado (Apendicite)
+   Inputs:
+     dolor_migratoria(b), anorexia(b), nausea(b), dorFID(b), descompressao(b), febre(b), leucocitose(b), desviamento(b)
+   Score: 10
+   Interpret: 1-4 baixo; 5-6 compatível; 7-10 provável.
+3) Wells TVP
+   Inputs bistate + “diagnóstico alternativo tão provável quanto TVP?” (negativo vale -2).
+   Interpret: ≥3 alta; 1-2 moderada; 0 baixa. (Versão simples: improvável <2, provável ≥2)
+4) Wells TEP (versão simplificada por pontos)
+5) CHA2DS2-VASc
+   Campos clássicos; output: 0,1,≥2 (homem/mulher) com risco anual (%)
+6) HAS-BLED (risco sangramento)
+7) qSOFA: FR≥22, PAS≤100, alteração de consciência → 0–3
+8) SIRS: ≥2 critérios
+9) Glasgow Coma Scale (GCS): Ocular, Verbal, Motora → 3–15 (com descrições)
+10) IMC: peso/altura, classificar adultos
+
+VALIDATION
+- Campos obrigatórios
+- Tooltips para critérios
+- Explicitar unidades (ex: BUN/ureia equivalências)
+
+UX
+- Consistência com tema da app (verde)
+- Disclaimer fixo: “Ferramenta de apoio. Não substitui julgamento clínico.”
+
+ACCEPTANCE
+- CURB-65: marcar 3 itens -> interpretação de risco alto
+- Alvarado: 7/10 => provável
+- GCS 15 no default; variando inputs reflete corretamente
+- Histórico lista e reabre cálculo
+
+👶 PROMPT 2 — Calculadoras obstétricas (IG por DUM/DPP/USG)
+
+Cole em seguida.
+
+TITLE: Add Obstetric Calculators (LMP, EDD, Prior Ultrasound)
+
+ADD A NEW GROUP "Obstetrícia" with 3 calculators:
+
+1) Idade Gestacional por DUM (LMP)
+Inputs:
+  - lmp_date (date): "DUM (primeiro dia da última menstruação)"
+Compute:
+  - today = local date
+  - GA_days = today - lmp_date (in days)
+  - GA_weeks = floor(GA_days/7), GA_rem = GA_days % 7
+  - EDD = lmp_date + 280 days (40w)  [Regra de Näegele]
+Output:
+  - IG hoje: X semanas + Y dias
+  - DPP estimada (EDD)
+  - Trimestre atual (1: <14w; 2: 14–27w6d; 3: ≥28w)
+  - Observações: “DUM incerta → considerar USG precoce p/ datar”
+Refs: ACOG dating guidelines
+
+2) Idade Gestacional por DPP (EDD)
+Inputs:
+  - edd (date): "Data Provável do Parto"
+Compute:
+  - lmp_est = edd - 280 days
+  - GA_days = today - lmp_est
+  - IG hoje (Xw + Yd) e DUM estimada
+Output:
+  - IG hoje, DUM estimada, DPP (inserida)
+Note: warn if edd < today - 3w or > today + 43w (consistência)
+
+3) Idade Gestacional por USG prévia
+Inputs:
+  - usg_date (date): data do exame
+  - usg_ga_weeks (number)
+  - usg_ga_days (number, 0–6)
+Compute:
+  - GA_usg_days_total = usg_ga_weeks*7 + usg_ga_days
+  - Today_GA_days = (today - usg_date) + GA_usg_days_total
+  - Today_GA_weeks = floor(Today_GA_days/7), rem = Today_GA_days % 7
+  - EDD_by_usg = today + (280 - Today_GA_days)  // ou usg_date + (280 - GA_usg_days_total)
+Output:
+  - IG hoje (Xw+Yd), DPP estimada por USG, trimestre
+Warnings:
+  - If usg_date > today: error
+  - If GA_usg_days_total > 294 or < 0: error
+Refs: ACOG/WHO ultrasound dating recommendations
+
+UI/UX
+- Friendly forms (date pickers; inputs numéricos para semanas/dias)
+- Result card com:
+  • IG hoje (semanas + dias)
+  • DPP calculada
+  • Faixa de trimestre
+  • Notas (ex: “Se DUM incerta, priorize USG do 1º trimestre para datar”)
+- Botões: Copiar, Imprimir
+- Adicionar esses itens ao Histórico
+
+ACCEPTANCE
+- LMP 01/01/2025 com hoje=20/10/2025 ≈ IG 41w  // (ajuste automático)
+- EDD 10/11/2025 -> DUM ~ 03/02/2025; IG hoje coerente
+- USG 15/06/2025 com IG 12w+4d -> hoje: mostrar IG e DPP consistentes
+
+📏 Fórmulas/Detalhes (já embutidos nos prompts)
+
+Näegele: DPP = DUM + 280 dias
+
+IG hoje por DUM: IG_dias = hoje − DUM → em semanas+dias
+
+IG hoje por DPP: DUM_estimada = DPP − 280 → IG como acima
+
+IG por USG prévia:
+
+IG_dias_hoje = (hoje − data_USG) + IG_USG_dias
+
+DPP_USG = data_USG + (280 − IG_USG_dias) (equivalente partindo de “hoje”)
+
+Trimestres: 1T <14s; 2T 14–27s6d; 3T ≥28s.

@@ -44,12 +44,19 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 - **Patient Management (CRUD)**: Complete patient lifecycle management, integrated with Memed for prescriptions.
 - **Clinical Evidence**: Provides scientific literature from PubMed (NIH/NCBI E-utilities), integrated into Explanatory Mode, with a legacy toggle for explicit display.
 - **Consultation History System**: Saves patient consultations, chat history, attachments, and physician details in PostgreSQL (JSONB).
-- **Medical Professional Tools**: Five specialized clinical decision support tools for physicians and medical students:
+- **Medical Professional Tools**: Six specialized clinical decision support tools for physicians and medical students:
   - **Posologia**: Simplified placeholder with "PosologiaCerta" branding (beta notice, no backend).
   - **Calculadoras Clínicas**: 15 medical calculators with friendly forms and interpretation:
     - **Clinical (10)**: CURB-65, Alvarado, Wells TVP/TEP, CHA₂DS₂-VASc, HAS-BLED, qSOFA, SIRS, GCS, IMC
     - **Obstetric (5)**: IG por DUM/DPP/USG, Escore de Bishop (pré-indução), Apgar (1' e 5')
     - **Features**: Dynamic forms, severity-colored interpretation, copy/print actions, localStorage history (last 20), medical disclaimer
+  - **Partograma**: Interactive labor partogram with Recharts visualization:
+    - **Data Points**: Time, cervical dilation (0-10cm), fetal station, FHR, blood pressure, notes
+    - **Alert/Action Lines**: Configurable parameters (default: 4cm start, 1cm/h rate, 2h action offset)
+    - **Visualization**: Recharts line chart with patient evolution vs alert/action reference lines
+    - **Attention System**: Badge indicator when patient curve crosses action line
+    - **Export**: Multi-format export (PNG/PDF/JSON) using html2canvas and jsPDF
+    - **Persistence**: localStorage for data retention across sessions
   - **Conduta**: Evidence-based management plans.
   - **Solicitação de Exames**: Intelligent exam ordering.
   - **Diagnósticos Diferenciais**: Comprehensive differential diagnosis generation.

@@ -695,6 +695,222 @@ const igPorUSG: CalculatorSchema = {
   refs: ["ACOG Practice Bulletin No. 229: Antepartum Fetal Surveillance. Obstet Gynecol 2021;137:e116-27", "WHO recommendations on antenatal care for a positive pregnancy experience. Geneva: WHO; 2016"],
 };
 
+// 4. Escore de Bishop (Pré-indução)
+const bishopScore: CalculatorSchema = {
+  id: "bishop_score",
+  name: "Escore de Bishop",
+  group: "Obstetrícia",
+  description: "Avalia a favorabilidade do colo uterino para indução do parto",
+  inputs: [
+    {
+      key: "usar_apagamento",
+      label: "Usar Apagamento (%)",
+      type: "boolean",
+      required: false,
+      hint: "Marque para usar apagamento (%) em vez de comprimento do colo (mm)",
+    },
+    {
+      key: "dilatacao",
+      label: "Dilatação (cm)",
+      type: "select",
+      required: true,
+      options: [
+        { label: "0 cm (fechado)", value: "0" },
+        { label: "1-2 cm", value: "1-2" },
+        { label: "3-4 cm", value: "3-4" },
+        { label: "5-6 cm", value: "5-6" },
+      ],
+    },
+    {
+      key: "apagamento",
+      label: "Esvaecimento/Apagamento (%)",
+      type: "select",
+      required: false,
+      options: [
+        { label: "0-30%", value: "0-30" },
+        { label: "40-50%", value: "40-50" },
+        { label: "60-70%", value: "60-70" },
+        { label: "≥80%", value: "80+" },
+      ],
+      hint: "Use este campo OU 'Comprimento do colo'",
+    },
+    {
+      key: "comprimento_colo",
+      label: "Comprimento do colo (cm)",
+      type: "select",
+      required: false,
+      options: [
+        { label: ">3 cm", value: ">3" },
+        { label: "2-3 cm", value: "2-3" },
+        { label: "1-2 cm", value: "1-2" },
+        { label: "<1 cm", value: "<1" },
+      ],
+      hint: "Use este campo OU 'Apagamento'",
+    },
+    {
+      key: "estacao",
+      label: "Estação (relação à espinha ciática)",
+      type: "select",
+      required: true,
+      options: [
+        { label: "-3 (alta)", value: "-3" },
+        { label: "-2", value: "-2" },
+        { label: "-1", value: "-1" },
+        { label: "0", value: "0" },
+        { label: "+1", value: "+1" },
+        { label: "+2", value: "+2" },
+      ],
+    },
+    {
+      key: "consistencia",
+      label: "Consistência do colo",
+      type: "select",
+      required: true,
+      options: [
+        { label: "Firme", value: "firme" },
+        { label: "Média", value: "media" },
+        { label: "Amolecido", value: "amolecido" },
+      ],
+    },
+    {
+      key: "posicao",
+      label: "Posição do colo",
+      type: "select",
+      required: true,
+      options: [
+        { label: "Posterior", value: "posterior" },
+        { label: "Média", value: "media" },
+        { label: "Anterior", value: "anterior" },
+      ],
+    },
+  ],
+  compute: (values) => {
+    let score = 0;
+    const details: Record<string, number> = {};
+
+    // 1. Dilatação (0-3 pontos)
+    const dilatacao = values.dilatacao;
+    if (dilatacao === "0") {
+      details.dilatacao = 0;
+    } else if (dilatacao === "1-2") {
+      details.dilatacao = 1;
+    } else if (dilatacao === "3-4") {
+      details.dilatacao = 2;
+    } else if (dilatacao === "5-6") {
+      details.dilatacao = 3;
+    }
+    score += details.dilatacao || 0;
+
+    // 2. Apagamento OU Comprimento (0-3 pontos)
+    const usarApagamento = values.usar_apagamento !== false; // default true
+    
+    if (usarApagamento && values.apagamento) {
+      const apagamento = values.apagamento;
+      if (apagamento === "0-30") {
+        details.apagamento = 0;
+      } else if (apagamento === "40-50") {
+        details.apagamento = 1;
+      } else if (apagamento === "60-70") {
+        details.apagamento = 2;
+      } else if (apagamento === "80+") {
+        details.apagamento = 3;
+      }
+      score += details.apagamento || 0;
+    } else if (!usarApagamento && values.comprimento_colo) {
+      const comprimento = values.comprimento_colo;
+      if (comprimento === ">3") {
+        details.comprimento_colo = 0;
+      } else if (comprimento === "2-3") {
+        details.comprimento_colo = 1;
+      } else if (comprimento === "1-2") {
+        details.comprimento_colo = 2;
+      } else if (comprimento === "<1") {
+        details.comprimento_colo = 3;
+      }
+      score += details.comprimento_colo || 0;
+    } else if (!values.apagamento && !values.comprimento_colo) {
+      return {
+        interpretation: "Por favor, preencha 'Apagamento' OU 'Comprimento do colo'.",
+        severity: "info",
+      };
+    }
+
+    // 3. Estação (0-3 pontos)
+    const estacao = values.estacao;
+    if (estacao === "-3") {
+      details.estacao = 0;
+    } else if (estacao === "-2") {
+      details.estacao = 1;
+    } else if (estacao === "-1" || estacao === "0") {
+      details.estacao = 2;
+    } else if (estacao === "+1" || estacao === "+2") {
+      details.estacao = 3;
+    }
+    score += details.estacao || 0;
+
+    // 4. Consistência (0-2 pontos)
+    const consistencia = values.consistencia;
+    if (consistencia === "firme") {
+      details.consistencia = 0;
+    } else if (consistencia === "media") {
+      details.consistencia = 1;
+    } else if (consistencia === "amolecido") {
+      details.consistencia = 2;
+    }
+    score += details.consistencia || 0;
+
+    // 5. Posição (0-2 pontos)
+    const posicao = values.posicao;
+    if (posicao === "posterior") {
+      details.posicao = 0;
+    } else if (posicao === "media") {
+      details.posicao = 1;
+    } else if (posicao === "anterior") {
+      details.posicao = 2;
+    }
+    score += details.posicao || 0;
+
+    // Interpretação
+    let interpretation = `**Escore de Bishop: ${score}/13**\n\n`;
+    let severity: "low" | "moderate" | "high" | "info" = "info";
+
+    if (score < 6) {
+      interpretation += "**Colo desfavorável** (score <6)\n\n";
+      interpretation += "Indução menos favorável. Considere maturação cervical (misoprostol, balão, etc.) antes da indução.";
+      severity = "low";
+    } else if (score >= 6 && score <= 8) {
+      interpretation += "**Colo favorável** (score 6-8)\n\n";
+      interpretation += "Condições favoráveis para indução do parto.";
+      severity = "moderate";
+    } else {
+      // score >= 9
+      interpretation += "**Colo muito favorável** (score ≥9)\n\n";
+      interpretation += "Alta probabilidade de parto vaginal bem-sucedido após indução.";
+      severity = "high";
+    }
+
+    interpretation += `\n\n**Pontuação detalhada:**\n`;
+    interpretation += `• Dilatação: ${details.dilatacao || 0}\n`;
+    interpretation += usarApagamento 
+      ? `• Apagamento: ${details.apagamento || 0}\n`
+      : `• Comprimento do colo: ${details.comprimento_colo || 0}\n`;
+    interpretation += `• Estação: ${details.estacao || 0}\n`;
+    interpretation += `• Consistência: ${details.consistencia || 0}\n`;
+    interpretation += `• Posição: ${details.posicao || 0}`;
+
+    return {
+      value: score,
+      interpretation,
+      severity,
+      details,
+    };
+  },
+  refs: [
+    "Bishop EH. Pelvic scoring for elective induction. Obstet Gynecol. 1964;24:266-8",
+    "ACOG Practice Bulletin No. 107: Induction of Labor. Obstet Gynecol. 2009;114:386-97",
+  ],
+};
+
 // Export all calculators
 export const CLINICAL_CALCULATORS: CalculatorSchema[] = [
   curb65,
@@ -713,6 +929,7 @@ export const OBSTETRIC_CALCULATORS: CalculatorSchema[] = [
   igPorDUM,
   igPorDPP,
   igPorUSG,
+  bishopScore,
 ];
 
 export const ALL_CALCULATORS: CalculatorSchema[] = [

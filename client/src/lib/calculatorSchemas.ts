@@ -911,6 +911,189 @@ const bishopScore: CalculatorSchema = {
   ],
 };
 
+// 5. Apgar Score (1' e 5')
+const apgarScore: CalculatorSchema = {
+  id: "apgar",
+  name: "Apgar (1' e 5')",
+  group: "Obstetrícia",
+  description: "Avaliação da vitalidade do recém-nascido ao nascimento",
+  inputs: [
+    // 1 minuto
+    {
+      key: "fc_1min",
+      label: "FC (1 min)",
+      type: "select",
+      required: true,
+      options: [
+        { label: "0 - Ausente", value: "0" },
+        { label: "1 - <100 bpm", value: "1" },
+        { label: "2 - ≥100 bpm", value: "2" },
+      ],
+    },
+    {
+      key: "respiracao_1min",
+      label: "Respiração (1 min)",
+      type: "select",
+      required: true,
+      options: [
+        { label: "0 - Ausente", value: "0" },
+        { label: "1 - Irregular/choro fraco", value: "1" },
+        { label: "2 - Choro vigoroso", value: "2" },
+      ],
+    },
+    {
+      key: "tonus_1min",
+      label: "Tônus muscular (1 min)",
+      type: "select",
+      required: true,
+      options: [
+        { label: "0 - Flácido", value: "0" },
+        { label: "1 - Alguma flexão", value: "1" },
+        { label: "2 - Ativo/movimento", value: "2" },
+      ],
+    },
+    {
+      key: "reflexo_1min",
+      label: "Irritabilidade reflexa (1 min)",
+      type: "select",
+      required: true,
+      options: [
+        { label: "0 - Nenhuma", value: "0" },
+        { label: "1 - Careta", value: "1" },
+        { label: "2 - Espirra/chora/retira", value: "2" },
+      ],
+    },
+    {
+      key: "cor_1min",
+      label: "Cor (1 min)",
+      type: "select",
+      required: true,
+      options: [
+        { label: "0 - Pálido/azulado", value: "0" },
+        { label: "1 - Rosado com acrocianose", value: "1" },
+        { label: "2 - Rosado total", value: "2" },
+      ],
+    },
+    // 5 minutos
+    {
+      key: "fc_5min",
+      label: "FC (5 min)",
+      type: "select",
+      required: true,
+      options: [
+        { label: "0 - Ausente", value: "0" },
+        { label: "1 - <100 bpm", value: "1" },
+        { label: "2 - ≥100 bpm", value: "2" },
+      ],
+    },
+    {
+      key: "respiracao_5min",
+      label: "Respiração (5 min)",
+      type: "select",
+      required: true,
+      options: [
+        { label: "0 - Ausente", value: "0" },
+        { label: "1 - Irregular/choro fraco", value: "1" },
+        { label: "2 - Choro vigoroso", value: "2" },
+      ],
+    },
+    {
+      key: "tonus_5min",
+      label: "Tônus muscular (5 min)",
+      type: "select",
+      required: true,
+      options: [
+        { label: "0 - Flácido", value: "0" },
+        { label: "1 - Alguma flexão", value: "1" },
+        { label: "2 - Ativo/movimento", value: "2" },
+      ],
+    },
+    {
+      key: "reflexo_5min",
+      label: "Irritabilidade reflexa (5 min)",
+      type: "select",
+      required: true,
+      options: [
+        { label: "0 - Nenhuma", value: "0" },
+        { label: "1 - Careta", value: "1" },
+        { label: "2 - Espirra/chora/retira", value: "2" },
+      ],
+    },
+    {
+      key: "cor_5min",
+      label: "Cor (5 min)",
+      type: "select",
+      required: true,
+      options: [
+        { label: "0 - Pálido/azulado", value: "0" },
+        { label: "1 - Rosado com acrocianose", value: "1" },
+        { label: "2 - Rosado total", value: "2" },
+      ],
+    },
+  ],
+  compute: (values) => {
+    // Calculate 1 min score
+    const score1min = 
+      Number(values.fc_1min || 0) +
+      Number(values.respiracao_1min || 0) +
+      Number(values.tonus_1min || 0) +
+      Number(values.reflexo_1min || 0) +
+      Number(values.cor_1min || 0);
+
+    // Calculate 5 min score
+    const score5min = 
+      Number(values.fc_5min || 0) +
+      Number(values.respiracao_5min || 0) +
+      Number(values.tonus_5min || 0) +
+      Number(values.reflexo_5min || 0) +
+      Number(values.cor_5min || 0);
+
+    // Interpretation function
+    const getInterpretation = (score: number): { text: string; severity: "low" | "moderate" | "high" } => {
+      if (score >= 0 && score <= 3) {
+        return { text: "Depressão severa - Reanimação urgente", severity: "high" };
+      } else if (score >= 4 && score <= 6) {
+        return { text: "Depressão moderada - Suporte necessário", severity: "moderate" };
+      } else {
+        return { text: "Bom estado", severity: "low" };
+      }
+    };
+
+    const interp1min = getInterpretation(score1min);
+    const interp5min = getInterpretation(score5min);
+
+    let interpretation = `**Apgar 1 minuto: ${score1min}/10**\n${interp1min.text}\n\n`;
+    interpretation += `**Apgar 5 minutos: ${score5min}/10**\n${interp5min.text}`;
+
+    // Alert if 5 min score < 7
+    if (score5min < 7) {
+      interpretation += `\n\n⚠️ **ATENÇÃO**: Apgar 5' <7. Recomenda-se reavaliação aos 10 minutos e monitorização contínua.`;
+    }
+
+    // Determine overall severity (use worst case)
+    const overallSeverity = 
+      interp1min.severity === "high" || interp5min.severity === "high" ? "high" :
+      interp1min.severity === "moderate" || interp5min.severity === "moderate" ? "moderate" :
+      "low";
+
+    return {
+      interpretation,
+      severity: overallSeverity,
+      details: {
+        score_1min: score1min,
+        score_5min: score5min,
+        interpretation_1min: interp1min.text,
+        interpretation_5min: interp5min.text,
+        alert_10min: score5min < 7,
+      },
+    };
+  },
+  refs: [
+    "Apgar V. A proposal for a new method of evaluation of the newborn infant. Curr Res Anesth Analg. 1953;32(4):260-7",
+    "ACOG Committee Opinion No. 644: The Apgar Score. Obstet Gynecol. 2015;126(4):e52-5",
+  ],
+};
+
 // Export all calculators
 export const CLINICAL_CALCULATORS: CalculatorSchema[] = [
   curb65,
@@ -930,6 +1113,7 @@ export const OBSTETRIC_CALCULATORS: CalculatorSchema[] = [
   igPorDPP,
   igPorUSG,
   bishopScore,
+  apgarScore,
 ];
 
 export const ALL_CALCULATORS: CalculatorSchema[] = [

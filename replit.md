@@ -45,8 +45,11 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 - **Clinical Evidence**: Provides scientific literature from PubMed (NIH/NCBI E-utilities), integrated into Explanatory Mode, with a legacy toggle for explicit display.
 - **Consultation History System**: Saves patient consultations, chat history, attachments, and physician details in PostgreSQL (JSONB).
 - **Medical Professional Tools**: Five specialized clinical decision support tools for physicians and medical students:
-  - **Posologia**: AI-powered dosage calculations with adjustments and safety checks.
-  - **Calculadoras Clínicas**: Seven clinical scores with interpretation.
+  - **Posologia**: Simplified placeholder with "PosologiaCerta" branding (beta notice, no backend).
+  - **Calculadoras Clínicas**: 14 medical calculators with friendly forms and interpretation:
+    - **Clinical (10)**: CURB-65, Alvarado, Wells TVP/TEP, CHA₂DS₂-VASc, HAS-BLED, qSOFA, SIRS, GCS, IMC
+    - **Obstetric (4)**: IG por DUM/DPP/USG, Escore de Bishop (pré-indução)
+    - **Features**: Dynamic forms, severity-colored interpretation, copy/print actions, localStorage history (last 20), medical disclaimer
   - **Conduta**: Evidence-based management plans.
   - **Solicitação de Exames**: Intelligent exam ordering.
   - **Diagnósticos Diferenciais**: Comprehensive differential diagnosis generation.

@@ -1,0 +1,61 @@
+TITLE: Add Obstetric Calculators (LMP, EDD, Prior Ultrasound)
+
+ADD A NEW GROUP "Obstetrícia" with 3 calculators:
+
+1) Idade Gestacional por DUM (LMP)
+Inputs:
+  - lmp_date (date): "DUM (primeiro dia da última menstruação)"
+Compute:
+  - today = local date
+  - GA_days = today - lmp_date (in days)
+  - GA_weeks = floor(GA_days/7), GA_rem = GA_days % 7
+  - EDD = lmp_date + 280 days (40w)  [Regra de Näegele]
+Output:
+  - IG hoje: X semanas + Y dias
+  - DPP estimada (EDD)
+  - Trimestre atual (1: <14w; 2: 14–27w6d; 3: ≥28w)
+  - Observações: “DUM incerta → considerar USG precoce p/ datar”
+Refs: ACOG dating guidelines
+
+2) Idade Gestacional por DPP (EDD)
+Inputs:
+  - edd (date): "Data Provável do Parto"
+Compute:
+  - lmp_est = edd - 280 days
+  - GA_days = today - lmp_est
+  - IG hoje (Xw + Yd) e DUM estimada
+Output:
+  - IG hoje, DUM estimada, DPP (inserida)
+Note: warn if edd < today - 3w or > today + 43w (consistência)
+
+3) Idade Gestacional por USG prévia
+Inputs:
+  - usg_date (date): data do exame
+  - usg_ga_weeks (number)
+  - usg_ga_days (number, 0–6)
+Compute:
+  - GA_usg_days_total = usg_ga_weeks*7 + usg_ga_days
+  - Today_GA_days = (today - usg_date) + GA_usg_days_total
+  - Today_GA_weeks = floor(Today_GA_days/7), rem = Today_GA_days % 7
+  - EDD_by_usg = today + (280 - Today_GA_days)  // ou usg_date + (280 - GA_usg_days_total)
+Output:
+  - IG hoje (Xw+Yd), DPP estimada por USG, trimestre
+Warnings:
+  - If usg_date > today: error
+  - If GA_usg_days_total > 294 or < 0: error
+Refs: ACOG/WHO ultrasound dating recommendations
+
+UI/UX
+- Friendly forms (date pickers; inputs numéricos para semanas/dias)
+- Result card com:
+  • IG hoje (semanas + dias)
+  • DPP calculada
+  • Faixa de trimestre
+  • Notas (ex: “Se DUM incerta, priorize USG do 1º trimestre para datar”)
+- Botões: Copiar, Imprimir
+- Adicionar esses itens ao Histórico
+
+ACCEPTANCE
+- LMP 01/01/2025 com hoje=20/10/2025 ≈ IG 41w  // (ajuste automático)
+- EDD 10/11/2025 -> DUM ~ 03/02/2025; IG hoje coerente
+- USG 15/06/2025 com IG 12w+4d -> hoje: mostrar IG e DPP consistentes

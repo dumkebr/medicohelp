@@ -273,32 +273,56 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
           </DialogHeader>
 
           <Tabs defaultValue="posologia" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 bg-[#f8f9f9] rounded-t-xl p-1 gap-1">
-            <TabsTrigger value="posologia" data-testid="tab-posologia">
-              <Pill className="w-4 h-4 mr-1" />
-              Posologia
-            </TabsTrigger>
-            <TabsTrigger value="calculadora" data-testid="tab-calculadora">
-              <Calculator className="w-4 h-4 mr-1" />
-              Calculadoras
-            </TabsTrigger>
-            <TabsTrigger value="partograma" data-testid="tab-partograma">
-              <Activity className="w-4 h-4 mr-1" />
-              Partograma
-            </TabsTrigger>
-            <TabsTrigger value="conduta" data-testid="tab-conduta">
-              <FileText className="w-4 h-4 mr-1" />
-              Conduta
-            </TabsTrigger>
-            <TabsTrigger value="exames" data-testid="tab-exames">
-              <FileText className="w-4 h-4 mr-1" />
-              Exames
-            </TabsTrigger>
-            <TabsTrigger value="diferenciais" data-testid="tab-diferenciais">
-              <AlertCircle className="w-4 h-4 mr-1" />
-              Diferenciais
-            </TabsTrigger>
-          </TabsList>
+            <TabsList className="grid w-full grid-cols-6 bg-[#f8f9f9] dark:bg-[#2a2a2a] rounded-t-xl p-1.5 gap-1">
+              <TabsTrigger 
+                value="posologia" 
+                data-testid="tab-posologia"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-[#333] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] rounded-lg font-medium text-[15px]"
+              >
+                <span className="mr-1.5">💊</span>
+                Posologia
+              </TabsTrigger>
+              <TabsTrigger 
+                value="calculadora" 
+                data-testid="tab-calculadora"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-[#333] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] rounded-lg font-medium text-[15px]"
+              >
+                <span className="mr-1.5">📊</span>
+                Calculadoras
+              </TabsTrigger>
+              <TabsTrigger 
+                value="partograma" 
+                data-testid="tab-partograma"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-[#333] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] rounded-lg font-medium text-[15px]"
+              >
+                <Activity className="w-3.5 h-3.5 mr-1.5" />
+                Partograma
+              </TabsTrigger>
+              <TabsTrigger 
+                value="conduta" 
+                data-testid="tab-conduta"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-[#333] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] rounded-lg font-medium text-[15px]"
+              >
+                <span className="mr-1.5">📋</span>
+                Conduta
+              </TabsTrigger>
+              <TabsTrigger 
+                value="exames" 
+                data-testid="tab-exames"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-[#333] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] rounded-lg font-medium text-[15px]"
+              >
+                <span className="mr-1.5">🧪</span>
+                Exames
+              </TabsTrigger>
+              <TabsTrigger 
+                value="diferenciais" 
+                data-testid="tab-diferenciais"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-[#333] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] rounded-lg font-medium text-[15px]"
+              >
+                <span className="mr-1.5">⚖️</span>
+                Diferenciais
+              </TabsTrigger>
+            </TabsList>
 
           {/* POSOLOGIA */}
           <TabsContent value="posologia" className="flex items-center justify-center min-h-[400px]">
@@ -475,7 +499,7 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                   ))}
                   <Button
                     onClick={handleCalculate}
-                    className="w-full"
+                    className="w-full bg-[#3cb371] hover:bg-[#2f9e62] text-white font-semibold h-[45px] rounded-[10px] transition-all shadow-sm"
                     data-testid="button-calcular"
                   >
                     <Calculator className="w-4 h-4 mr-2" />
@@ -487,19 +511,23 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
 
             {/* Result Card */}
             {calcResult && selectedCalc && (
-              <Card>
+              <Card className="animate-in fade-in-50 duration-300 border-[#dff5e1] dark:border-[#1f3a2f] shadow-md">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center justify-between">
-                    <span>Resultado</span>
+                  <CardTitle className="text-lg flex items-center justify-between text-[#222] dark:text-white">
+                    <span className="flex items-center gap-2">
+                      <span>📋</span>
+                      Resultado
+                    </span>
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={copyResult}
+                        className="hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] transition-all"
                         data-testid="button-copy-result"
                       >
                         {copied ? (
-                          <Check className="w-4 h-4" />
+                          <Check className="w-4 h-4 text-[#3cb371]" />
                         ) : (
                           <Copy className="w-4 h-4" />
                         )}
@@ -508,6 +536,7 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                         variant="outline"
                         size="sm"
                         onClick={printResult}
+                        className="hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] transition-all"
                         data-testid="button-print-result"
                       >
                         <Printer className="w-4 h-4" />
@@ -517,19 +546,19 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {calcResult.score !== undefined && (
-                    <div className="text-center p-6 bg-muted rounded-lg">
+                    <div className="text-center p-6 bg-gradient-to-br from-[#e9f8f0] to-[#f0fdf4] dark:from-[#1f3a2f] dark:to-[#1a2e26] rounded-xl border border-[#dff5e1] dark:border-[#1f3a2f]">
                       <div className="text-sm text-muted-foreground mb-1">Score</div>
-                      <div className="text-4xl font-bold text-[#00A86B]">{calcResult.score}</div>
+                      <div className="text-5xl font-bold text-[#2a7b4b] dark:text-[#3cb371]">{calcResult.score}</div>
                     </div>
                   )}
                   {calcResult.value !== undefined && (
-                    <div className="text-center p-6 bg-muted rounded-lg">
+                    <div className="text-center p-6 bg-gradient-to-br from-[#e9f8f0] to-[#f0fdf4] dark:from-[#1f3a2f] dark:to-[#1a2e26] rounded-xl border border-[#dff5e1] dark:border-[#1f3a2f]">
                       <div className="text-sm text-muted-foreground mb-1">Valor</div>
-                      <div className="text-4xl font-bold text-[#00A86B]">{calcResult.value}</div>
+                      <div className="text-4xl font-bold text-[#2a7b4b] dark:text-[#3cb371]">{calcResult.value}</div>
                     </div>
                   )}
                   <div
-                    className={`p-4 rounded-md border-l-4 ${
+                    className={`p-4 rounded-xl border-l-4 ${
                       calcResult.severity === "high"
                         ? "bg-red-50 dark:bg-red-900/20 border-red-500"
                         : calcResult.severity === "moderate"
@@ -539,11 +568,11 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                         : "bg-blue-50 dark:bg-blue-900/20 border-blue-500"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-line">{calcResult.interpretation}</p>
+                    <p className="text-sm whitespace-pre-line text-[#444] dark:text-gray-300">{calcResult.interpretation}</p>
                   </div>
                   {selectedCalc.refs.length > 0 && (
-                    <div className="text-xs text-muted-foreground space-y-1">
-                      <div className="font-semibold">Referências:</div>
+                    <div className="text-xs text-[#888] dark:text-gray-400 space-y-1 italic">
+                      <div className="font-semibold not-italic">Referências:</div>
                       {selectedCalc.refs.map((ref, idx) => (
                         <div key={idx}>• {ref}</div>
                       ))}
@@ -594,7 +623,7 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                 <Button
                   onClick={handleConduta}
                   disabled={loading}
-                  className="w-full"
+                  className="w-full bg-[#3cb371] hover:bg-[#2f9e62] text-white font-semibold h-[45px] rounded-[10px] transition-all shadow-sm disabled:opacity-50"
                   data-testid="button-gerar-conduta"
                 >
                   {loading ? (
@@ -634,7 +663,7 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                 <Button
                   onClick={handleExames}
                   disabled={loading}
-                  className="w-full"
+                  className="w-full bg-[#3cb371] hover:bg-[#2f9e62] text-white font-semibold h-[45px] rounded-[10px] transition-all shadow-sm disabled:opacity-50"
                   data-testid="button-sugerir-exames"
                 >
                   {loading ? (
@@ -674,7 +703,7 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                 <Button
                   onClick={handleDiferenciais}
                   disabled={loading}
-                  className="w-full"
+                  className="w-full bg-[#3cb371] hover:bg-[#2f9e62] text-white font-semibold h-[45px] rounded-[10px] transition-all shadow-sm disabled:opacity-50"
                   data-testid="button-gerar-diferenciais"
                 >
                   {loading ? (

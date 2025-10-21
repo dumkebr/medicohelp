@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Calculator, Pill, Stethoscope, FileText, AlertCircle, Loader2 } from "lucide-react";
+import { Calculator, Pill, Stethoscope, FileText, AlertCircle, Loader2, Copy, Printer, History, Check } from "lucide-react";
+import { ALL_CALCULATORS, CalculatorSchema, CalculatorResult } from "@/lib/calculatorSchemas";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -42,8 +43,10 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
   const { toast } = useToast();
 
   // Calculadora states
-  const [calculadoraSelecionada, setCalculadoraSelecionada] = useState("");
-  const [variaveisCalc, setVariaveisCalc] = useState("");
+  const [selectedCalc, setSelectedCalc] = useState<CalculatorSchema | null>(null);
+  const [calcValues, setCalcValues] = useState<Record<string, any>>({});
+  const [calcResult, setCalcResult] = useState<CalculatorResult | null>(null);
+  const [copied, setCopied] = useState(false);
 
   // Conduta states
   const [quadroConduta, setQuadroConduta] = useState("");
@@ -57,39 +60,68 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
 
   const hasAccess = userRole === "medico" || userRole === "estudante";
 
-  const handleCalculadora = async () => {
-    if (!calculadoraSelecionada || !variaveisCalc) {
+  const handleCalculate = () => {
+    if (!selectedCalc) return;
+
+    // Validate required fields - check for undefined or empty string, not falsy (to allow false and 0)
+    const missingFields = selectedCalc.inputs
+      .filter((input) => {
+        if (!input.required) return false;
+        const value = calcValues[input.key];
+        // Allow false, 0, and other falsy values except undefined and empty string
+        return value === undefined || value === "";
+      })
+      .map((input) => input.label);
+
+    if (missingFields.length > 0) {
       toast({
-        title: "Dados incompletos",
-        description: "Selecione a calculadora e forneça as variáveis em JSON",
+        title: "Campos obrigatórios faltando",
+        description: `Preencha: ${missingFields.join(", ")}`,
         variant: "destructive",
       });
       return;
     }
 
-    setLoading(true);
-    setResult(null);
+    const result = selectedCalc.compute(calcValues);
+    setCalcResult(result);
 
+    // Save to history
+    saveToHistory({
+      calculatorId: selectedCalc.id,
+      calculatorName: selectedCalc.name,
+      values: calcValues,
+      result,
+      timestamp: new Date().toISOString(),
+    });
+  };
+
+  const saveToHistory = (entry: any) => {
     try {
-      const variaveis = JSON.parse(variaveisCalc);
-      const response = await apiRequest("POST", `/api/tools/calculadora/${calculadoraSelecionada}`, {
-        variaveis,
-      });
-      const data = await response.json();
-      setResult(data);
-      toast({
-        title: "Score calculado",
-        description: "Resultado disponível abaixo",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao calcular score",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+      const history = JSON.parse(localStorage.getItem("calc_history") || "[]");
+      history.unshift(entry);
+      const trimmed = history.slice(0, 20); // Keep last 20
+      localStorage.setItem("calc_history", JSON.stringify(trimmed));
+    } catch (err) {
+      console.error("Failed to save history", err);
     }
+  };
+
+  const copyResult = () => {
+    if (!calcResult || !selectedCalc) return;
+    let text = `${selectedCalc.name}\n`;
+    if (calcResult.score !== undefined) text += `Score: ${calcResult.score}\n`;
+    text += `\n${calcResult.interpretation}\n`;
+    if (selectedCalc.refs.length > 0) {
+      text += `\nReferências:\n${selectedCalc.refs.join("\n")}`;
+    }
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast({ title: "Copiado!", description: "Resultado copiado para área de transferência" });
+  };
+
+  const printResult = () => {
+    window.print();
   };
 
   const handleConduta = async () => {
@@ -298,67 +330,222 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
 
           {/* CALCULADORA */}
           <TabsContent value="calculadora" className="space-y-4">
+            {/* Disclaimer */}
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 rounded-md">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                <strong>Ferramenta de apoio à decisão clínica.</strong> Não substitui o julgamento clínico e a avaliação individual do paciente.
+              </p>
+            </div>
+
+            {/* Calculator Selector */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Calculadoras Clínicas</CardTitle>
+                <CardTitle className="text-lg">Selecione uma Calculadora</CardTitle>
                 <CardDescription>
-                  Scores e calculadoras médicas (Alvarado, CURB-65, Wells, etc)
+                  Scores e calculadoras médicas com formulários intuitivos
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="calc-select">Selecione a Calculadora</Label>
+                  <Label htmlFor="calc-select">Calculadora</Label>
                   <Select
-                    value={calculadoraSelecionada}
-                    onValueChange={setCalculadoraSelecionada}
+                    value={selectedCalc?.id || ""}
+                    onValueChange={(value) => {
+                      const calc = ALL_CALCULATORS.find((c) => c.id === value);
+                      setSelectedCalc(calc || null);
+                      setCalcValues({});
+                      setCalcResult(null);
+                    }}
                   >
                     <SelectTrigger id="calc-select" data-testid="select-calculadora">
-                      <SelectValue placeholder="Escolha uma calculadora" />
+                      <SelectValue placeholder="Escolha uma calculadora..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="alvarado">Alvarado (Apendicite)</SelectItem>
-                      <SelectItem value="curb65">CURB-65 (Pneumonia)</SelectItem>
-                      <SelectItem value="centor">Centor/McIsaac (Faringite)</SelectItem>
-                      <SelectItem value="wells_dvt">Wells TVP</SelectItem>
-                      <SelectItem value="wells_pe">Wells EP</SelectItem>
-                      <SelectItem value="perc">PERC (EP)</SelectItem>
-                      <SelectItem value="chadsvasc">CHA2DS2-VASc (FA)</SelectItem>
-                      <SelectItem value="qsofa">qSOFA (Sepse)</SelectItem>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                        Clínico
+                      </div>
+                      {ALL_CALCULATORS.filter((c) => c.group === "Clínico").map((calc) => (
+                        <SelectItem key={calc.id} value={calc.id}>
+                          {calc.name}
+                        </SelectItem>
+                      ))}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">
+                        Obstetrícia
+                      </div>
+                      {ALL_CALCULATORS.filter((c) => c.group === "Obstetrícia").map((calc) => (
+                        <SelectItem key={calc.id} value={calc.id}>
+                          {calc.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="variaveis">Variáveis (formato JSON)</Label>
-                  <Textarea
-                    id="variaveis"
-                    placeholder='{"febre": true, "leucocitose": true, "idade": 65}'
-                    value={variaveisCalc}
-                    onChange={(e) => setVariaveisCalc(e.target.value)}
-                    className="font-mono text-sm"
-                    rows={4}
-                    data-testid="input-variaveis-calc"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Forneça as variáveis no formato JSON. Exemplo: {"{"}"febre": true, "idade": 65{"}"}
-                  </p>
-                </div>
-                <Button
-                  onClick={handleCalculadora}
-                  disabled={loading}
-                  className="w-full"
-                  data-testid="button-calcular"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Calculando...
-                    </>
-                  ) : (
-                    "Calcular Score"
-                  )}
-                </Button>
+
+                {selectedCalc && (
+                  <div className="pt-2">
+                    <p className="text-sm text-muted-foreground">{selectedCalc.description}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
+
+            {/* Dynamic Form */}
+            {selectedCalc && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">{selectedCalc.name}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {selectedCalc.inputs.map((input) => (
+                    <div key={input.key} className="space-y-2">
+                      <Label htmlFor={`input-${input.key}`}>
+                        {input.label} {input.required && <span className="text-destructive">*</span>}
+                      </Label>
+                      {input.type === "boolean" && (
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id={`input-${input.key}`}
+                            checked={calcValues[input.key] || false}
+                            onCheckedChange={(checked) =>
+                              setCalcValues({ ...calcValues, [input.key]: checked })
+                            }
+                            data-testid={`input-${input.key}`}
+                          />
+                          <Label htmlFor={`input-${input.key}`} className="text-sm font-normal">
+                            {input.hint || "Sim/Não"}
+                          </Label>
+                        </div>
+                      )}
+                      {input.type === "number" && (
+                        <>
+                          <Input
+                            id={`input-${input.key}`}
+                            type="number"
+                            min={input.min}
+                            max={input.max}
+                            step={input.step || 1}
+                            value={calcValues[input.key] || ""}
+                            onChange={(e) =>
+                              setCalcValues({ ...calcValues, [input.key]: e.target.value })
+                            }
+                            data-testid={`input-${input.key}`}
+                          />
+                          {input.hint && (
+                            <p className="text-xs text-muted-foreground">{input.hint}</p>
+                          )}
+                        </>
+                      )}
+                      {input.type === "select" && input.options && (
+                        <Select
+                          value={String(calcValues[input.key] || "")}
+                          onValueChange={(value) =>
+                            setCalcValues({ ...calcValues, [input.key]: value })
+                          }
+                        >
+                          <SelectTrigger id={`input-${input.key}`} data-testid={`input-${input.key}`}>
+                            <SelectValue placeholder="Selecione..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {input.options.map((opt) => (
+                              <SelectItem key={opt.value} value={String(opt.value)}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {input.type === "date" && (
+                        <Input
+                          id={`input-${input.key}`}
+                          type="date"
+                          value={calcValues[input.key] || ""}
+                          onChange={(e) =>
+                            setCalcValues({ ...calcValues, [input.key]: e.target.value })
+                          }
+                          data-testid={`input-${input.key}`}
+                        />
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    onClick={handleCalculate}
+                    className="w-full"
+                    data-testid="button-calcular"
+                  >
+                    <Calculator className="w-4 h-4 mr-2" />
+                    Calcular
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Result Card */}
+            {calcResult && selectedCalc && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    <span>Resultado</span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={copyResult}
+                        data-testid="button-copy-result"
+                      >
+                        {copied ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={printResult}
+                        data-testid="button-print-result"
+                      >
+                        <Printer className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {calcResult.score !== undefined && (
+                    <div className="text-center p-6 bg-muted rounded-lg">
+                      <div className="text-sm text-muted-foreground mb-1">Score</div>
+                      <div className="text-4xl font-bold text-[#00A86B]">{calcResult.score}</div>
+                    </div>
+                  )}
+                  {calcResult.value !== undefined && (
+                    <div className="text-center p-6 bg-muted rounded-lg">
+                      <div className="text-sm text-muted-foreground mb-1">Valor</div>
+                      <div className="text-4xl font-bold text-[#00A86B]">{calcResult.value}</div>
+                    </div>
+                  )}
+                  <div
+                    className={`p-4 rounded-md border-l-4 ${
+                      calcResult.severity === "high"
+                        ? "bg-red-50 dark:bg-red-900/20 border-red-500"
+                        : calcResult.severity === "moderate"
+                        ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500"
+                        : calcResult.severity === "low"
+                        ? "bg-green-50 dark:bg-green-900/20 border-green-500"
+                        : "bg-blue-50 dark:bg-blue-900/20 border-blue-500"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-line">{calcResult.interpretation}</p>
+                  </div>
+                  {selectedCalc.refs.length > 0 && (
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <div className="font-semibold">Referências:</div>
+                      {selectedCalc.refs.map((ref, idx) => (
+                        <div key={idx}>• {ref}</div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* CONDUTA */}

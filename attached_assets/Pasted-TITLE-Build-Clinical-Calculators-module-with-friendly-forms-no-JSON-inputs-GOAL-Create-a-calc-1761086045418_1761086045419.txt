@@ -1,0 +1,72 @@
+TITLE: Build Clinical Calculators module with friendly forms (no JSON inputs)
+
+GOAL
+Create a calculators module with:
+- A selector list of calculators
+- Per-calculator friendly form (labels, hints, validation)
+- Result card with value + interpretation + references
+- Actions: Copy result, Print (A4), Save last 20 (local history)
+- Medical disclaimer banner (apoio à decisão)
+
+TECH / STRUCTURE
+- Add /calculators route or tab
+- Data-driven schema for calculators:
+  {
+    id: "curb65",
+    name: "CURB-65 (Pneumonia)",
+    inputs: [
+      { key:"confusion", label:"Confusão", type:"boolean" },
+      { key:"urea", label:"Ureia > 7 mmol/L (ou BUN > 20 mg/dL)", type:"boolean" },
+      { key:"resp_rate", label:"FR ≥ 30 irpm", type:"boolean" },
+      { key:"bp", label:"PAS < 90 ou PAD ≤ 60", type:"boolean" },
+      { key:"age65", label:"Idade ≥ 65 anos", type:"boolean" }
+    ],
+    compute: (v) => { score = sum booleans; return {score}; },
+    interpret: (s) => [
+      {range:[0,1], text:"Risco baixo; considerar ambulatorial"},
+      {range:[2,2], text:"Risco moderado; internação ou observação"},
+      {range:[3,5], text:"Risco alto; avaliar UTI"}
+    ],
+    refs: ["Lim WS et al. Thorax 2003"]
+  }
+
+UI
+- Left: dropdown/search calculators
+- Right: dynamic form for selected calculator
+- Submit -> result card: SCORE + interpretation text + refs
+- Buttons: Copiar, Imprimir
+- Save last 20 calculations to localStorage (date, calc name, key inputs, result)
+
+CALCULATORS TO INCLUDE
+1) CURB-65 (as above)
+2) Alvarado (Apendicite)
+   Inputs:
+     dolor_migratoria(b), anorexia(b), nausea(b), dorFID(b), descompressao(b), febre(b), leucocitose(b), desviamento(b)
+   Score: 10
+   Interpret: 1-4 baixo; 5-6 compatível; 7-10 provável.
+3) Wells TVP
+   Inputs bistate + “diagnóstico alternativo tão provável quanto TVP?” (negativo vale -2).
+   Interpret: ≥3 alta; 1-2 moderada; 0 baixa. (Versão simples: improvável <2, provável ≥2)
+4) Wells TEP (versão simplificada por pontos)
+5) CHA2DS2-VASc
+   Campos clássicos; output: 0,1,≥2 (homem/mulher) com risco anual (%)
+6) HAS-BLED (risco sangramento)
+7) qSOFA: FR≥22, PAS≤100, alteração de consciência → 0–3
+8) SIRS: ≥2 critérios
+9) Glasgow Coma Scale (GCS): Ocular, Verbal, Motora → 3–15 (com descrições)
+10) IMC: peso/altura, classificar adultos
+
+VALIDATION
+- Campos obrigatórios
+- Tooltips para critérios
+- Explicitar unidades (ex: BUN/ureia equivalências)
+
+UX
+- Consistência com tema da app (verde)
+- Disclaimer fixo: “Ferramenta de apoio. Não substitui julgamento clínico.”
+
+ACCEPTANCE
+- CURB-65: marcar 3 itens -> interpretação de risco alto
+- Alvarado: 7/10 => provável
+- GCS 15 no default; variando inputs reflete corretamente
+- Histórico lista e reabre cálculo

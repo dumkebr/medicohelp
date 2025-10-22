@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Save, Edit2, Trash2 } from "lucide-react";
 import { isSaved, setSaved, renameAtendimento } from "@/lib/atendimentos";
+import { toast } from "@/hooks/use-toast";
 
 export function ItemRow({
   item,
@@ -25,6 +26,10 @@ export function ItemRow({
     if (novo != null && novo.trim()) {
       renameAtendimento(item.id, novo);
       refresh();
+      toast({
+        title: "Atendimento renomeado",
+        description: `Novo nome: "${novo}"`,
+      });
     }
   };
 
@@ -32,12 +37,20 @@ export function ItemRow({
     e.stopPropagation();
     setSaved(item.id, true);
     refresh();
+    toast({
+      title: "Atendimento salvo",
+      description: "Agora ele aparece na lista de salvos.",
+    });
   };
 
   const handleUnsave = (e: React.MouseEvent) => {
     e.stopPropagation();
     setSaved(item.id, false);
     refresh();
+    toast({
+      title: "Atendimento desfixado",
+      description: "Voltou para o histórico (expira em 30 dias).",
+    });
   };
 
   return (

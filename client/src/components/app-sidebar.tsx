@@ -35,7 +35,7 @@ import {
 } from "@/lib/atendimentos";
 import { ItemRow } from "@/components/ItemRow";
 import heartIcon from "@assets/image_1761162023136.png";
-import logoText from "@assets/image_1761162169337.png";
+import logoText from "@assets/image_1761162310190.png";
 
 const menuItems = [
   {

@@ -33,6 +33,7 @@ import fs from "fs/promises";
 import path from "path";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { retryWithBackoff } from "./utils/retry";
+import { loadClinicoConfig, buildClinicoSystemPrompt } from "./config-loader";
 
 // Referência ao blueprint javascript_openai para integração OpenAI
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
@@ -758,8 +759,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // Construir prompt de Modo Clínico
+  // Carregar configuração do modo clínico
+  const clinicoConfig = loadClinicoConfig();
+
   function buildClinicalPrompt(style: string, customTemplate?: string): string {
+    // Usar configuração JSON como base
+    const configBasedPrompt = buildClinicoSystemPrompt(clinicoConfig);
+    
     const basePrompt = `Você é a IA médica do MédicoHelp, ferramenta exclusiva para médicos com CRM validado.
+
+**CONFIGURAÇÃO ATIVA:** ${clinicoConfig.meta.template}
+**TOM:** ${clinicoConfig.behavior.description}
+
+${configBasedPrompt}
 
 **FORMATO DE RESPOSTA - CONDUTA CLÍNICA RÁPIDA:**
 
@@ -772,13 +784,12 @@ Use o seguinte formato estruturado e objetivo:
 4️⃣ [Quarto passo (se aplicável)]
 5️⃣ [Quinto passo (se aplicável)]
 
-**INSTRUÇÕES:**
+**INSTRUÇÕES ADICIONAIS:**
 - Seja objetivo e direto, como em uma lista de verificação de plantão
 - Use emojis numerados (1️⃣, 2️⃣, 3️⃣...) para passos da conduta
 - Priorize ações práticas e imediatas
 - Mantenha frases curtas e imperativas
 - Sempre comece com "⚡ CONDUTA CLÍNICA RÁPIDA"
-- Máximo 5-7 passos para manter a praticidade
 
 Finalize com o aviso discreto:
 > Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.`;
@@ -793,7 +804,7 @@ Formato SOAP solicitado - organize a conduta usando as divisões S/O/A/P, mas ma
 Template personalizado:
 ${customTemplate}`;
     } else {
-      // Tradicional (default) - formato de checklist
+      // Tradicional (default) - formato de checklist + config JSON
       return basePrompt;
     }
   }

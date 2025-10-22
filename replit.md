@@ -14,8 +14,15 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 - **Clinical Mode Config**: `config/medicohelp.clinico.v1.json` - JSON-based configuration for AI clinical responses
   - Defines response structure with 5 mandatory sections (1️⃣ Avaliar estabilidade → 5️⃣ Seguimento)
   - Guardrails system: prevents AI from inventing vitals, forces asking for missing data (PA, FC, peso, idade)
+  - **Leis do MédicoHelp**: 5 fundamental behavioral rules enforced in all responses
+    1. Responder primeiro, perguntar depois (deliver value immediately)
+    2. Proibido chutar tema não relacionado (stay focused on question)
+    3. Priorizar termos médicos consagrados (medical terms = clinical tools)
+    4. Corrigir erros em silêncio (auto-correct typos without commenting)
+    5. Formato enxuto e prático (concise, direct responses)
   - Template loader: `server/config-loader.ts` loads and caches config at startup
   - Applied to all clinical mode (modo clínico) conversations via system prompt injection
+  - Full documentation: `config/LEIS_MEDICOHELP.md`
 
 **UI/UX Decisions:**
 - **Framework**: React with Wouter for routing.

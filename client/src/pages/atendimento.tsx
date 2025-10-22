@@ -21,8 +21,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { FileAttachment, Patient, ScientificReference } from "@shared/schema";
-import { MedicalToolsMenu } from "@/components/MedicalToolsMenu";
-import { ModoResposta } from "@/components/ModoResposta";
+import TopControls from "@/components/TopControls";
 import { useAuth } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import {
@@ -565,31 +564,20 @@ export default function Atendimento() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-[#3cb371] rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                  M
-                </div>
-                <span className="font-semibold text-neutral-900 dark:text-white">MédicoHelp</span>
-              </div>
-              <Badge variant="secondary" className="text-xs">Beta Gratuito</Badge>
-            </div>
-
-            {/* CONTROLES FIXOS NO TOPO */}
-            <div className="flex items-center gap-3 flex-wrap">
-              <ModoResposta
-                initialMode={mode}
-                evidenceEnabled={evidenceEnabled}
-                onModeChange={handleModeChange}
-                onSave={() => setShowSavePanel(!showSavePanel)}
-                showSaveButton={showPatientMgmt && history.length > 0}
-                disabled={isLoading}
-              />
-
-              {user && <MedicalToolsMenu userRole={user.role} />}
-            </div>
-          </div>
+          {/* TOPCONTROLS - Interface limpa com abas */}
+          <TopControls
+            currentTitle={currentAtendimento?.title || "Novo atendimento"}
+            onSave={showPatientMgmt && history.length > 0 ? () => setShowSavePanel(!showSavePanel) : undefined}
+            initialTab="clinico"
+            onTabChange={(tab) => {
+              if (tab === "clinico") {
+                setMode("clinico");
+              } else if (tab === "evidencias") {
+                setMode("explicativo");
+                setEvidenceEnabled(true);
+              }
+            }}
+          />
 
           {/* PAINEL DE SALVAR CONSULTA (COLAPSÁVEL) */}
           {showPatientMgmt && showSavePanel && history.length > 0 && (

@@ -234,37 +234,31 @@ export function AppSidebar() {
                   title={new Date(it.updatedAt).toLocaleString()}
                   data-testid={`atendimento-volatil-${it.id}`}
                 >
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="space-y-1">
                     <div className="truncate text-sm text-neutral-900 dark:text-white">{it.title}</div>
                     <div className="flex items-center gap-1">
-                      {/* Salvar/Fixar */}
                       <button
-                        title="Salvar em Atendimentos Salvos"
                         onClick={(e) => handleToggleSaved(it.id, true, e)}
-                        className="text-[11px] px-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        className="text-xs px-2 py-0.5 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
                         data-testid={`button-save-${it.id}`}
                       >
-                        📌
+                        Salvar
                       </button>
 
-                      {/* Renomear */}
                       <button
-                        title="Renomear"
                         onClick={(e) => handleRenomear(it.id, it.title, e)}
-                        className="text-[11px] px-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        className="text-xs px-2 py-0.5 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
                         data-testid={`button-rename-${it.id}`}
                       >
-                        ✏️
+                        Renomear
                       </button>
 
-                      {/* Excluir */}
                       <button
-                        title="Excluir"
                         onClick={(e) => handleRemoverAtendimento(it.id, e)}
-                        className="text-[11px] px-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        className="text-xs px-2 py-0.5 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-red-600 dark:text-red-400"
                         data-testid={`button-delete-${it.id}`}
                       >
-                        🗑️
+                        Excluir
                       </button>
                     </div>
                   </div>
@@ -294,49 +288,43 @@ export function AppSidebar() {
                   title={new Date(it.updatedAt).toLocaleString()}
                   data-testid={`atendimento-salvo-${it.id}`}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="truncate text-sm text-neutral-900 dark:text-white">{it.title}</div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="truncate text-sm text-neutral-900 dark:text-white">{it.title}</div>
+                      {it.patientId && (
+                        <Badge variant="secondary" className="text-[10px] h-4 px-1 flex-shrink-0">
+                          Paciente
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1">
-                      {/* Desfixar (se não tiver paciente) */}
                       {!it.patientId && (
                         <button
-                          title="Remover dos salvos"
                           onClick={(e) => handleToggleSaved(it.id, false, e)}
-                          className="text-[11px] px-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                          className="text-xs px-2 py-0.5 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
                           data-testid={`button-unsave-${it.id}`}
                         >
-                          📍
+                          Desfixar
                         </button>
                       )}
 
-                      {/* Renomear */}
                       <button
-                        title="Renomear"
                         onClick={(e) => handleRenomear(it.id, it.title, e)}
-                        className="text-[11px] px-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        className="text-xs px-2 py-0.5 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
                         data-testid={`button-rename-${it.id}`}
                       >
-                        ✏️
+                        Renomear
                       </button>
 
-                      {/* Excluir */}
                       <button
-                        title="Excluir"
                         onClick={(e) => handleRemoverAtendimento(it.id, e)}
-                        className="text-[11px] px-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        className="text-xs px-2 py-0.5 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-red-600 dark:text-red-400"
                         data-testid={`button-delete-${it.id}`}
                       >
-                        🗑️
+                        Excluir
                       </button>
                     </div>
                   </div>
-                  {it.patientId && (
-                    <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
-                      <Badge variant="secondary" className="text-[10px] h-4 px-1">
-                        Paciente
-                      </Badge>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>

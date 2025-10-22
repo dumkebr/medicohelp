@@ -295,6 +295,9 @@ export function AppSidebar() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <div className="truncate text-sm text-neutral-900 dark:text-white">{it.title}</div>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 flex-shrink-0">
+                        Salvo
+                      </span>
                       {it.patientId && (
                         <Badge variant="secondary" className="text-[10px] h-4 px-1 flex-shrink-0">
                           Paciente

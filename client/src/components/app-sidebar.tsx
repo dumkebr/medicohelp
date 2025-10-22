@@ -150,7 +150,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="px-4 py-2 border-b bg-background">
-        <div className="flex items-center justify-start gap-3 w-full">
+        <div className="flex items-center justify-start gap-2 w-full">
           <img 
             src={heartIcon} 
             alt="MédicoHelp - Ícone do coração" 
@@ -166,7 +166,7 @@ export function AppSidebar() {
             alt="MédicoHelp - A plataforma médica inteligente" 
             className="h-auto w-auto object-contain"
             style={{ 
-              height: '72px',
+              height: '80px',
               imageRendering: 'crisp-edges',
               filter: 'contrast(1.05) brightness(1.02)'
             }}

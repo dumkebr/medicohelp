@@ -1,0 +1,93 @@
+// src/components/Sidebar.tsx
+import { useLocalStorage } from "@/lib/useLocalStorage";
+import { listAtendimentos, setCurrentId, getCurrentId, createAtendimento, removeAtendimento } from "@/lib/atendimentos";
+import { useEffect, useState } from "react";
+
+export default function Sidebar() {
+  const [showPatientMgmt, setShowPatientMgmt] = useLocalStorage<boolean>("mh_showPatientMgmt", false);
+  const [items, setItems] = useState(listAtendimentos());
+  const [current, setCurrent] = useState<string | null>(getCurrentId());
+
+  useEffect(()=>{ setItems(listAtendimentos()); setCurrent(getCurrentId()); }, []);
+
+  const open = (id: string) => { setCurrentId(id); setCurrent(id); window.location.href = "/atendimento"; };
+  const novoAtendimento = () => { const a = createAtendimento(); setItems(listAtendimentos()); open(a.id); };
+  const del = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("Remover este atendimento?")) {
+      removeAtendimento(id);
+      setItems(listAtendimentos());
+      setCurrent(getCurrentId());
+    }
+  };
+
+  return (
+    <aside className="w-64 border-r">
+      <nav className="p-3 space-y-2 text-sm">
+
+        {/* Menu principal */}
+        <a href="/atendimento" className="block">Atendimento médico</a>
+        <a href="/sobre" className="block">Sobre</a>
+
+        {/* ===== Cabeçalho + Toggle da Gestão de Pacientes (lá em cima) ===== */}
+        <div className="mt-3 flex items-center justify-between">
+          <div className="text-xs uppercase text-neutral-500">Gestão de Pacientes</div>
+          <label className="flex items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              checked={showPatientMgmt}
+              onChange={(e)=> setShowPatientMgmt(e.target.checked)}
+            />
+            <span>{showPatientMgmt ? "Ligado" : "Desligado"}</span>
+          </label>
+        </div>
+
+        {/* Itens que aparecem só quando LIGADO */}
+        {showPatientMgmt && (
+          <>
+            <a href="/novo-paciente" className="block">Novo paciente</a>
+            <a href="/pacientes" className="block">Todos os pacientes</a>
+
+            <div className="mt-3 text-xs uppercase text-neutral-500">Atendimentos</div>
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-sm">Histórico</span>
+              <button onClick={novoAtendimento} className="text-xs px-2 py-0.5 border rounded">
+                Novo
+              </button>
+            </div>
+
+            <div className="max-h-[36vh] overflow-auto divide-y rounded border">
+              {items.length===0 && (
+                <div className="p-2 text-neutral-500 text-xs">Sem atendimentos.</div>
+              )}
+              {items.map(it=>(
+                <div
+                  key={it.id}
+                  onClick={()=>open(it.id)}
+                  className={`p-2 cursor-pointer ${current===it.id ? "bg-emerald-50" : "hover:bg-neutral-50"}`}
+                  title={new Date(it.updatedAt).toLocaleString()}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="truncate">{it.title}</div>
+                    <button onClick={(e)=>del(it.id, e)} className="text-[11px] text-neutral-500">x</button>
+                  </div>
+                  {it.patientId && (
+                    <div className="text-[11px] text-neutral-500 mt-0.5">
+                      Paciente: {it.patientId}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Módulos especiais (sempre visíveis) */}
+        <div className="mt-3 text-xs uppercase text-neutral-500">Módulos Especiais</div>
+        <span className="block">Pediatria <em className="text-neutral-400">Em breve</em></span>
+        <span className="block">Gestante <em className="text-neutral-400">Em breve</em></span>
+        <span className="block">Emergência <em className="text-neutral-400">Em breve</em></span>
+      </nav>
+    </aside>
+  );
+}

@@ -401,6 +401,45 @@ export default function Atendimento() {
   const handleSend = async () => {
     if (!message.trim() && files.length === 0) return;
 
+    // Comandos de texto rápido
+    if (currentAtendimento && message.trim() && files.length === 0) {
+      const texto = message.toLowerCase().trim();
+
+      // SALVAR COMO "<nome>"
+      const m1 = texto.match(/^salvar como (.+)$/i);
+      if (m1) {
+        const novoNome = message.trim().substring(12).trim(); // Preserva maiúsculas
+        setSaved(currentAtendimento.id, true);
+        renameAtendimento(currentAtendimento.id, novoNome);
+        setAtendimentoTitle(novoNome);
+        const updated = getAtendimento(currentAtendimento.id);
+        if (updated) setCurrentAtendimento(updated);
+        setMessage("");
+        toast({
+          title: "✓ Atendimento salvo e renomeado",
+          description: `"${novoNome}" foi salvo e não será removido automaticamente.`,
+        });
+        return;
+      }
+
+      // RENOMEAR PARA "<nome>" ou RENOMEAR "<nome>"
+      const m2 = texto.match(/^renomear (?:para )?(.+)$/i);
+      if (m2) {
+        const idx = texto.startsWith("renomear para ") ? 14 : 9;
+        const novoNome = message.trim().substring(idx).trim(); // Preserva maiúsculas
+        renameAtendimento(currentAtendimento.id, novoNome);
+        setAtendimentoTitle(novoNome);
+        const updated = getAtendimento(currentAtendimento.id);
+        if (updated) setCurrentAtendimento(updated);
+        setMessage("");
+        toast({
+          title: "✓ Atendimento renomeado",
+          description: `Novo nome: "${novoNome}"`,
+        });
+        return;
+      }
+    }
+
     let enrichedMessage = message;
 
     if (files.length > 0) {

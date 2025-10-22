@@ -437,7 +437,7 @@ export default function Atendimento() {
     <div className="h-screen w-full bg-neutral-50 dark:bg-neutral-900 flex flex-col">
       {/* HEADER FIXO */}
       <header className="sticky top-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800">
-        <div className="max-w-5xl mx-auto px-4 py-3">
+        <div className="max-w-5xl mx-auto px-4 py-1.5">
           {/* TOPCONTROLS - Interface limpa com abas */}
           <TopControls
             initialTab="clinico"

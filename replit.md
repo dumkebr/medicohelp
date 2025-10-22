@@ -10,6 +10,13 @@ I prefer simple language and clear explanations. I want iterative development wi
 
 MédicoHelp is built with a modern full-stack JavaScript architecture.
 
+**Configuration System:**
+- **Clinical Mode Config**: `config/medicohelp.clinico.v1.json` - JSON-based configuration for AI clinical responses
+  - Defines response structure with 5 mandatory sections (1️⃣ Avaliar estabilidade → 5️⃣ Seguimento)
+  - Guardrails system: prevents AI from inventing vitals, forces asking for missing data (PA, FC, peso, idade)
+  - Template loader: `server/config-loader.ts` loads and caches config at startup
+  - Applied to all clinical mode (modo clínico) conversations via system prompt injection
+
 **UI/UX Decisions:**
 - **Framework**: React with Wouter for routing.
 - **Design System**: Shadcn/ui and Tailwind CSS for a professional, consistent UI.

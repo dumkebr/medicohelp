@@ -42,7 +42,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Configuração do multer para upload de arquivos (exames)
+// Configuração do multer para upload de arquivos (exames, áudio)
 const upload = multer({
   dest: "uploads/",
   limits: {
@@ -50,12 +50,17 @@ const upload = multer({
     files: 10, // máximo 10 arquivos
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|pdf/;
-    const mimetype = allowedTypes.test(file.mimetype);
-    if (mimetype) {
+    // Aceitar imagens, PDFs e áudio
+    const allowedTypes = /jpeg|jpg|png|pdf|webm|mp3|wav|m4a|ogg/;
+    const mimetypePattern = /^(image\/|application\/pdf|audio\/)/;
+    
+    const isAllowedExtension = allowedTypes.test(file.originalname.toLowerCase());
+    const isAllowedMimetype = mimetypePattern.test(file.mimetype);
+    
+    if (isAllowedExtension || isAllowedMimetype) {
       cb(null, true);
     } else {
-      cb(new Error("Tipo de arquivo não suportado. Use JPEG, PNG ou PDF."));
+      cb(new Error("Tipo de arquivo não suportado. Use JPEG, PNG, PDF ou áudio (MP3, WAV, WEBM)."));
     }
   },
 });
@@ -1336,6 +1341,60 @@ Finalize com o aviso discreto:
       console.error("Erro no upload:", error);
       res.status(500).json({
         error: error.message || "Erro ao processar upload",
+      });
+    }
+  });
+
+  // ===== ENDPOINT: Transcrição de Áudio (Whisper) =====
+  app.post("/api/transcribe", upload.single("audio"), async (req: Request, res) => {
+    try {
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({
+          error: "Nenhum arquivo de áudio enviado",
+        });
+      }
+
+      // Verificar se é arquivo de áudio
+      if (!file.mimetype.startsWith("audio/") && !file.originalname.match(/\.(webm|mp3|wav|m4a|ogg)$/i)) {
+        await fs.unlink(file.path).catch(() => {});
+        return res.status(400).json({
+          error: "O arquivo deve ser um áudio (MP3, WAV, WEBM, M4A, OGG)",
+        });
+      }
+
+      console.log(`📝 Transcrevendo áudio: ${file.originalname} (${file.mimetype})`);
+
+      // Transcrever usando OpenAI Whisper
+      const transcription = await openai.audio.transcriptions.create({
+        file: await fs.readFile(file.path).then(buffer => 
+          new File([buffer], file.originalname, { type: file.mimetype })
+        ),
+        model: "whisper-1",
+        language: "pt", // Português
+        response_format: "text",
+      });
+
+      // Limpar arquivo temporário
+      await fs.unlink(file.path).catch(() => {});
+
+      console.log(`✅ Transcrição concluída: "${transcription.substring(0, 50)}..."`);
+
+      res.json({
+        text: transcription,
+        filename: file.originalname,
+      });
+    } catch (error: any) {
+      console.error("Erro na transcrição:", error);
+      
+      // Tentar limpar arquivo em caso de erro
+      if (req.file) {
+        await fs.unlink(req.file.path).catch(() => {});
+      }
+
+      res.status(500).json({
+        error: error.message || "Erro ao transcrever áudio",
       });
     }
   });

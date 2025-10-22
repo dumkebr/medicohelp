@@ -1,0 +1,160 @@
+3) Dicionário médico com tolerância a erro (router de intenção)
+
+Cole este módulo e importe nas duas páginas.
+Ele mapeia variações (“alvorada”, “alvorado”, “alvarada”) → Alvarado (apendicite), e você pode crescer a lista.
+
+// src/lib/medicalRouter.ts
+export type MedicalEntry = {
+  canonical: string;
+  kind: "score" | "classificacao" | "protocolo";
+  slug: string;          // usado para escolher o template de resposta
+  synonyms: string[];    // variações e erros comuns
+};
+
+export const MEDICAL_LEXICON: MedicalEntry[] = [
+  {
+    canonical: "Escala de Alvarado (apendicite)",
+    kind: "score",
+    slug: "alvarado",
+    synonyms: [
+      "alvarado", "escala de alvarado", "score de alvarado",
+      "alvarado score", "apendicite alvarado",
+      "alvorado", "alvarada", "alvorada", "avaliar alvarado"
+    ],
+  },
+  {
+    canonical: "Glasgow Coma Scale",
+    kind: "score",
+    slug: "glasgow",
+    synonyms: ["glasgow", "gcs", "escala de coma de glasgow", "ecg"],
+  },
+  {
+    canonical: "CURB-65 (pneumonia)",
+    kind: "score",
+    slug: "curb65",
+    synonyms: ["curb", "curb-65", "curb65", "score curb"],
+  },
+  // ... adicione demais escores/protocolos que usa no PS
+];
+
+const norm = (s: string) =>
+  s.toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+export function matchMedicalIntent(input: string) {
+  const n = norm(input);
+  for (const item of MEDICAL_LEXICON) {
+    for (const syn of item.synonyms) {
+      if (n.includes(norm(syn))) return item;
+    }
+  }
+  // heurística: se contiver "escala", "score", "indice", tentar match amplo
+  if (/\b(escala|score|indice|classificacao|protocolo)\b/.test(n)) {
+    // tentativa “fuzzy” simples
+    const token = n.split(/\s/).slice(-1)[0];
+    const hit = MEDICAL_LEXICON.find(m => norm(m.canonical).includes(token));
+    if (hit) return hit;
+  }
+  return null;
+}
+
+4) Wrapper de resposta “responde e confirma se preciso”
+
+Este é o coração: ele usa o router acima.
+Se encontrar um termo médico → chama o template específico.
+Se não encontrar → responde a melhor interpretação e faz 1 pergunta clara.
+
+// src/lib/answerEngine.ts
+import { matchMedicalIntent } from "./medicalRouter";
+
+type Mode = "clinico" | "explicacao";
+
+export async function respondSmart(
+  userText: string,
+  mode: Mode,
+  callLLM: (messages: Array<{role:"system"|"user"|"assistant", content:string}>) => Promise<string>
+) {
+  const hit = matchMedicalIntent(userText);
+
+  // Monta system prompt base + instrução do modo
+  const SYSTEM = `Você é o assistente do MédicoHelp. REGRAS:
+- Responda ao pedido de forma objetiva; se claro, entregue completo.
+- Em ambiguidade, responda o mais provável e faça UMA pergunta curta para confirmar/refinar.
+- Priorize termos/placares médicos. Tolere erros de digitação (normalize).
+- Não mude de assunto e não invente dados.
+- Linguagem direta, coloquial, encorajadora, estilo tradicional clínico.`;
+  const PREFIX =
+    mode === "clinico"
+      ? `MODO CLÍNICO — Entrega prática (checklist, cálculo, conduta).`
+      : `MODO EXPLICAÇÃO + EVIDÊNCIAS — Definição, como calcular, interpretação, limitações, 2–3 referências.`;
+
+  // 1) Caso reconheça termo médico, injeta “template” do tema
+  if (hit) {
+    const userIntent = `Usuário pediu sobre: ${hit.canonical} (slug: ${hit.slug}). Responda conforme o modo selecionado. Se precisar de dados específicos, peça apenas o indispensável em UMA pergunta.`;
+    return await callLLM([
+      { role: "system", content: SYSTEM },
+      { role: "assistant", content: PREFIX },
+      { role: "user", content: userIntent },
+    ]);
+  }
+
+  // 2) Sem match: responder melhor interpretação + 1 pergunta objetiva
+  const clarify = `Se a intenção não estiver 100% clara, entregue a melhor resposta plausível e, EM SEGUIDA, faça UMA pergunta objetiva para confirmar (ex.: "Você quis dizer a Escala de Alvarado (apendicite)?").`;
+  return await callLLM([
+    { role: "system", content: SYSTEM + "\n" + clarify },
+    { role: "assistant", content: PREFIX },
+    { role: "user", content: userText },
+  ]);
+}
+
+5) Template específico — Alvarado (para cálculo no CLÍNICO)
+
+Você pode também pré-injetar um “roteiro” quando o slug === "alvarado" pra garantir formato fixo:
+
+// src/lib/templates/alvarado.ts
+export const TEMPLATE_ALVARADO_CLINICO = `
+Você vai calcular a Escala de Alvarado (apendicite). Estrutura fixa:
+
+1) Checklist dos critérios (MANTRELS) com pontuação ao lado:
+- Migração da dor para FID — 1
+- Anorexia — 1
+- Náuseas/vômitos — 1
+- Dor à palpação em FID — 2
+- Descompressão dolorosa (Blumberg) — 1
+- Febre ≥ 37,3 °C — 1
+- Leucocitose > 10.000 — 2
+- Neutrófilos > 75% (desvio à esquerda) — 1
+
+2) Se o usuário enviar valores, some e entregue:
+- Total (0–10)
+- Interpretação em faixas (0–4 improvável; 5–6 suspeita; 7–8 provável; 9–10 muito provável)
+- Próximo passo prático conforme faixa
+
+3) Se faltar dado essencial, peça APENAS os itens faltantes em uma única linha (ex.: "Passe: febre (°C), leucócitos, neutrófilos (%)").
+`;
+
+
+E, no respondSmart, quando hit.slug === "alvarado" && mode === "clinico", você pode concatenar esse template no assistant prefixado antes do callLLM.
+
+6) Exemplo de uso nas páginas
+// src/pages/modos/Clinico.tsx (exemplo)
+import { respondSmart } from "@/lib/answerEngine";
+import { callLLM } from "@/lib/openai"; // sua função que chama a API
+
+async function onSend(texto: string) {
+  const resposta = await respondSmart(texto, "clinico", callLLM);
+  setChat(prev => [...prev, { role: "assistant", content: resposta }]);
+}
+
+// src/pages/modos/Explicacao.tsx
+import { respondSmart } from "@/lib/answerEngine";
+import { callLLM } from "@/lib/openai";
+
+async function onSend(texto: string) {
+  const resposta = await respondSmart(texto, "explicacao", callLLM);
+  setChat(prev => [...prev, { role: "assistant", content: resposta }]);
+}

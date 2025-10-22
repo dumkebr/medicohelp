@@ -1,0 +1,133 @@
+Plano direto (valendo pro sistema todo)
+1) Um motor único pra tudo (pipeline)
+Entrada do médico
+ → Normaliza texto (acentos/typos)
+ → Router de intenção (score, protocolo, prescrição, documento, explicação, etc.)
+ → Seleciona template do intent
+ → Gera resposta completa
+ → Se faltar dado essencial: 1 pergunta curta no final
+ → Loga intenção + campos usados
+
+
+Intenções que o router deve cobrir (mínimo):
+
+Score/Calculadora (Alvarado, Wells, CURB-65, CHA₂DS₂-VASc, IMC, creatinina, GASA, gestacional, etc.)
+
+Protocolo/Conduta (dor torácica, dispneia, febre, anafilaxia, sepse, PCR, AVE…)
+
+Prescrição/Posologia (com ajuste renal/gestante, máximo por dose/dia, forma farmacêutica).
+
+Documento clínico (história/EVOLUÇÃO, atestado, encaminhamento, relatório, laudo).
+
+Explicação + Evidências (o que é, como fazer, thresholds, limitações, 2–3 refs clássicas).
+
+Administrativo (agendar, salvar, renomear, buscar atendimento).
+
+Utilitários (sumário de exame, comparar USG, interpretar HbA1c, etc.).
+
+O router que te mandei já resolve “scores”; é só ampliar o léxico com sinônimos para os demais intents.
+
+2) Regras de ouro (globais)
+
+Responda primeiro, pergunte depois (só se indispensável).
+
+Priorize termos médicos consagrados (tolerância a erro/acentos).
+
+Nada de devaneio: não muda de assunto e não inventa dado.
+
+Tom: direto, coloquial, encorajador, “jeito tradicional”.
+
+Saída sempre estruturada (títulos curtos + bullets + passos claros).
+
+Disclaimer fixo curto no rodapé (responsabilidade do médico).
+
+Cola este SYSTEM único no backend (vale para CLÍNICO e EXPLICAÇÃO):
+
+Você é o assistente do MédicoHelp.
+- Responda objetivamente ao que foi pedido; se a intenção estiver clara, entregue a resposta completa.
+- Em ambiguidade real, responda a melhor interpretação e faça UMA pergunta curta para confirmar/refinar.
+- Priorize termos/escores/protocolos consagrados. Tolere erros de digitação (normalize).
+- Não mude de assunto; não invente parâmetros. Se precisar de dados, peça APENAS o indispensável em UMA linha.
+- Linguagem direta, coloquial, encorajadora; visão tradicional da prática clínica.
+- Formato de saída: títulos curtos, bullets, passos e faixas de decisão.
+
+3) Templates por intenção (modelo de resposta)
+A) Score/Calculadora
+
+“O que é/para quê serve (1 linha)”
+
+Checklist dos critérios (com pontos/unidades)
+
+Cálculo + interpretação por faixas
+
+Próximo passo prático
+
+“Faltou:” listar só itens faltantes, numa linha
+
+B) Protocolo/Conduta
+
+Avaliação imediata (A-B-C-D-E se aplicável)
+
+Critérios de gravidade / gatilhos
+
+Conduta passo a passo (doses/adultos/criança)
+
+Fluxo de decisão (observação/alta/encaminhar)
+
+Red flags + observações
+
+C) Prescrição/Posologia
+
+Fármaco → dose (mg/kg/dose e mg/kg/dia), intervalo, máximo por dose/dia
+
+Apresentações comuns + conversão pra mL/comprimidos/gotas
+
+Ajustes (renal/gestante/hepático/pediatria)
+
+Advertências (curtas e clássicas)
+
+D) Documento clínico
+
+HISTÓRIA (ou SOAP), EXAME FÍSICO, HIPÓTESES, CONDUTA
+
+Atestado/encaminhamento com campos fixos e CIDs quando você pedir
+
+E) Explicação + Evidências
+
+O que é
+
+Como fazer / calcular
+
+Interpretação (faixas)
+
+Limitações
+
+2–3 referências essenciais
+
+4) Como ligar isso no código (sem duplicar)
+
+Backend usa o motor único (respondSmart) em qualquer endpoint de chat.
+
+Frontend só envia o texto; opcionalmente mostra um hint (“Detectei: CURB-65”), mas não duplica regra.
+
+Registro de templates por slug (ex.: alvarado, wells_tvp, dor_toracica, posologia_amoxicilina, prontuario_soap…).
+
+Exemplo de pseudocódigo do handler:
+
+const intent = router.detect(userText); // score | protocolo | posologia | documento | explicacao | etc.
+
+switch (intent.type) {
+  case "score":
+    return replyWith(scoreTemplate[intent.slug]);
+  case "protocolo":
+    return replyWith(protocolTemplate[intent.slug]);
+  case "posologia":
+    return replyWith(posologiaTemplate[intent.slug]);
+  case "documento":
+    return replyWith(documentTemplate[intent.slug]);
+  case "explicacao":
+    return replyWith(explTemplate[intent.slug]);
+  default:
+    // melhor interpretação + 1 pergunta objetiva
+    return replyBestEffortThenAsk(userText);
+}

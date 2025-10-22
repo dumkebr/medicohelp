@@ -142,29 +142,39 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {showPatientMgmt && (
-          <>
-            <SidebarSeparator className="my-2" />
+        <SidebarSeparator className="my-2" />
 
-            <SidebarGroup>
-              <SidebarGroupLabel>Gestão de Pacientes</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {patientItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={location === item.url} data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                        <Link href={item.url}>
-                          <item.icon className="w-5 h-5" />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </>
-        )}
+        {/* Gestão de Pacientes */}
+        <SidebarGroup>
+          {/* Cabeçalho da seção com toggle embutido */}
+          <div className="flex items-center justify-between pr-1">
+            <SidebarGroupLabel>Gestão de Pacientes</SidebarGroupLabel>
+            <Switch
+              checked={showPatientMgmt}
+              onCheckedChange={setShowPatientMgmt}
+              className="scale-75 translate-y-[1px] data-[state=checked]:bg-[#3cb371]"
+              data-testid="toggle-patient-mgmt"
+            />
+          </div>
+
+          {/* Itens aparecem só quando ligado */}
+          {showPatientMgmt && (
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {patientItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={location === item.url} data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <Link href={item.url}>
+                        <item.icon className="w-5 h-5" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          )}
+        </SidebarGroup>
 
         <SidebarSeparator className="my-2" />
 
@@ -271,17 +281,8 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="px-6 py-4 border-t">
-        <div className="flex items-center justify-between gap-3">
-          <Label htmlFor="patient-mgmt-toggle" className="text-sm font-normal text-neutral-700 dark:text-neutral-300 cursor-pointer">
-            Gestão de Pacientes
-          </Label>
-          <Switch
-            id="patient-mgmt-toggle"
-            checked={showPatientMgmt}
-            onCheckedChange={setShowPatientMgmt}
-            data-testid="toggle-patient-mgmt"
-            className="data-[state=checked]:bg-[#3cb371]"
-          />
+        <div className="text-xs text-neutral-500 dark:text-neutral-400">
+          {user?.email || "Usuário"}
         </div>
       </SidebarFooter>
     </Sidebar>

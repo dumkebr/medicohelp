@@ -60,6 +60,7 @@ function AuthRouter() {
       <Route path="/register" component={Register} />
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/verify-code" component={VerifyCode} />
+      <Route path="/demo-top-controls" component={DemoTopControls} />
       <Route component={NotFound} />
     </Switch>
   );

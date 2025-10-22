@@ -201,71 +201,79 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Atendimentos</SidebarGroupLabel>
           <SidebarGroupContent className="space-y-2">
-            
-            {/* BOTÕES CABEÇALHO */}
-            <div className="flex items-center justify-between px-3">
-              <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Histórico</span>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleNovoAtendimento}
-                className="h-6 px-2 text-xs"
-                data-testid="button-novo-atendimento"
-              >
-                Novo
-              </Button>
-            </div>
+            {(() => {
+              const savedItems = atendimentos.filter(it => isSaved(it));
+              const volatileItems = atendimentos.filter(it => !isSaved(it));
 
-            {/* LISTA VOLÁTIL (não salvos e sem paciente) */}
-            <div className="max-h-[22vh] overflow-auto divide-y rounded border border-neutral-200 dark:border-neutral-700">
-              {atendimentos.filter(it => !isSaved(it)).length === 0 && (
-                <div className="p-2 text-neutral-500 dark:text-neutral-400 text-xs">
-                  Sem históricos recentes.
-                </div>
-              )}
-              {atendimentos.filter(it => !isSaved(it)).map((it) => (
-                <ItemRow
-                  key={it.id}
-                  item={it}
-                  isActive={currentId === it.id}
-                  onOpen={() => handleAbrirAtendimento(it.id)}
-                  onDelete={(e) => handleRemoverAtendimento(it.id, e)}
-                  refresh={() => setAtendimentos(listAtendimentos())}
-                />
-              ))}
-            </div>
-
-            {/* SEÇÃO SALVOS */}
-            <div className="flex items-center justify-between px-3 mt-3">
-              <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                Atendimentos Salvos
-              </span>
-              <Switch
-                checked={showSaved}
-                onCheckedChange={setShowSaved}
-                className="scale-75"
-                data-testid="toggle-saved"
-              />
-            </div>
-            {showSaved && (
-              <div className="max-h-[22vh] overflow-auto divide-y rounded border border-neutral-200 dark:border-neutral-700">
-                {atendimentos.filter(it => isSaved(it)).length === 0 && (
-                  <div className="p-2 text-neutral-500 dark:text-neutral-400 text-xs">
-                    Nenhum salvo ainda.
+              return (
+                <>
+                  {/* BOTÕES CABEÇALHO */}
+                  <div className="flex items-center justify-between px-3">
+                    <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Histórico</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleNovoAtendimento}
+                      className="h-6 px-2 text-xs"
+                      data-testid="button-novo-atendimento"
+                    >
+                      Novo
+                    </Button>
                   </div>
-                )}
-                {atendimentos.filter(it => isSaved(it)).map((it) => (
-                  <ItemRow
-                    key={it.id}
-                    item={it}
-                    isActive={currentId === it.id}
-                    onOpen={() => handleAbrirAtendimento(it.id)}
-                    onDelete={(e) => handleRemoverAtendimento(it.id, e)}
-                    refresh={() => setAtendimentos(listAtendimentos())}
-                  />
-                ))}
-              </div>
-            )}
+
+                  {/* LISTA VOLÁTIL (não salvos e sem paciente) */}
+                  <div className="max-h-[22vh] overflow-auto divide-y rounded border border-neutral-200 dark:border-neutral-700">
+                    {volatileItems.length === 0 && (
+                      <div className="p-2 text-neutral-500 dark:text-neutral-400 text-xs">
+                        Sem históricos recentes.
+                      </div>
+                    )}
+                    {volatileItems.map((it) => (
+                      <ItemRow
+                        key={it.id}
+                        item={it}
+                        isActive={currentId === it.id}
+                        onOpen={() => handleAbrirAtendimento(it.id)}
+                        onDelete={(e) => handleRemoverAtendimento(it.id, e)}
+                        refresh={() => setAtendimentos(listAtendimentos())}
+                      />
+                    ))}
+                  </div>
+
+                  {/* SEÇÃO SALVOS */}
+                  <div className="flex items-center justify-between px-3 mt-3">
+                    <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      Atendimentos Salvos
+                    </span>
+                    <Switch
+                      checked={showSaved}
+                      onCheckedChange={setShowSaved}
+                      className="scale-75"
+                      data-testid="toggle-saved"
+                    />
+                  </div>
+                  {showSaved && (
+                    <div className="max-h-[22vh] overflow-auto divide-y rounded border border-neutral-200 dark:border-neutral-700">
+                      {savedItems.length === 0 && (
+                        <div className="p-2 text-neutral-500 dark:text-neutral-400 text-xs">
+                          Nenhum salvo ainda.
+                        </div>
+                      )}
+                      {savedItems.map((it) => (
+                        <ItemRow
+                          key={it.id}
+                          item={it}
+                          isActive={currentId === it.id}
+                          onOpen={() => handleAbrirAtendimento(it.id)}
+                          onDelete={(e) => handleRemoverAtendimento(it.id, e)}
+                          refresh={() => setAtendimentos(listAtendimentos())}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </SidebarGroupContent>
         </SidebarGroup>
 

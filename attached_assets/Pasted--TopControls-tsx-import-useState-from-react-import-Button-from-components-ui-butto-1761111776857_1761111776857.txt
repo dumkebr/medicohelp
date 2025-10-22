@@ -1,0 +1,116 @@
+// TopControls.tsx
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+
+type Tab = "clinico" | "evidencias" | "calculadoras";
+
+export default function TopControls({
+  onSave,
+}: {
+  onSave?: () => void;
+}) {
+  const [tab, setTab] = useState<Tab>("clinico");
+
+  return (
+    <>
+      {/* Linha do título + Salvar */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="text-sm text-muted-foreground">Novo atendimento</div>
+        <Button variant="outline" onClick={onSave}>Salvar</Button>
+      </div>
+
+      <Separator className="my-3" />
+
+      {/* Botões principais */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant={tab === "clinico" ? "default" : "outline"}
+          onClick={() => setTab("clinico")}
+        >
+          Clínico
+        </Button>
+        <Button
+          variant={tab === "evidencias" ? "default" : "outline"}
+          onClick={() => setTab("evidencias")}
+        >
+          Explicação + Evidências
+        </Button>
+        <Button
+          variant={tab === "calculadoras" ? "default" : "outline"}
+          onClick={() => setTab("calculadoras")}
+        >
+          Calculadoras
+        </Button>
+      </div>
+
+      <Separator className="my-4" />
+
+      {/* Conteúdo da área principal conforme aba */}
+      {tab === "clinico" && (
+        <div className="text-center text-sm text-muted-foreground py-10">
+          Chat Médico com IA — digite sua pergunta clínica ou envie exames para análise.
+          <div className="text-xs mt-1">
+            Os controles ficam fixos no topo. A conversa aqui é contínua.
+          </div>
+        </div>
+      )}
+
+      {tab === "evidencias" && (
+        <div className="space-y-3">
+          <Card className="p-4">
+            <div className="text-sm font-medium mb-2">Explicações & Evidências</div>
+            <div className="text-sm text-muted-foreground">
+              Use esta aba para pedir explicações resumidas, racional fisiopatológico,
+              links de diretrizes e níveis de evidência. (Integre aqui seu fetch de evidências.)
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {tab === "calculadoras" && <CalculadorasPanel />}
+    </>
+  );
+}
+
+function CalculadorasPanel() {
+  // Coloque aqui as rotas/handlers das suas calculadoras reais
+  const items = [
+    { id: "wells", label: "Calculadora de Escore de Wells" },
+    { id: "cockcroft", label: "Calculadora de Clearance de Creatinina (Cockcroft–Gault)" },
+    { id: "cha2ds2vasc", label: "Calculadora de Escore de CHA₂DS₂-VASc" },
+    { id: "meld", label: "Calculadora de Escore de MELD" },
+    { id: "glasgow", label: "Calculadora de Escore de Glasgow" },
+  ];
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <div className="text-2xl font-semibold">Calculadoras</div>
+        <div className="text-sm text-muted-foreground">
+          Ferramentas de apoio à decisão clínica
+        </div>
+      </div>
+
+      <Card className="divide-y">
+        {items.map((it) => (
+          <button
+            key={it.id}
+            onClick={() => openCalculator(it.id)}
+            className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors"
+          >
+            <div className="text-sm">{it.label}</div>
+          </button>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+function openCalculator(id: string) {
+  // Ajuste para abrir seu modal/página da calculadora
+  // Ex.: router.push(`/calculadoras/${id}`) ou setCalculator(id)
+  console.log("Abrir calculadora:", id);
+}

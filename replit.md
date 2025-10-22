@@ -39,6 +39,7 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 - **Backend:**
   - **Runtime**: Node.js with Express.
   - **AI**: OpenAI GPT-4o for medical chat, GPT-5 Vision for image analysis and scientific summaries.
+  - **Clinical Score Detector**: Semantic detection system (`server/clinical-detector.ts`) that intercepts queries about clinical scales/scores BEFORE calling OpenAI, returning structured responses instantly (~4ms vs ~3000ms). Recognizes 14 calculators with keyword variations (e.g., "alvarado", "alvorado", "alvorada") and contextual indicators ("escala", "score", "calcular").
   - **Streaming**: Server-Sent Events (SSE) for real-time chat responses with exponential backoff retry.
   - **Database**: PostgreSQL (Neon) with Drizzle ORM.
   - **Authentication**: JWT for role-based access control, Email/Password with bcrypt, OAuth (Google, Apple, Microsoft, GitHub), 6-digit verification codes.

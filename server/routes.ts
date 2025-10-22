@@ -34,6 +34,7 @@ import path from "path";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { retryWithBackoff } from "./utils/retry";
 import { loadClinicoConfig, buildClinicoSystemPrompt } from "./config-loader";
+import { detectClinicalScore, generateScoreResponse } from "./clinical-detector";
 
 // Referência ao blueprint javascript_openai para integração OpenAI
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
@@ -881,6 +882,30 @@ Use este contexto para fundamentar sua explicação e inclua na seção "📚 Ev
         documentStyle,
         customTemplate,
       } = validatedData;
+
+      // 🎯 DETECÇÃO SEMÂNTICA DE ESCALAS CLÍNICAS
+      // Intercepta perguntas sobre scores/escalas ANTES de chamar OpenAI
+      const clinicalMatch = detectClinicalScore(message);
+      if (clinicalMatch) {
+        console.log(`🎯 Escala detectada: ${clinicalMatch.scoreName}`);
+        
+        // Incrementar quota (foi uma consulta válida)
+        await storage.incrementQuota(userId);
+        
+        // Retornar resposta estruturada diretamente
+        const structuredResponse = generateScoreResponse(clinicalMatch);
+        const duration = Date.now() - startTime;
+        
+        return res.json({
+          response: structuredResponse,
+          tokensUsed: 0, // Resposta local, sem tokens da OpenAI
+          duration,
+          scoreDetected: {
+            id: clinicalMatch.scoreId,
+            name: clinicalMatch.scoreName,
+          }
+        });
+      }
 
       // Buscar configurações do usuário
       let userSettings = null;

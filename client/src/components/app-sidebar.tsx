@@ -11,9 +11,13 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   SidebarSeparator,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import logoImage from "@assets/generated_images/Medical_logo_icon_green_50d6f1d5.png";
 
 const menuItems = [
@@ -66,6 +70,7 @@ const specialModules = [
 export function AppSidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
+  const [showPatientMgmt, setShowPatientMgmt] = useLocalStorage<boolean>("mh_showPatientMgmt", true);
 
   return (
     <Sidebar>
@@ -95,25 +100,29 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarSeparator className="my-2" />
+        {showPatientMgmt && (
+          <>
+            <SidebarSeparator className="my-2" />
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Gestão de Pacientes</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {patientItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location === item.url} data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                    <Link href={item.url}>
-                      <item.icon className="w-5 h-5" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+            <SidebarGroup>
+              <SidebarGroupLabel>Gestão de Pacientes</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {patientItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild isActive={location === item.url} data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                        <Link href={item.url}>
+                          <item.icon className="w-5 h-5" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
 
         {/* Módulos Especiais - only show if at least one is enabled */}
         {user && specialModules.some(module => user[module.settingKey]) && (
@@ -144,6 +153,21 @@ export function AppSidebar() {
           </>
         )}
       </SidebarContent>
+
+      <SidebarFooter className="px-6 py-4 border-t">
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="patient-mgmt-toggle" className="text-sm font-normal text-neutral-700 dark:text-neutral-300 cursor-pointer">
+            Gestão de Pacientes
+          </Label>
+          <Switch
+            id="patient-mgmt-toggle"
+            checked={showPatientMgmt}
+            onCheckedChange={setShowPatientMgmt}
+            data-testid="toggle-patient-mgmt"
+            className="data-[state=checked]:bg-[#3cb371]"
+          />
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 }

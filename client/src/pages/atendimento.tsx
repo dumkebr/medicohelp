@@ -23,6 +23,7 @@ import type { FileAttachment, Patient, ScientificReference } from "@shared/schem
 import { MedicalToolsMenu } from "@/components/MedicalToolsMenu";
 import { ModoResposta } from "@/components/ModoResposta";
 import { useAuth } from "@/lib/auth";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 interface ChatHistoryItem {
   user: string;
@@ -46,9 +47,11 @@ export default function Atendimento() {
   const { toast } = useToast();
   const { user } = useAuth();
   const threadRef = useRef<HTMLDivElement>(null);
+  const [showPatientMgmt] = useLocalStorage<boolean>("mh_showPatientMgmt", true);
 
   const { data: patients } = useQuery<Patient[]>({
     queryKey: ["/api/patients"],
+    enabled: showPatientMgmt,
   });
 
   const researchMutation = useMutation({
@@ -359,7 +362,7 @@ export default function Atendimento() {
                   setEvidenceEnabled(newEvidenceEnabled);
                 }}
                 onSave={() => setShowSavePanel(!showSavePanel)}
-                showSaveButton={history.length > 0}
+                showSaveButton={showPatientMgmt && history.length > 0}
                 disabled={isLoading}
               />
 
@@ -368,7 +371,7 @@ export default function Atendimento() {
           </div>
 
           {/* PAINEL DE SALVAR CONSULTA (COLAPSÁVEL) */}
-          {showSavePanel && history.length > 0 && (
+          {showPatientMgmt && showSavePanel && history.length > 0 && (
             <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-800">
               <div className="flex items-center gap-3">
                 <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>

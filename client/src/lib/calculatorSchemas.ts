@@ -1,3 +1,5 @@
+import { analyzeGas } from "./gasometriaAnalysis";
+
 export type InputType = "boolean" | "number" | "select" | "date";
 
 export interface CalculatorInput {
@@ -1094,6 +1096,76 @@ const apgarScore: CalculatorSchema = {
   ],
 };
 
+// 11. Gasometria Arterial/Venosa
+const gasometria: CalculatorSchema = {
+  id: "gasometria",
+  name: "Gasometria Arterial/Venosa",
+  group: "Clínico",
+  description: "Análise completa de gases sanguíneos com detecção de distúrbios ácido-base e cálculos de compensação",
+  inputs: [
+    { key: "arterial", label: "Tipo de Amostra", type: "select", required: true, options: [
+      { value: "arterial", label: "Arterial" },
+      { value: "venosa", label: "Venosa" },
+    ]},
+    { key: "pH", label: "pH", type: "number", required: true, min: 6.8, max: 7.8, step: 0.01, hint: "Valores normais: 7.35-7.45" },
+    { key: "PaCO2", label: "PaCO₂ (mmHg)", type: "number", required: true, min: 10, max: 120, step: 1, hint: "Valores normais: 35-45 mmHg" },
+    { key: "HCO3", label: "HCO₃⁻ (mEq/L)", type: "number", required: true, min: 5, max: 50, step: 0.1, hint: "Valores normais: 22-26 mEq/L" },
+    { key: "Na", label: "Na⁺ (mEq/L)", type: "number", required: false, min: 100, max: 180, step: 1, hint: "Opcional - para cálculo do Anion Gap" },
+    { key: "Cl", label: "Cl⁻ (mEq/L)", type: "number", required: false, min: 70, max: 130, step: 1, hint: "Opcional - para cálculo do Anion Gap" },
+    { key: "K", label: "K⁺ (mEq/L)", type: "number", required: false, min: 2, max: 8, step: 0.1, hint: "Opcional - para AG corrigido" },
+    { key: "albumin", label: "Albumina (g/dL)", type: "number", required: false, min: 1, max: 6, step: 0.1, hint: "Opcional - para AG corrigido" },
+    { key: "PaO2", label: "PaO₂ (mmHg)", type: "number", required: false, min: 30, max: 600, step: 1, hint: "Opcional - análise de oxigenação" },
+    { key: "FiO2", label: "FiO₂", type: "number", required: false, min: 0.21, max: 1.0, step: 0.01, hint: "Opcional (ex: 0.21 = ar ambiente, 1.0 = O₂ 100%)" },
+    { key: "age", label: "Idade (anos)", type: "number", required: false, min: 0, max: 120, step: 1, hint: "Opcional - para gradiente A-a normal estimado" },
+  ],
+  compute: (values) => {
+    const isArterial = values.arterial === "arterial";
+    
+    const result = analyzeGas({
+      arterial: isArterial,
+      pH: values.pH ? parseFloat(values.pH) : null,
+      PaCO2: values.PaCO2 ? parseFloat(values.PaCO2) : null,
+      HCO3: values.HCO3 ? parseFloat(values.HCO3) : null,
+      Na: values.Na ? parseFloat(values.Na) : null,
+      Cl: values.Cl ? parseFloat(values.Cl) : null,
+      K: values.K ? parseFloat(values.K) : null,
+      albumin: values.albumin ? parseFloat(values.albumin) : null,
+      PaO2: values.PaO2 ? parseFloat(values.PaO2) : null,
+      FiO2: values.FiO2 ? parseFloat(values.FiO2) : null,
+      age: values.age ? parseFloat(values.age) : null,
+      pH_v: !isArterial && values.pH ? parseFloat(values.pH) : null,
+      PvCO2: !isArterial && values.PaCO2 ? parseFloat(values.PaCO2) : null,
+    });
+
+    let severity: "low" | "moderate" | "high" | "info" = "info";
+    if (result.primary) {
+      if (result.primary.includes("acidose metabólica") || result.primary.includes("alcalose")) {
+        severity = "moderate";
+      }
+      if (result.AGcorr != null && result.AGcorr > 20) {
+        severity = "high";
+      }
+    }
+
+    return {
+      interpretation: result.text,
+      severity,
+      details: {
+        primary: result.primary,
+        AG: result.AG,
+        AGcorr: result.AGcorr,
+        deltaRatio: result.deltaRatio,
+        compensation: result.compensation,
+        oxygenation: result.oxygenation,
+      },
+    };
+  },
+  refs: [
+    "Berend K et al. Physiological approach to assessment of acid-base disturbances. N Engl J Med. 2014;371(15):1434-45",
+    "Winter SD et al. A new approach to the interpretation of the blood acid-base values. Clin Sci. 1967;33(1):41-5",
+  ],
+};
+
 // Export all calculators
 export const CLINICAL_CALCULATORS: CalculatorSchema[] = [
   curb65,
@@ -1106,6 +1178,7 @@ export const CLINICAL_CALCULATORS: CalculatorSchema[] = [
   sirs,
   gcs,
   imc,
+  gasometria,
 ];
 
 export const OBSTETRIC_CALCULATORS: CalculatorSchema[] = [

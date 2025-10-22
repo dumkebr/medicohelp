@@ -48,10 +48,11 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 - **Consultation History System**: Saves patient consultations, chat history, attachments, and physician details in PostgreSQL (JSONB).
 - **Medical Professional Tools**: Six specialized clinical decision support tools for physicians and medical students:
   - **Posologia**: Simplified placeholder with "PosologiaCerta" branding (beta notice, no backend).
-  - **Calculadoras Clínicas**: 15 medical calculators with friendly forms and interpretation:
-    - **Clinical (10)**: CURB-65, Alvarado, Wells TVP/TEP, CHA₂DS₂-VASc, HAS-BLED, qSOFA, SIRS, GCS, IMC
+  - **Calculadoras Clínicas**: 16 medical calculators with friendly forms and interpretation:
+    - **Clinical (11)**: CURB-65, Alvarado, Wells TVP/TEP, CHA₂DS₂-VASc, HAS-BLED, qSOFA, SIRS, GCS, IMC, **Gasometria Arterial/Venosa**
     - **Obstetric (5)**: IG por DUM/DPP/USG, Escore de Bishop (pré-indução), Apgar (1' e 5')
     - **Features**: Dynamic forms, severity-colored interpretation, copy/print actions, localStorage history (last 20), medical disclaimer
+    - **Gasometria**: Complete blood gas analysis with automatic acid-base disturbance detection, AG calculation (with albumin correction), Winter's formula, compensation calculations, Delta/Delta ratio for mixed disorders, oxygenation analysis (PAO₂, A-a gradient, PaO₂/FiO₂), venous-to-arterial conversion
   - **Partograma**: Interactive labor partogram with Recharts visualization:
     - **Data Points**: Time, cervical dilation (0-10cm), fetal station, FHR, blood pressure, notes
     - **Alert/Action Lines**: Configurable parameters (default: 4cm start, 1cm/h rate, 2h action offset)

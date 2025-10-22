@@ -1,0 +1,71 @@
+// client/src/components/app-sidebar.tsx (ajuste principal)
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent } from "@/components/ui/sidebar";
+import { Switch } from "@/components/ui/switch";
+import { useLocalStorage } from "@/lib/useLocalStorage";
+import { useEffect, useState } from "react";
+import { listAtendimentos, setCurrentId, getCurrentId, createAtendimento, removeAtendimento } from "@/lib/atendimentos";
+import { Link } from "wouter";
+
+export function AppSidebar() {
+  const [showPatientMgmt, setShowPatientMgmt] = useLocalStorage<boolean>("mh_showPatientMgmt", false);
+  const [items, setItems] = useState(listAtendimentos());
+  const [current, setCurrent] = useState<string | null>(getCurrentId());
+
+  useEffect(() => {
+    setItems(listAtendimentos());
+    setCurrent(getCurrentId());
+  }, []);
+
+  const openAt = (id: string) => { setCurrentId(id); setCurrent(id); window.location.href = "/atendimento"; };
+  const novoAt = () => { const a = createAtendimento(); setItems(listAtendimentos()); openAt(a.id); };
+  const delAt = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("Remover este atendimento?")) {
+      removeAtendimento(id);
+      setItems(listAtendimentos());
+      setCurrent(getCurrentId());
+    }
+  };
+
+  return (
+    <Sidebar>
+      <SidebarContent>
+        {/* Menu principal */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
+          <SidebarGroupContent className="space-y-1">
+            <Link href="/atendimento" className="block">Atendimento médico</Link>
+            <Link href="/sobre" className="block">Sobre</Link>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Gestão de Pacientes (apenas oculta/mostra os links) */}
+        <SidebarGroup>
+          <div className="flex items-center justify-between pr-1">
+            <SidebarGroupLabel>Gestão de Pacientes</SidebarGroupLabel>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-neutral-500">{showPatientMgmt ? "Ligado" : "Desligado"}</span>
+              <Switch checked={showPatientMgmt} onCheckedChange={setShowPatientMgmt} />
+            </div>
+          </div>
+          {showPatientMgmt && (
+            <SidebarGroupContent className="space-y-1">
+              <Link href="/novo-paciente" className="block">Novo paciente</Link>
+              <Link href="/pacientes" className="block">Todos os pacientes</Link>
+            </SidebarGroupContent>
+          )}
+        </SidebarGroup>
+
+        {/* Atendimentos (HISTÓRICO FIXO — nunca some) */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Atendimentos</SidebarGroupLabel>
+          <SidebarGroupContent className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Histórico</span>
+              <button onClick={novoAt} className="text-xs px-2 py-0.5 border rounded">Novo</button>
+            </div>
+
+            <div className="max-h-[36vh] overflow-auto divide-y rounded border">
+              {items.length === 0 && (
+                <div className="p-2 text-neutral-500 text-xs">Sem atendimentos.</div>
+              )

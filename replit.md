@@ -86,12 +86,17 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
   - `research_analytics`: Optional logging for clinical evidence feature.
   - `medical_tools_audit`: Audit log for medical tools usage.
 - **localStorage Data Structures:**
-  - `mh_atendimentos`: Array of consultation objects (id, title, messages[], createdAt, updatedAt, mode, patientId).
+  - `mh_atendimentos`: Array of consultation objects (id, title, messages[], createdAt, updatedAt, mode, patientId, saved).
   - `mh_current_atendimento_id`: Currently active consultation ID.
   - `mh_showPatientMgmt`: Boolean toggle for showing/hiding patient management features.
   - `medicohelp_mode`: Persisted mode preference (clinico/explicativo).
   - `medicohelp_evidence`: Evidence display preference.
   - `calc_history`: Calculator results history (last 20 calculations).
+- **Retention Policy:**
+  - Atendimentos with `saved: true` or `patientId` are **never automatically deleted**.
+  - Atendimentos without patient and not marked as saved **expire in 30 days**.
+  - Cleanup runs automatically when listing atendimentos.
+  - Vincular paciente auto-marca como `saved: true`.
 
 ## External Dependencies
 

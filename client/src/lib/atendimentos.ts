@@ -12,17 +12,31 @@ export type Atendimento = {
   updatedAt: string;          // ISO
   mode?: "clinico" | "explicativo";
   patientId?: string | null;  // opcional: vinculado a paciente
+  saved?: boolean;            // "Atendimento salvo" (fixado) - se tiver paciente, NUNCA expira
 };
 
 const KEY = "mh_atendimentos";
 const CUR = "mh_current_atendimento_id";
+const RETENTION_DAYS = 30; // política: expira em 30 dias se não salvo e sem paciente
 
-function loadAll(): Atendimento[] {
+function loadAllRaw(): Atendimento[] {
   try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; }
 }
 
 function saveAll(list: Atendimento[]) {
   try { localStorage.setItem(KEY, JSON.stringify(list)); } catch {}
+}
+
+// Remove atendimentos "voláteis" > 30 dias (sem paciente e não salvos)
+function cleanup(list: Atendimento[]): Atendimento[] {
+  const now = Date.now();
+  const ms = RETENTION_DAYS * 24 * 60 * 60 * 1000;
+  return list.filter(a => {
+    const keep = !!a.patientId || !!a.saved; // salvos ou com paciente: nunca expiram
+    if (keep) return true;
+    const age = now - new Date(a.updatedAt || a.createdAt).getTime();
+    return age <= ms;
+  });
 }
 
 export function getCurrentId(): string | null {
@@ -35,7 +49,9 @@ export function setCurrentId(id: string | null) {
 }
 
 export function listAtendimentos(): Atendimento[] {
-  return loadAll().sort((a,b)=> new Date(b.updatedAt).getTime()-new Date(a.updatedAt).getTime());
+  const cleaned = cleanup(loadAllRaw());
+  if (cleaned.length !== loadAllRaw().length) saveAll(cleaned);
+  return cleaned.sort((a,b)=> new Date(b.updatedAt).getTime()-new Date(a.updatedAt).getTime());
 }
 
 export function createAtendimento(): Atendimento {
@@ -48,9 +64,10 @@ export function createAtendimento(): Atendimento {
     createdAt: now, 
     updatedAt: now, 
     patientId: null,
-    mode: "clinico"
+    mode: "clinico",
+    saved: false
   };
-  const list = loadAll(); 
+  const list = listAtendimentos(); 
   list.unshift(novo); 
   saveAll(list);
   setCurrentId(id);
@@ -58,11 +75,11 @@ export function createAtendimento(): Atendimento {
 }
 
 export function getAtendimento(id: string): Atendimento | null {
-  return loadAll().find(x => x.id === id) || null;
+  return listAtendimentos().find(x => x.id === id) || null;
 }
 
 export function addMensagem(id: string, msg: Mensagem) {
-  const list = loadAll();
+  const list = listAtendimentos();
   const idx = list.findIndex(x=>x.id===id);
   if (idx === -1) return;
   const a = list[idx];
@@ -80,7 +97,7 @@ export function addMensagem(id: string, msg: Mensagem) {
 }
 
 export function renameAtendimento(id: string, novoNome: string) {
-  const list = loadAll();
+  const list = listAtendimentos();
   const idx = list.findIndex(x=>x.id===id);
   if (idx === -1) return;
   list[idx].title = novoNome.trim() || list[idx].title;
@@ -89,16 +106,18 @@ export function renameAtendimento(id: string, novoNome: string) {
 }
 
 export function assignPatient(id: string, patientId: string | null) {
-  const list = loadAll();
+  const list = listAtendimentos();
   const idx = list.findIndex(x=>x.id===id);
   if (idx === -1) return;
   list[idx].patientId = patientId;
+  // ao vincular paciente, considera "salvo" implicitamente
+  if (patientId) list[idx].saved = true;
   list[idx].updatedAt = new Date().toISOString();
   saveAll(list);
 }
 
 export function updateMode(id: string, mode: "clinico" | "explicativo") {
-  const list = loadAll();
+  const list = listAtendimentos();
   const idx = list.findIndex(x=>x.id===id);
   if (idx === -1) return;
   list[idx].mode = mode;
@@ -106,8 +125,17 @@ export function updateMode(id: string, mode: "clinico" | "explicativo") {
   saveAll(list);
 }
 
+export function setSaved(id: string, saved: boolean) {
+  const list = listAtendimentos();
+  const idx = list.findIndex(x=>x.id===id);
+  if (idx === -1) return;
+  list[idx].saved = saved;
+  list[idx].updatedAt = new Date().toISOString();
+  saveAll(list);
+}
+
 export function removeAtendimento(id: string) {
-  const list = loadAll().filter(x=>x.id!==id);
+  const list = listAtendimentos().filter(x=>x.id!==id);
   saveAll(list);
   const cur = getCurrentId(); 
   if (cur === id) setCurrentId(list[0]?.id || null);

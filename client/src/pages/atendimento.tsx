@@ -33,6 +33,7 @@ import {
   assignPatient,
   updateMode,
   createAtendimento,
+  setSaved,
   type Atendimento as AtendimentoType,
   type Mensagem
 } from "@/lib/atendimentos";
@@ -146,6 +147,22 @@ export default function Atendimento() {
     setEvidenceEnabled(newEvidenceEnabled);
     if (currentAtendimento) {
       updateMode(currentAtendimento.id, newMode);
+    }
+  };
+
+  // Toggle salvar atendimento
+  const handleToggleSaved = () => {
+    if (currentAtendimento) {
+      const newSavedState = !currentAtendimento.saved;
+      setSaved(currentAtendimento.id, newSavedState);
+      const updated = getAtendimento(currentAtendimento.id);
+      if (updated) setCurrentAtendimento(updated);
+      toast({
+        title: newSavedState ? "Atendimento salvo" : "Marcação removida",
+        description: newSavedState 
+          ? "Este atendimento não será removido automaticamente." 
+          : "Este atendimento poderá expirar em 30 dias se não tiver paciente vinculado.",
+      });
     }
   };
 
@@ -471,27 +488,42 @@ export default function Atendimento() {
               )}
             </div>
 
-            {/* Seletor de paciente */}
-            {showPatientMgmt && (
-              <Select 
-                value={selectedPatientId || "none"} 
-                onValueChange={(v) => handlePatientChange(v === "none" ? "" : v)}
-              >
-                <SelectTrigger className="w-[200px] h-8 text-xs" data-testid="select-patient-header">
-                  <SelectValue placeholder="Sem paciente" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sem paciente</SelectItem>
-                  {patients && patients.length > 0 && (
-                    patients.map((patient) => (
-                      <SelectItem key={patient.id} value={patient.id}>
-                        {patient.nome}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            )}
+            <div className="flex items-center gap-2">
+              {/* Botão Salvar/Salvo */}
+              {currentAtendimento && (
+                <Button
+                  size="sm"
+                  variant={currentAtendimento.saved ? "default" : "outline"}
+                  onClick={handleToggleSaved}
+                  className={currentAtendimento.saved ? "bg-[#3cb371] hover:bg-[#2f9e62] text-white" : ""}
+                  data-testid="button-toggle-saved"
+                >
+                  {currentAtendimento.saved ? "✓ Salvo" : "Salvar"}
+                </Button>
+              )}
+
+              {/* Seletor de paciente */}
+              {showPatientMgmt && (
+                <Select 
+                  value={selectedPatientId || "none"} 
+                  onValueChange={(v) => handlePatientChange(v === "none" ? "" : v)}
+                >
+                  <SelectTrigger className="w-[200px] h-8 text-xs" data-testid="select-patient-header">
+                    <SelectValue placeholder="Sem paciente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem paciente</SelectItem>
+                    {patients && patients.length > 0 && (
+                      patients.map((patient) => (
+                        <SelectItem key={patient.id} value={patient.id}>
+                          {patient.nome}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center justify-between gap-4">

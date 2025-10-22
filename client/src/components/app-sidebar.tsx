@@ -85,6 +85,7 @@ export function AppSidebar() {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const [showPatientMgmt, setShowPatientMgmt] = useLocalStorage<boolean>("mh_showPatientMgmt", true);
+  const [showSaved, setShowSaved] = useLocalStorage<boolean>("mh_showSaved", true);
   const [atendimentos, setAtendimentos] = useState<Atendimento[]>([]);
   const [currentId, setCurrentIdState] = useState<string | null>(null);
 
@@ -235,26 +236,36 @@ export function AppSidebar() {
             </div>
 
             {/* SEÇÃO SALVOS */}
-            <div className="px-3 mt-3 text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              Atendimentos Salvos
+            <div className="flex items-center justify-between px-3 mt-3">
+              <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                Atendimentos Salvos
+              </span>
+              <Switch
+                checked={showSaved}
+                onCheckedChange={setShowSaved}
+                className="scale-75"
+                data-testid="toggle-saved"
+              />
             </div>
-            <div className="max-h-[22vh] overflow-auto divide-y rounded border border-neutral-200 dark:border-neutral-700">
-              {atendimentos.filter(it => isSaved(it)).length === 0 && (
-                <div className="p-2 text-neutral-500 dark:text-neutral-400 text-xs">
-                  Nenhum salvo ainda.
-                </div>
-              )}
-              {atendimentos.filter(it => isSaved(it)).map((it) => (
-                <ItemRow
-                  key={it.id}
-                  item={it}
-                  isActive={currentId === it.id}
-                  onOpen={() => handleAbrirAtendimento(it.id)}
-                  onDelete={(e) => handleRemoverAtendimento(it.id, e)}
-                  refresh={() => setAtendimentos(listAtendimentos())}
-                />
-              ))}
-            </div>
+            {showSaved && (
+              <div className="max-h-[22vh] overflow-auto divide-y rounded border border-neutral-200 dark:border-neutral-700">
+                {atendimentos.filter(it => isSaved(it)).length === 0 && (
+                  <div className="p-2 text-neutral-500 dark:text-neutral-400 text-xs">
+                    Nenhum salvo ainda.
+                  </div>
+                )}
+                {atendimentos.filter(it => isSaved(it)).map((it) => (
+                  <ItemRow
+                    key={it.id}
+                    item={it}
+                    isActive={currentId === it.id}
+                    onOpen={() => handleAbrirAtendimento(it.id)}
+                    onDelete={(e) => handleRemoverAtendimento(it.id, e)}
+                    refresh={() => setAtendimentos(listAtendimentos())}
+                  />
+                ))}
+              </div>
+            )}
           </SidebarGroupContent>
         </SidebarGroup>
 

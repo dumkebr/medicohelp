@@ -25,6 +25,7 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 - **Design Guidelines**: Professional medical design with Inter typography, consistent spacing, subtle shadows, and visual feedback.
 - **Chat Interface**: Modern clean layout with fixed header (controls), scrollable thread (bubble messages), and fixed composer (similar to ChatGPT/Claude).
 - **Medical Tools Modal**: Refined layout with compact header, tab bar (#f8f9f9 background), 3px green underline on active tab, minimal gap (8px) between tabs and content, no scroll overflow issues, smooth fade-in animations (200ms) between tab switches, and full dark mode support.
+- **Sidebar Organization**: Menu Principal with 4 items (Atendimento médico, Sobre, Novo atendimento, Buscar), expandable search field, collapsible sections (Gestão de Pacientes, Atendimentos Salvos, Histórico).
 
 **Technical Implementations:**
 - **Frontend:**
@@ -62,6 +63,9 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 - **Histórico de Atendimentos (localStorage)**:
   - **Multiple Conversations**: Create and manage multiple medical consultations, each saved independently in localStorage.
   - **Sidebar Navigation**: Visual list of all saved consultations with title, timestamp, and patient link indicator.
+  - **Menu Principal**: Reorganized structure with "Novo atendimento" and "Buscar em atendimentos" in main menu.
+  - **Search Feature**: Inline expandable search field for finding consultations by complaint, CID, patient name, or date.
+  - **Collapsible History**: History section with toggle (expand/collapse) for better space management.
   - **Smart Titles**: First user message automatically becomes the title (editable inline).
   - **Patient Association**: Link consultations to patients (optional, controlled by Patient Management toggle).
   - **Mode Persistence**: Each consultation remembers its mode (Clinical/Explanatory).

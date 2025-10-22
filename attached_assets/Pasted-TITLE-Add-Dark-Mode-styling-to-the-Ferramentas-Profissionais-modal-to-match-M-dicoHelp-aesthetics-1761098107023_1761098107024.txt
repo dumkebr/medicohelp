@@ -1,0 +1,112 @@
+TITLE: Add Dark Mode styling to the "Ferramentas Profissionais" modal to match MédicoHelp aesthetics
+
+GOAL:
+Aplicar tema escuro consistente (Dark Mode) à modal “Ferramentas Profissionais” (Posologia, Calculadoras, Conduta, Exames, Diferenciais), respeitando o visual do MédicoHelp, com alto contraste, leitura confortável e sem estourar layout. Deve alternar automaticamente por `prefers-color-scheme: dark` e também por classe/atributo de tema caso exista (ex.: `data-theme="dark"` no <html> ou <body>).
+
+TASKS:
+
+1) DETECÇÃO DE TEMA
+- Ativar dark mode por:
+  a) `@media (prefers-color-scheme: dark)`; e
+  b) classe/atributo global, por exemplo: `html[data-theme="dark"]` ou `body.theme-dark` (verificar qual existe no app e suportar ambos).
+- O tema claro permanece como está; o escuro usa os tokens abaixo.
+
+2) TOKENS DE CORES (DARK)
+Use variáveis CSS no escopo da modal para facilitar manutenção:
+--mh-bg:            #0f1418;   /* fundo geral */
+--mh-surface:       #151b21;   /* cartões / áreas internas */
+--mh-surface-2:     #1b232b;   /* destaque sutil */
+--mh-border:        #26303a;
+--mh-text:          #e6edf3;   /* texto primário */
+--mh-text-muted:    #9fb3c8;   /* texto secundário */
+--mh-accent:        #3cb371;   /* verde padrão MédicoHelp */
+--mh-accent-2:      #2f9e62;
+--mh-tab-bg:        #10161b;   /* barra de abas */
+--mh-tab-hover:     #11221b;   /* hover suave */
+--mh-shadow:        0 6px 20px rgba(0,0,0,0.40);
+--mh-shadow-soft:   0 3px 12px rgba(0,0,0,0.28);
+--mh-chip-bg:       #0f1c16;
+--mh-chip-border:   #214433;
+
+3) ESCOPAR A MODAL
+- Envolver regras sob um seletor da modal (ex.: `.mh-tools-modal` ou o seletor raiz usado no projeto da modal).
+- Aplicar os tokens acima quando dark mode estiver ativo.
+
+4) ESTILOS PRINCIPAIS (DARK)
+- Container:
+  background: var(--mh-surface);
+  color: var(--mh-text);
+  box-shadow: var(--mh-shadow);
+  border: 1px solid var(--mh-border);
+- Barra de abas:
+  background: var(--mh-tab-bg);
+  border-bottom: 1px solid var(--mh-border);
+  aba ativa: background: var(--mh-surface); border-bottom: 3px solid var(--mh-accent); color: var(--mh-text);
+  hover: background: var(--mh-tab-hover);
+- Títulos:
+  h1/h2/h3 color: var(--mh-text); subtítulos: var(--mh-text-muted);
+- Cartões (forms/resultados):
+  background: var(--mh-surface);
+  border: 1px solid var(--mh-border);
+  box-shadow: var(--mh-shadow-soft);
+  border-radius: 12px;
+- Inputs/Selects/Textareas:
+  background: var(--mh-surface-2);
+  color: var(--mh-text);
+  border: 1px solid var(--mh-border);
+  placeholder: color: var(--mh-text-muted);
+  focus: outline: none; border-color: var(--mh-accent); box-shadow: 0 0 0 2px rgba(60,179,113,0.20);
+- Botões primários:
+  background: var(--mh-accent); color: #fff; border: 1px solid transparent;
+  hover: background: var(--mh-accent-2);
+  disabled: opacity: .6; cursor: not-allowed;
+- Botões secundários/texto:
+  background: transparent; color: var(--mh-text); border: 1px solid var(--mh-border);
+  hover: background: var(--mh-surface-2);
+- Chips/badges/“Evidências Clínicas” etc.:
+  background: var(--mh-chip-bg);
+  color: var(--mh-text);
+  border: 1px solid var(--mh-chip-border);
+
+5) RESULTADOS / FEEDBACK
+- “Resultado” card:
+  background: var(--mh-surface);
+  border: 1px solid var(--mh-border);
+  título/ícone: color: var(--mh-text);
+  valor principal (ex.: score): color: var(--mh-accent);
+  interpretação: color: var(--mh-text);
+  referência (rodapé): color: var(--mh-text-muted); font-style: italic;
+- Alertas/erros/avisos:
+  manter pads e bordas; usar borda #51343a para erro e #3a4a51 para aviso; texto primário sempre legível.
+
+6) SCROLL E OVERFLOW
+- Garantir que não exista scroll duplo:
+  modal: `max-height: 80vh; overflow: hidden;`
+  conteúdo interno: `overflow-y: auto;`
+- Remover qualquer `height`/`min-height` fixa herdada que gere “buraco” em branco.
+
+7) ACESSIBILIDADE / CONTRASTE
+- Contraste mínimo WCAG AA (≥ 4.5:1) para texto normal.
+- Focus visível em todos interativos (inputs e botões): outline/box-shadow verde translúcido.
+- Ícones com `opacity: .9` no dark para não “estourar”.
+
+8) ANIMAÇÕES E TRANSIÇÕES
+- Troca de abas e exibição de resultados com fade-in 180–220ms (opacity + slight translateY).
+- `transition: background-color, color, border-color 180ms ease;`
+
+9) SUPORTE MODO CLARO (NÃO QUEBRAR)
+- Não alterar estilos do modo claro.
+- Injetar as regras dark dentro de:
+  a) `@media (prefers-color-scheme: dark) { .mh-tools-modal { ... } }`
+  b) e também em `html[data-theme="dark"] .mh-tools-modal { ... }` e/ou `body.theme-dark .mh-tools-modal { ... }`.
+
+10) TESTES E AJUSTES
+- Testar em: Posologia (placeholder “Em breve”), Calculadoras (todas da lista), Conduta, Exames, Diferenciais.
+- Checar responsividade: <768px vira alinhamento compacto; tabs com scroll horizontal suave; sem corte de conteúdo.
+
+ACCEPTANCE:
+✅ Modal abre no dark sem espaço branco, com cores coesas e legíveis.
+✅ Inputs, botões e cards seguem o padrão dark do MédicoHelp.
+✅ Troca de abas suave, sem scroll duplo.
+✅ Respeita `prefers-color-scheme` e alternância manual por classe/atributo de tema.
+✅ Contraste ok e foco visível.

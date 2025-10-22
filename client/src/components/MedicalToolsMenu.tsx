@@ -43,20 +43,16 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
   const [result, setResult] = useState<any>(null);
   const { toast } = useToast();
 
-  // Calculadora states
   const [selectedCalc, setSelectedCalc] = useState<CalculatorSchema | null>(null);
   const [calcValues, setCalcValues] = useState<Record<string, any>>({});
   const [calcResult, setCalcResult] = useState<CalculatorResult | null>(null);
   const [copied, setCopied] = useState(false);
 
-  // Conduta states
   const [quadroConduta, setQuadroConduta] = useState("");
   const [resumoConduta, setResumoConduta] = useState("");
 
-  // Exames states
   const [quadroExames, setQuadroExames] = useState("");
 
-  // Diferenciais states
   const [quadroDiferenciais, setQuadroDiferenciais] = useState("");
 
   const hasAccess = userRole === "medico" || userRole === "estudante";
@@ -64,12 +60,10 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
   const handleCalculate = () => {
     if (!selectedCalc) return;
 
-    // Validate required fields - check for undefined or empty string, not falsy (to allow false and 0)
     const missingFields = selectedCalc.inputs
       .filter((input) => {
         if (!input.required) return false;
         const value = calcValues[input.key];
-        // Allow false, 0, and other falsy values except undefined and empty string
         return value === undefined || value === "";
       })
       .map((input) => input.label);
@@ -86,7 +80,6 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
     const result = selectedCalc.compute(calcValues);
     setCalcResult(result);
 
-    // Save to history
     saveToHistory({
       calculatorId: selectedCalc.id,
       calculatorName: selectedCalc.name,
@@ -100,7 +93,7 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
     try {
       const history = JSON.parse(localStorage.getItem("calc_history") || "[]");
       history.unshift(entry);
-      const trimmed = history.slice(0, 20); // Keep last 20
+      const trimmed = history.slice(0, 20);
       localStorage.setItem("calc_history", JSON.stringify(trimmed));
     } catch (err) {
       console.error("Failed to save history", err);
@@ -260,24 +253,24 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
           </Badge>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[900px] max-h-[90vh] overflow-y-auto p-0">
-        <div className="max-w-[900px] mx-auto p-6 md:p-8">
+      <DialogContent className="mh-tools-modal max-w-[900px] max-h-[80vh] overflow-hidden p-0 bg-white dark:bg-[#151b21] border-neutral-200 dark:border-[#26303a]">
+        <div className="max-w-[900px] mx-auto h-full overflow-y-auto p-6 md:p-8">
           <DialogHeader className="text-center mb-6">
-            <DialogTitle className="flex items-center justify-center gap-2 text-[1.3rem] font-semibold text-[#222]">
-              <Stethoscope className="w-5 h-5" />
+            <DialogTitle className="flex items-center justify-center gap-2 text-[1.3rem] font-semibold text-neutral-900 dark:text-[#e6edf3]">
+              <Stethoscope className="w-5 h-5 opacity-90" />
               Ferramentas Profissionais
             </DialogTitle>
-            <DialogDescription className="text-[0.95rem] text-[#777] mt-2">
+            <DialogDescription className="text-[0.95rem] text-neutral-600 dark:text-[#9fb3c8] mt-2">
               Ferramentas de apoio à decisão clínica para {userRole === "medico" ? "médicos" : "estudantes de medicina"}
             </DialogDescription>
           </DialogHeader>
 
           <Tabs defaultValue="posologia" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 bg-[#f8f9f9] dark:bg-[#2a2a2a] rounded-t-xl p-1.5 gap-1">
+            <TabsList className="grid w-full grid-cols-6 bg-neutral-100 dark:bg-[#10161b] rounded-xl p-1.5 gap-1 border border-neutral-200 dark:border-[#26303a]">
               <TabsTrigger 
                 value="posologia" 
                 data-testid="tab-posologia"
-                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-[#333] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] rounded-lg font-medium text-[15px]"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#151b21] data-[state=active]:text-neutral-900 dark:data-[state=active]:text-[#e6edf3] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all duration-180 hover:bg-neutral-50 dark:hover:bg-[#11221b] rounded-lg font-medium text-[15px] text-neutral-700 dark:text-[#9fb3c8]"
               >
                 <span className="mr-1.5">💊</span>
                 Posologia
@@ -285,7 +278,7 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
               <TabsTrigger 
                 value="calculadora" 
                 data-testid="tab-calculadora"
-                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-[#333] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] rounded-lg font-medium text-[15px]"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#151b21] data-[state=active]:text-neutral-900 dark:data-[state=active]:text-[#e6edf3] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all duration-180 hover:bg-neutral-50 dark:hover:bg-[#11221b] rounded-lg font-medium text-[15px] text-neutral-700 dark:text-[#9fb3c8]"
               >
                 <span className="mr-1.5">📊</span>
                 Calculadoras
@@ -293,15 +286,15 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
               <TabsTrigger 
                 value="partograma" 
                 data-testid="tab-partograma"
-                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-[#333] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] rounded-lg font-medium text-[15px]"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#151b21] data-[state=active]:text-neutral-900 dark:data-[state=active]:text-[#e6edf3] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all duration-180 hover:bg-neutral-50 dark:hover:bg-[#11221b] rounded-lg font-medium text-[15px] text-neutral-700 dark:text-[#9fb3c8]"
               >
-                <Activity className="w-3.5 h-3.5 mr-1.5" />
+                <Activity className="w-3.5 h-3.5 mr-1.5 opacity-90" />
                 Partograma
               </TabsTrigger>
               <TabsTrigger 
                 value="conduta" 
                 data-testid="tab-conduta"
-                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-[#333] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] rounded-lg font-medium text-[15px]"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#151b21] data-[state=active]:text-neutral-900 dark:data-[state=active]:text-[#e6edf3] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all duration-180 hover:bg-neutral-50 dark:hover:bg-[#11221b] rounded-lg font-medium text-[15px] text-neutral-700 dark:text-[#9fb3c8]"
               >
                 <span className="mr-1.5">📋</span>
                 Conduta
@@ -309,7 +302,7 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
               <TabsTrigger 
                 value="exames" 
                 data-testid="tab-exames"
-                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-[#333] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] rounded-lg font-medium text-[15px]"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#151b21] data-[state=active]:text-neutral-900 dark:data-[state=active]:text-[#e6edf3] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all duration-180 hover:bg-neutral-50 dark:hover:bg-[#11221b] rounded-lg font-medium text-[15px] text-neutral-700 dark:text-[#9fb3c8]"
               >
                 <span className="mr-1.5">🧪</span>
                 Exames
@@ -317,7 +310,7 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
               <TabsTrigger 
                 value="diferenciais" 
                 data-testid="tab-diferenciais"
-                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-[#333] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] rounded-lg font-medium text-[15px]"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#151b21] data-[state=active]:text-neutral-900 dark:data-[state=active]:text-[#e6edf3] data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-b-[#3cb371] transition-all duration-180 hover:bg-neutral-50 dark:hover:bg-[#11221b] rounded-lg font-medium text-[15px] text-neutral-700 dark:text-[#9fb3c8]"
               >
                 <span className="mr-1.5">⚖️</span>
                 Diferenciais
@@ -325,12 +318,12 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
             </TabsList>
 
           {/* POSOLOGIA */}
-          <TabsContent value="posologia" className="flex items-center justify-center min-h-[400px]">
-            <Card className="w-full max-w-md text-center shadow-lg">
+          <TabsContent value="posologia" className="flex items-center justify-center min-h-[400px] animate-in fade-in-50 duration-200">
+            <Card className="w-full max-w-md text-center shadow-md border-neutral-200 dark:border-[#26303a] bg-white dark:bg-[#151b21]">
               <CardContent className="pt-12 pb-10 px-8 space-y-6">
                 <div className="flex justify-center">
-                  <div className="w-20 h-20 rounded-full bg-[#00A86B]/10 dark:bg-[#00A86B]/20 flex items-center justify-center">
-                    <Pill className="w-10 h-10 text-[#00A86B]" />
+                  <div className="w-20 h-20 rounded-full bg-[#00A86B]/10 dark:bg-[#0f1c16] border border-[#00A86B]/20 dark:border-[#214433] flex items-center justify-center">
+                    <Pill className="w-10 h-10 text-[#00A86B] opacity-90" />
                   </div>
                 </div>
                 
@@ -338,20 +331,20 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                   <h3 className="text-2xl font-semibold text-[#00A86B]">
                     PosologiaCerta
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-neutral-600 dark:text-[#9fb3c8]">
                     Em breve — módulo completo de cálculo e ajuste de doses integrado ao MédicoHelp.
                   </p>
                 </div>
 
                 <Button 
                   disabled 
-                  className="w-full bg-[#00A86B] hover:bg-[#00A86B]/90"
+                  className="w-full bg-[#00A86B] hover:bg-[#00A86B]/90 disabled:opacity-60"
                   data-testid="button-acessar-posologiacerta"
                 >
                   Acessar PosologiaCerta
                 </Button>
 
-                <p className="text-xs text-muted-foreground/70">
+                <p className="text-xs text-neutral-500 dark:text-[#9fb3c8]/70">
                   Versão Beta exclusiva para médicos
                 </p>
               </CardContent>
@@ -359,25 +352,23 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
           </TabsContent>
 
           {/* CALCULADORA */}
-          <TabsContent value="calculadora" className="space-y-4">
-            {/* Disclaimer */}
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 rounded-md">
+          <TabsContent value="calculadora" className="space-y-4 animate-in fade-in-50 duration-200">
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 dark:border-blue-600 rounded-md">
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>Ferramenta de apoio à decisão clínica.</strong> Não substitui o julgamento clínico e a avaliação individual do paciente.
               </p>
             </div>
 
-            {/* Calculator Selector */}
-            <Card>
+            <Card className="border-neutral-200 dark:border-[#26303a] bg-white dark:bg-[#151b21]">
               <CardHeader>
-                <CardTitle className="text-lg">Selecione uma Calculadora</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg text-neutral-900 dark:text-[#e6edf3]">Selecione uma Calculadora</CardTitle>
+                <CardDescription className="text-neutral-600 dark:text-[#9fb3c8]">
                   Scores e calculadoras médicas com formulários intuitivos
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="calc-select">Calculadora</Label>
+                  <Label htmlFor="calc-select" className="text-neutral-900 dark:text-[#e6edf3]">Calculadora</Label>
                   <Select
                     value={selectedCalc?.id || ""}
                     onValueChange={(value) => {
@@ -387,23 +378,23 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                       setCalcResult(null);
                     }}
                   >
-                    <SelectTrigger id="calc-select" data-testid="select-calculadora">
+                    <SelectTrigger id="calc-select" data-testid="select-calculadora" className="bg-white dark:bg-[#1b232b] border-neutral-300 dark:border-[#26303a] text-neutral-900 dark:text-[#e6edf3] focus:border-[#3cb371] dark:focus:border-[#3cb371] focus:ring-[#3cb371]/20">
                       <SelectValue placeholder="Escolha uma calculadora..." />
                     </SelectTrigger>
-                    <SelectContent>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                    <SelectContent className="bg-white dark:bg-[#1b232b] border-neutral-200 dark:border-[#26303a]">
+                      <div className="px-2 py-1.5 text-xs font-semibold text-neutral-600 dark:text-[#9fb3c8]">
                         Clínico
                       </div>
                       {ALL_CALCULATORS.filter((c) => c.group === "Clínico").map((calc) => (
-                        <SelectItem key={calc.id} value={calc.id}>
+                        <SelectItem key={calc.id} value={calc.id} className="text-neutral-900 dark:text-[#e6edf3] focus:bg-neutral-100 dark:focus:bg-[#1b232b]">
                           {calc.name}
                         </SelectItem>
                       ))}
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">
+                      <div className="px-2 py-1.5 text-xs font-semibold text-neutral-600 dark:text-[#9fb3c8] mt-2">
                         Obstetrícia
                       </div>
                       {ALL_CALCULATORS.filter((c) => c.group === "Obstetrícia").map((calc) => (
-                        <SelectItem key={calc.id} value={calc.id}>
+                        <SelectItem key={calc.id} value={calc.id} className="text-neutral-900 dark:text-[#e6edf3] focus:bg-neutral-100 dark:focus:bg-[#1b232b]">
                           {calc.name}
                         </SelectItem>
                       ))}
@@ -413,23 +404,22 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
 
                 {selectedCalc && (
                   <div className="pt-2">
-                    <p className="text-sm text-muted-foreground">{selectedCalc.description}</p>
+                    <p className="text-sm text-neutral-600 dark:text-[#9fb3c8]">{selectedCalc.description}</p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Dynamic Form */}
             {selectedCalc && (
-              <Card>
+              <Card className="border-neutral-200 dark:border-[#26303a] bg-white dark:bg-[#151b21]">
                 <CardHeader>
-                  <CardTitle className="text-lg">{selectedCalc.name}</CardTitle>
+                  <CardTitle className="text-lg text-neutral-900 dark:text-[#e6edf3]">{selectedCalc.name}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {selectedCalc.inputs.map((input) => (
                     <div key={input.key} className="space-y-2">
-                      <Label htmlFor={`input-${input.key}`}>
-                        {input.label} {input.required && <span className="text-destructive">*</span>}
+                      <Label htmlFor={`input-${input.key}`} className="text-neutral-900 dark:text-[#e6edf3]">
+                        {input.label} {input.required && <span className="text-red-500">*</span>}
                       </Label>
                       {input.type === "boolean" && (
                         <div className="flex items-center space-x-2">
@@ -440,8 +430,9 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                               setCalcValues({ ...calcValues, [input.key]: checked })
                             }
                             data-testid={`input-${input.key}`}
+                            className="data-[state=checked]:bg-[#3cb371]"
                           />
-                          <Label htmlFor={`input-${input.key}`} className="text-sm font-normal">
+                          <Label htmlFor={`input-${input.key}`} className="text-sm font-normal text-neutral-700 dark:text-[#9fb3c8]">
                             {input.hint || "Sim/Não"}
                           </Label>
                         </div>
@@ -459,9 +450,10 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                               setCalcValues({ ...calcValues, [input.key]: e.target.value })
                             }
                             data-testid={`input-${input.key}`}
+                            className="bg-white dark:bg-[#1b232b] border-neutral-300 dark:border-[#26303a] text-neutral-900 dark:text-[#e6edf3] placeholder:text-neutral-400 dark:placeholder:text-[#9fb3c8] focus:border-[#3cb371] dark:focus:border-[#3cb371] focus:ring-[#3cb371]/20"
                           />
                           {input.hint && (
-                            <p className="text-xs text-muted-foreground">{input.hint}</p>
+                            <p className="text-xs text-neutral-600 dark:text-[#9fb3c8]">{input.hint}</p>
                           )}
                         </>
                       )}
@@ -472,12 +464,12 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                             setCalcValues({ ...calcValues, [input.key]: value })
                           }
                         >
-                          <SelectTrigger id={`input-${input.key}`} data-testid={`input-${input.key}`}>
+                          <SelectTrigger id={`input-${input.key}`} data-testid={`input-${input.key}`} className="bg-white dark:bg-[#1b232b] border-neutral-300 dark:border-[#26303a] text-neutral-900 dark:text-[#e6edf3] focus:border-[#3cb371] dark:focus:border-[#3cb371] focus:ring-[#3cb371]/20">
                             <SelectValue placeholder="Selecione..." />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-white dark:bg-[#1b232b] border-neutral-200 dark:border-[#26303a]">
                             {input.options.map((opt) => (
-                              <SelectItem key={opt.value} value={String(opt.value)}>
+                              <SelectItem key={opt.value} value={String(opt.value)} className="text-neutral-900 dark:text-[#e6edf3] focus:bg-neutral-100 dark:focus:bg-[#1b232b]">
                                 {opt.label}
                               </SelectItem>
                             ))}
@@ -493,6 +485,7 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                             setCalcValues({ ...calcValues, [input.key]: e.target.value })
                           }
                           data-testid={`input-${input.key}`}
+                          className="bg-white dark:bg-[#1b232b] border-neutral-300 dark:border-[#26303a] text-neutral-900 dark:text-[#e6edf3] focus:border-[#3cb371] dark:focus:border-[#3cb371] focus:ring-[#3cb371]/20"
                         />
                       )}
                     </div>
@@ -509,11 +502,10 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
               </Card>
             )}
 
-            {/* Result Card */}
             {calcResult && selectedCalc && (
-              <Card className="animate-in fade-in-50 duration-300 border-[#dff5e1] dark:border-[#1f3a2f] shadow-md">
+              <Card className="animate-in fade-in-50 duration-200 border-[#dff5e1] dark:border-[#214433] shadow-md bg-white dark:bg-[#151b21]">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center justify-between text-[#222] dark:text-white">
+                  <CardTitle className="text-lg flex items-center justify-between text-neutral-900 dark:text-[#e6edf3]">
                     <span className="flex items-center gap-2">
                       <span>📋</span>
                       Resultado
@@ -523,55 +515,55 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                         variant="outline"
                         size="sm"
                         onClick={copyResult}
-                        className="hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] transition-all"
+                        className="hover:bg-neutral-100 dark:hover:bg-[#1b232b] border-neutral-300 dark:border-[#26303a] transition-all"
                         data-testid="button-copy-result"
                       >
                         {copied ? (
                           <Check className="w-4 h-4 text-[#3cb371]" />
                         ) : (
-                          <Copy className="w-4 h-4" />
+                          <Copy className="w-4 h-4 text-neutral-700 dark:text-[#9fb3c8]" />
                         )}
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={printResult}
-                        className="hover:bg-[#e9f8f0] dark:hover:bg-[#1f3a2f] transition-all"
+                        className="hover:bg-neutral-100 dark:hover:bg-[#1b232b] border-neutral-300 dark:border-[#26303a] transition-all"
                         data-testid="button-print-result"
                       >
-                        <Printer className="w-4 h-4" />
+                        <Printer className="w-4 h-4 text-neutral-700 dark:text-[#9fb3c8]" />
                       </Button>
                     </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {calcResult.score !== undefined && (
-                    <div className="text-center p-6 bg-gradient-to-br from-[#e9f8f0] to-[#f0fdf4] dark:from-[#1f3a2f] dark:to-[#1a2e26] rounded-xl border border-[#dff5e1] dark:border-[#1f3a2f]">
-                      <div className="text-sm text-muted-foreground mb-1">Score</div>
-                      <div className="text-5xl font-bold text-[#2a7b4b] dark:text-[#3cb371]">{calcResult.score}</div>
+                    <div className="text-center p-6 bg-gradient-to-br from-[#e9f8f0] to-[#f0fdf4] dark:from-[#0f1c16] dark:to-[#1a2e26] rounded-xl border border-[#dff5e1] dark:border-[#214433]">
+                      <div className="text-sm text-neutral-600 dark:text-[#9fb3c8] mb-1">Score</div>
+                      <div className="text-5xl font-bold" style={{ color: '#3cb371' }}>{calcResult.score}</div>
                     </div>
                   )}
                   {calcResult.value !== undefined && (
-                    <div className="text-center p-6 bg-gradient-to-br from-[#e9f8f0] to-[#f0fdf4] dark:from-[#1f3a2f] dark:to-[#1a2e26] rounded-xl border border-[#dff5e1] dark:border-[#1f3a2f]">
-                      <div className="text-sm text-muted-foreground mb-1">Valor</div>
-                      <div className="text-4xl font-bold text-[#2a7b4b] dark:text-[#3cb371]">{calcResult.value}</div>
+                    <div className="text-center p-6 bg-gradient-to-br from-[#e9f8f0] to-[#f0fdf4] dark:from-[#0f1c16] dark:to-[#1a2e26] rounded-xl border border-[#dff5e1] dark:border-[#214433]">
+                      <div className="text-sm text-neutral-600 dark:text-[#9fb3c8] mb-1">Valor</div>
+                      <div className="text-4xl font-bold" style={{ color: '#3cb371' }}>{calcResult.value}</div>
                     </div>
                   )}
                   <div
                     className={`p-4 rounded-xl border-l-4 ${
                       calcResult.severity === "high"
-                        ? "bg-red-50 dark:bg-red-900/20 border-red-500"
+                        ? "bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-600"
                         : calcResult.severity === "moderate"
-                        ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500"
+                        ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500 dark:border-yellow-600"
                         : calcResult.severity === "low"
-                        ? "bg-green-50 dark:bg-green-900/20 border-green-500"
-                        : "bg-blue-50 dark:bg-blue-900/20 border-blue-500"
+                        ? "bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-600"
+                        : "bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-600"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-line text-[#444] dark:text-gray-300">{calcResult.interpretation}</p>
+                    <p className="text-sm whitespace-pre-line text-neutral-800 dark:text-[#e6edf3]">{calcResult.interpretation}</p>
                   </div>
                   {selectedCalc.refs.length > 0 && (
-                    <div className="text-xs text-[#888] dark:text-gray-400 space-y-1 italic">
+                    <div className="text-xs text-neutral-600 dark:text-[#9fb3c8] space-y-1 italic">
                       <div className="font-semibold not-italic">Referências:</div>
                       {selectedCalc.refs.map((ref, idx) => (
                         <div key={idx}>• {ref}</div>
@@ -584,22 +576,22 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
           </TabsContent>
 
           {/* PARTOGRAMA */}
-          <TabsContent value="partograma" className="space-y-4">
+          <TabsContent value="partograma" className="space-y-4 animate-in fade-in-50 duration-200">
             <Partogram />
           </TabsContent>
 
           {/* CONDUTA */}
-          <TabsContent value="conduta" className="space-y-4">
-            <Card>
+          <TabsContent value="conduta" className="space-y-4 animate-in fade-in-50 duration-200">
+            <Card className="border-neutral-200 dark:border-[#26303a] bg-white dark:bg-[#151b21]">
               <CardHeader>
-                <CardTitle className="text-lg">Sugestão de Conduta</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg text-neutral-900 dark:text-[#e6edf3]">Sugestão de Conduta</CardTitle>
+                <CardDescription className="text-neutral-600 dark:text-[#9fb3c8]">
                   Orientações gerais de manejo clínico
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="quadro-conduta">Quadro Clínico *</Label>
+                  <Label htmlFor="quadro-conduta" className="text-neutral-900 dark:text-[#e6edf3]">Quadro Clínico *</Label>
                   <Textarea
                     id="quadro-conduta"
                     placeholder="Descreva o quadro clínico..."
@@ -607,10 +599,11 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                     onChange={(e) => setQuadroConduta(e.target.value)}
                     rows={4}
                     data-testid="input-quadro-conduta"
+                    className="bg-white dark:bg-[#1b232b] border-neutral-300 dark:border-[#26303a] text-neutral-900 dark:text-[#e6edf3] placeholder:text-neutral-400 dark:placeholder:text-[#9fb3c8] focus:border-[#3cb371] dark:focus:border-[#3cb371] focus:ring-[#3cb371]/20"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="resumo-conduta">Resumo Adicional (opcional)</Label>
+                  <Label htmlFor="resumo-conduta" className="text-neutral-900 dark:text-[#e6edf3]">Resumo Adicional (opcional)</Label>
                   <Textarea
                     id="resumo-conduta"
                     placeholder="Informações complementares..."
@@ -618,12 +611,13 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                     onChange={(e) => setResumoConduta(e.target.value)}
                     rows={2}
                     data-testid="input-resumo-conduta"
+                    className="bg-white dark:bg-[#1b232b] border-neutral-300 dark:border-[#26303a] text-neutral-900 dark:text-[#e6edf3] placeholder:text-neutral-400 dark:placeholder:text-[#9fb3c8] focus:border-[#3cb371] dark:focus:border-[#3cb371] focus:ring-[#3cb371]/20"
                   />
                 </div>
                 <Button
                   onClick={handleConduta}
                   disabled={loading}
-                  className="w-full bg-[#3cb371] hover:bg-[#2f9e62] text-white font-semibold h-[45px] rounded-[10px] transition-all shadow-sm disabled:opacity-50"
+                  className="w-full bg-[#3cb371] hover:bg-[#2f9e62] text-white font-semibold h-[45px] rounded-[10px] transition-all shadow-sm disabled:opacity-60"
                   data-testid="button-gerar-conduta"
                 >
                   {loading ? (
@@ -640,17 +634,17 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
           </TabsContent>
 
           {/* EXAMES */}
-          <TabsContent value="exames" className="space-y-4">
-            <Card>
+          <TabsContent value="exames" className="space-y-4 animate-in fade-in-50 duration-200">
+            <Card className="border-neutral-200 dark:border-[#26303a] bg-white dark:bg-[#151b21]">
               <CardHeader>
-                <CardTitle className="text-lg">Sugestão de Exames</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg text-neutral-900 dark:text-[#e6edf3]">Sugestão de Exames</CardTitle>
+                <CardDescription className="text-neutral-600 dark:text-[#9fb3c8]">
                   Exames complementares para investigação
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="quadro-exames">Quadro Clínico *</Label>
+                  <Label htmlFor="quadro-exames" className="text-neutral-900 dark:text-[#e6edf3]">Quadro Clínico *</Label>
                   <Textarea
                     id="quadro-exames"
                     placeholder="Descreva o quadro clínico..."
@@ -658,12 +652,13 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                     onChange={(e) => setQuadroExames(e.target.value)}
                     rows={5}
                     data-testid="input-quadro-exames"
+                    className="bg-white dark:bg-[#1b232b] border-neutral-300 dark:border-[#26303a] text-neutral-900 dark:text-[#e6edf3] placeholder:text-neutral-400 dark:placeholder:text-[#9fb3c8] focus:border-[#3cb371] dark:focus:border-[#3cb371] focus:ring-[#3cb371]/20"
                   />
                 </div>
                 <Button
                   onClick={handleExames}
                   disabled={loading}
-                  className="w-full bg-[#3cb371] hover:bg-[#2f9e62] text-white font-semibold h-[45px] rounded-[10px] transition-all shadow-sm disabled:opacity-50"
+                  className="w-full bg-[#3cb371] hover:bg-[#2f9e62] text-white font-semibold h-[45px] rounded-[10px] transition-all shadow-sm disabled:opacity-60"
                   data-testid="button-sugerir-exames"
                 >
                   {loading ? (
@@ -680,17 +675,17 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
           </TabsContent>
 
           {/* DIFERENCIAIS */}
-          <TabsContent value="diferenciais" className="space-y-4">
-            <Card>
+          <TabsContent value="diferenciais" className="space-y-4 animate-in fade-in-50 duration-200">
+            <Card className="border-neutral-200 dark:border-[#26303a] bg-white dark:bg-[#151b21]">
               <CardHeader>
-                <CardTitle className="text-lg">Diagnósticos Diferenciais</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg text-neutral-900 dark:text-[#e6edf3]">Diagnósticos Diferenciais</CardTitle>
+                <CardDescription className="text-neutral-600 dark:text-[#9fb3c8]">
                   Lista de possíveis diagnósticos com probabilidade
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="quadro-diferenciais">Quadro Clínico *</Label>
+                  <Label htmlFor="quadro-diferenciais" className="text-neutral-900 dark:text-[#e6edf3]">Quadro Clínico *</Label>
                   <Textarea
                     id="quadro-diferenciais"
                     placeholder="Descreva o quadro clínico..."
@@ -698,12 +693,13 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
                     onChange={(e) => setQuadroDiferenciais(e.target.value)}
                     rows={5}
                     data-testid="input-quadro-diferenciais"
+                    className="bg-white dark:bg-[#1b232b] border-neutral-300 dark:border-[#26303a] text-neutral-900 dark:text-[#e6edf3] placeholder:text-neutral-400 dark:placeholder:text-[#9fb3c8] focus:border-[#3cb371] dark:focus:border-[#3cb371] focus:ring-[#3cb371]/20"
                   />
                 </div>
                 <Button
                   onClick={handleDiferenciais}
                   disabled={loading}
-                  className="w-full bg-[#3cb371] hover:bg-[#2f9e62] text-white font-semibold h-[45px] rounded-[10px] transition-all shadow-sm disabled:opacity-50"
+                  className="w-full bg-[#3cb371] hover:bg-[#2f9e62] text-white font-semibold h-[45px] rounded-[10px] transition-all shadow-sm disabled:opacity-60"
                   data-testid="button-gerar-diferenciais"
                 >
                   {loading ? (
@@ -720,13 +716,12 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
           </TabsContent>
         </Tabs>
 
-          {/* Result Display */}
           {result && (
-            <Card className="mt-4">
+            <Card className="mt-4 border-neutral-200 dark:border-[#26303a] bg-white dark:bg-[#151b21]">
               <CardHeader>
-                <CardTitle className="text-lg">Resultado</CardTitle>
+                <CardTitle className="text-lg text-neutral-900 dark:text-[#e6edf3]">Resultado</CardTitle>
                 {result.disclaimer && (
-                  <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 rounded-md">
+                  <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 dark:border-yellow-600 rounded-md">
                     <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200" data-testid="text-disclaimer">
                       {result.disclaimer}
                     </p>
@@ -735,7 +730,7 @@ export function MedicalToolsMenu({ userRole }: MedicalToolsMenuProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <pre className="text-xs bg-muted p-4 rounded-md overflow-x-auto whitespace-pre-wrap">
+                  <pre className="text-xs bg-neutral-100 dark:bg-[#1b232b] text-neutral-900 dark:text-[#e6edf3] p-4 rounded-md overflow-x-auto whitespace-pre-wrap border border-neutral-200 dark:border-[#26303a]">
                     {JSON.stringify(result, null, 2)}
                   </pre>
                 </div>

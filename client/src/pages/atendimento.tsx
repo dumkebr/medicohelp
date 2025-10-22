@@ -473,22 +473,21 @@ export default function Atendimento() {
 
             {/* Seletor de paciente */}
             {showPatientMgmt && (
-              <Select value={selectedPatientId} onValueChange={handlePatientChange}>
+              <Select 
+                value={selectedPatientId || "none"} 
+                onValueChange={(v) => handlePatientChange(v === "none" ? "" : v)}
+              >
                 <SelectTrigger className="w-[200px] h-8 text-xs" data-testid="select-patient-header">
                   <SelectValue placeholder="Sem paciente" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sem paciente</SelectItem>
-                  {patients && patients.length > 0 ? (
+                  <SelectItem value="none">Sem paciente</SelectItem>
+                  {patients && patients.length > 0 && (
                     patients.map((patient) => (
                       <SelectItem key={patient.id} value={patient.id}>
                         {patient.nome}
                       </SelectItem>
                     ))
-                  ) : (
-                    <SelectItem value="none" disabled>
-                      Nenhum paciente cadastrado
-                    </SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -525,21 +524,21 @@ export default function Atendimento() {
           {showPatientMgmt && showSavePanel && history.length > 0 && (
             <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-800">
               <div className="flex items-center gap-3">
-                <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
+                <Select 
+                  value={selectedPatientId || "none"} 
+                  onValueChange={(v) => setSelectedPatientId(v === "none" ? "" : v)}
+                >
                   <SelectTrigger className="flex-1 max-w-xs" data-testid="select-paciente">
                     <SelectValue placeholder="Selecione um paciente" />
                   </SelectTrigger>
                   <SelectContent>
-                    {patients && patients.length > 0 ? (
+                    <SelectItem value="none">Selecione um paciente</SelectItem>
+                    {patients && patients.length > 0 && (
                       patients.map((patient) => (
                         <SelectItem key={patient.id} value={patient.id}>
                           {patient.nome}
                         </SelectItem>
                       ))
-                    ) : (
-                      <SelectItem value="none" disabled>
-                        Nenhum paciente cadastrado
-                      </SelectItem>
                     )}
                   </SelectContent>
                 </Select>

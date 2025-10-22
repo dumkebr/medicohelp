@@ -148,7 +148,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="px-4 pb-1 pt-0 border-b">
+      <SidebarHeader className="px-4 py-1.5 border-b">
         <div className="flex items-center justify-center w-full">
           <img 
             src={logoImage} 
@@ -160,7 +160,7 @@ export function AppSidebar() {
       </SidebarHeader>
       
       <SidebarContent className="pt-0">
-        <SidebarGroup className="pt-1">
+        <SidebarGroup className="pt-0">
           <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

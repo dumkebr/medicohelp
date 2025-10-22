@@ -34,7 +34,7 @@ import {
   type Atendimento 
 } from "@/lib/atendimentos";
 import { ItemRow } from "@/components/ItemRow";
-import logoImage from "@assets/logo-medicohelp.png_1761159563600.png";
+import heartIcon from "@assets/image_1761162023136.png";
 
 const menuItems = [
   {
@@ -151,8 +151,8 @@ export function AppSidebar() {
       <SidebarHeader className="px-4 py-2 border-b">
         <div className="flex items-center justify-start w-full">
           <img 
-            src={logoImage} 
-            alt="MédicoHelp - A plataforma médica inteligente" 
+            src={heartIcon} 
+            alt="MédicoHelp - Ícone do coração" 
             className="h-18 w-auto object-contain"
             style={{ height: '72px' }}
           />

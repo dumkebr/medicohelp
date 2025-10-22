@@ -1,0 +1,252 @@
+import React, { useState } from "react";
+import {
+  Search,
+  Image as ImageIcon,
+  ChevronDown,
+  ChevronRight,
+  NotebookPen,
+  Info,
+  Plus,
+} from "lucide-react";
+
+/**
+ * Sidebar MédicoHelp — estrutura ajustada conforme pedido
+ *
+ * MENUS
+ * Menu Principal (NESTA ORDEM):
+ *  - Atendimento médico (como está)
+ *  - Sobre (como está)
+ *  - Novo atendimento (subiu para o Menu Principal, renomeado)
+ *  - Buscar em atendimentos (abre campo de busca na própria lateral)
+ *  - Galeria (abre/fecha grade com as fotos enviadas)
+ *
+ * Seções inferiores:
+ *  - Gestão de Pacientes (com chave)
+ *  - Atendimentos Salvos (com chave) — fica ACIMA do Histórico
+ *  - Histórico de atendimentos (com chave) — SEM o botão "Novo"
+ *
+ * Integração: passe os arrays e callbacks via props.
+ */
+
+export type TPatient = { id: string; name: string; extra?: string };
+export type TVisit = { id: string; title: string; subtitle?: string };
+export type TImage = { id: string; url: string; name?: string; createdAt?: string };
+
+interface SidebarProps {
+  currentUserEmail?: string;
+  onGoToClinical?: () => void;
+  onGoToAbout?: () => void;
+  onNewVisit?: () => void; // mover atual p/ salvos ou histórico é contigo
+  onSearchQuery?: (q: string) => void;
+  onOpenImage?: (img: TImage) => void;
+  savedVisits?: TVisit[];
+  historyVisits?: TVisit[];
+  gallery?: TImage[];
+  patientsList?: TPatient[];
+  onOpenPatient?: (p: TPatient) => void;
+}
+
+const SectionHeader: React.FC<{ title: string; isOpen: boolean; onToggle: () => void }> = ({
+  title,
+  isOpen,
+  onToggle,
+}) => (
+  <button
+    onClick={onToggle}
+    className="w-full flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-100 px-3 py-2 hover:bg-gray-100/70 dark:hover:bg-white/5 rounded-md"
+  >
+    <span>{title}</span>
+    {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+  </button>
+);
+
+const ItemRow: React.FC<{
+  title: string;
+  subtitle?: string;
+  onClick?: () => void;
+  right?: React.ReactNode;
+}> = ({ title, subtitle, onClick, right }) => (
+  <button
+    onClick={onClick}
+    className="w-full text-left px-3 py-2 rounded-lg border bg-white border-gray-200 hover:bg-gray-50 dark:bg-neutral-900 dark:border-neutral-800 dark:hover:bg-neutral-800 flex items-center justify-between"
+  >
+    <div className="truncate">
+      <div className="text-[13px] font-medium truncate">{title}</div>
+      {subtitle && (
+        <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{subtitle}</div>
+      )}
+    </div>
+    {right}
+  </button>
+);
+
+const Sidebar: React.FC<SidebarProps> = ({
+  currentUserEmail,
+  onGoToClinical,
+  onGoToAbout,
+  onNewVisit,
+  onSearchQuery,
+  onOpenImage,
+  savedVisits = [],
+  historyVisits = [],
+  gallery = [],
+  patientsList = [],
+  onOpenPatient,
+}) => {
+  // Chaves
+  const [openPatients, setOpenPatients] = useState<boolean>(false);
+  const [openSaved, setOpenSaved] = useState<boolean>(true);
+  const [openHistory, setOpenHistory] = useState<boolean>(true);
+  const [openGallery, setOpenGallery] = useState<boolean>(false);
+
+  // Busca
+  const [showSearch, setShowSearch] = useState<boolean>(false);
+  const [q, setQ] = useState<string>("");
+
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!q.trim()) return;
+    onSearchQuery?.(q.trim());
+  };
+
+  return (
+    <aside className="w-full h-full overflow-y-auto px-3 py-3 bg-white dark:bg-neutral-950 border-r border-gray-200 dark:border-neutral-800">
+      {/* MENU PRINCIPAL */}
+      <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-2 mb-2">Menu Principal</div>
+      <nav className="space-y-2 mb-3">
+        <ItemRow
+          title="Atendimento médico"
+          subtitle="Fluxo clínico com IA"
+          onClick={onGoToClinical}
+          right={<NotebookPen size={16} className="text-gray-400" />}
+        />
+        <ItemRow
+          title="Sobre"
+          subtitle="Versão, limites e contato"
+          onClick={onGoToAbout}
+          right={<Info size={16} className="text-gray-400" />}
+        />
+        {/* Novo atendimento — AGORA NO MENU PRINCIPAL */}
+        <ItemRow
+          title="Novo atendimento"
+          subtitle="Iniciar caso e arquivar o atual"
+          onClick={onNewVisit}
+          right={<Plus size={16} className="text-emerald-600" />}
+        />
+        {/* Buscar em atendimentos — link que abre o campo de busca */}
+        <ItemRow
+          title="Buscar em atendimentos"
+          subtitle="Queixa, CID, nome do paciente ou data"
+          onClick={() => setShowSearch((v) => !v)}
+          right={<Search size={16} className="text-gray-400" />}
+        />
+        {/* Galeria — link que abre/fecha a grade de fotos */}
+        <ItemRow
+          title="Galeria (fotos enviadas)"
+          subtitle={`${gallery.length} arquivo${gallery.length === 1 ? "" : "s"}`}
+          onClick={() => setOpenGallery((v) => !v)}
+          right={<ImageIcon size={16} className="text-gray-400" />}
+        />
+      </nav>
+
+      {/* Campo de busca (aparece quando o link é clicado) */}
+      {showSearch && (
+        <form onSubmit={submitSearch} className="mb-4">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Ex.: TAQUICARDIA, 21/10/2025, Maria Souza"
+            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-neutral-900 dark:border-neutral-700"
+          />
+          <div className="mt-2 text-[11px] text-gray-500 dark:text-gray-400">
+            Dica: você pode colar uma data, nome, CID ou termo clínico.
+          </div>
+        </form>
+      )}
+
+      {/* Galeria (aparece quando o link é clicado) */}
+      {openGallery && (
+        <div className="mb-4">
+          <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-2 mb-2">Galeria</div>
+          <div className="grid grid-cols-3 gap-2">
+            {gallery.length === 0 && (
+              <div className="col-span-3 px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
+                Nenhuma imagem enviada.
+              </div>
+            )}
+            {gallery.map((img) => (
+              <button
+                key={img.id}
+                onClick={() => onOpenImage?.(img)}
+                className="aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900"
+                title={img.name || "Imagem"}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img.url} alt={img.name || "Imagem"} className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* GESTÃO DE PACIENTES */}
+      <SectionHeader
+        title="Gestão de Pacientes"
+        isOpen={openPatients}
+        onToggle={() => setOpenPatients((v) => !v)}
+      />
+      {openPatients && (
+        <div className="space-y-2 mb-4">
+          {patientsList.length === 0 && (
+            <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">Nenhum paciente listado.</div>
+          )}
+          {patientsList.map((p) => (
+            <ItemRow key={p.id} title={p.name} subtitle={p.extra} onClick={() => onOpenPatient?.(p)} />
+          ))}
+        </div>
+      )}
+
+      {/* SALVOS */}
+      <SectionHeader
+        title="Atendimentos salvos"
+        isOpen={openSaved}
+        onToggle={() => setOpenSaved((v) => !v)}
+      />
+      {openSaved && (
+        <div className="space-y-2 mb-4">
+          {savedVisits.length === 0 && (
+            <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">Nenhum atendimento salvo.</div>
+          )}
+          {savedVisits.map((v) => (
+            <ItemRow key={v.id} title={v.title} subtitle={v.subtitle} />
+          ))}
+        </div>
+      )}
+
+      {/* HISTÓRICO — SEM BOTÃO NOVO; COM CHAVE */}
+      <SectionHeader
+        title="Histórico de atendimentos"
+        isOpen={openHistory}
+        onToggle={() => setOpenHistory((v) => !v)}
+      />
+      {openHistory && (
+        <div className="space-y-2 mb-4">
+          {historyVisits.length === 0 && (
+            <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">Sem histórico por enquanto.</div>
+          )}
+          {historyVisits.map((v) => (
+            <ItemRow key={v.id} title={v.title} subtitle={v.subtitle} />
+          ))}
+        </div>
+      )}
+
+      {/* Rodapé */}
+      <div className="mt-auto pt-4 text-[11px] text-gray-500 dark:text-gray-400 px-2">
+        {currentUserEmail && <div className="truncate">{currentUserEmail}</div>}
+        <div>Beta Gratuito · Limite diário configurável</div>
+      </div>
+    </aside>
+  );
+};
+
+export default Sidebar;

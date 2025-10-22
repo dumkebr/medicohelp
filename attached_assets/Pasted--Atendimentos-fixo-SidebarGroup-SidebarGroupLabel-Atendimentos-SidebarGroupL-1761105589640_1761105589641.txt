@@ -1,0 +1,108 @@
+// ===== Atendimentos (fixo) =====
+<SidebarGroup>
+  <SidebarGroupLabel>Atendimentos</SidebarGroupLabel>
+  <SidebarGroupContent className="space-y-2">
+
+    {/* BOTÕES CABEÇALHO */}
+    <div className="flex items-center justify-between">
+      <span className="text-sm font-medium">Histórico</span>
+      <button onClick={novoAt} className="text-xs px-2 py-0.5 border rounded">Novo</button>
+    </div>
+
+    {/* LISTA VOLÁTIL (não salvos e sem paciente) */}
+    <div className="max-h-[22vh] overflow-auto divide-y rounded border">
+      {items.filter(it => !isSaved(it)).length === 0 && (
+        <div className="p-2 text-neutral-500 text-xs">Sem históricos recentes.</div>
+      )}
+      {items.filter(it => !isSaved(it)).map((it) => (
+        <div
+          key={it.id}
+          onClick={() => openAt(it.id)}
+          className={`p-2 cursor-pointer ${current === it.id ? "bg-emerald-50" : "hover:bg-neutral-50"}`}
+          title={new Date(it.updatedAt).toLocaleString()}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <div className="truncate">{it.title}</div>
+            <div className="flex items-center gap-1">
+              {/* Salvar/Fixar */}
+              <button
+                title="Salvar em Atendimentos Salvos"
+                onClick={(e) => { e.stopPropagation(); setSaved(it.id, true); setItems(listAtendimentos()); }}
+                className="text-[11px] px-1 border rounded"
+              >📌</button>
+
+              {/* Renomear */}
+              <button
+                title="Renomear"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const novo = prompt("Novo nome do atendimento:", it.title || "");
+                  if (novo != null) { renameAtendimento(it.id, novo); setItems(listAtendimentos()); }
+                }}
+                className="text-[11px] px-1 border rounded"
+              >✏️</button>
+
+              {/* Excluir */}
+              <button
+                title="Excluir"
+                onClick={(e) => delAt(it.id, e)}
+                className="text-[11px] px-1 border rounded"
+              >🗑️</button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* SEÇÃO SALVOS */}
+    <div className="mt-3 text-sm font-medium">Atendimentos Salvos</div>
+    <div className="max-h-[22vh] overflow-auto divide-y rounded border">
+      {items.filter(it => isSaved(it)).length === 0 && (
+        <div className="p-2 text-neutral-500 text-xs">Nenhum salvo ainda.</div>
+      )}
+      {items.filter(it => isSaved(it)).map((it) => (
+        <div
+          key={it.id}
+          onClick={() => openAt(it.id)}
+          className={`p-2 cursor-pointer ${current === it.id ? "bg-emerald-50" : "hover:bg-neutral-50"}`}
+          title={new Date(it.updatedAt).toLocaleString()}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <div className="truncate">{it.title}</div>
+            <div className="flex items-center gap-1">
+              {/* Desfixar (se não tiver paciente) */}
+              {!it.patientId && (
+                <button
+                  title="Remover dos salvos"
+                  onClick={(e) => { e.stopPropagation(); setSaved(it.id, false); setItems(listAtendimentos()); }}
+                  className="text-[11px] px-1 border rounded"
+                >📍</button>
+              )}
+
+              {/* Renomear */}
+              <button
+                title="Renomear"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const novo = prompt("Novo nome do atendimento:", it.title || "");
+                  if (novo != null) { renameAtendimento(it.id, novo); setItems(listAtendimentos()); }
+                }}
+                className="text-[11px] px-1 border rounded"
+              >✏️</button>
+
+              {/* Excluir */}
+              <button
+                title="Excluir"
+                onClick={(e) => delAt(it.id, e)}
+                className="text-[11px] px-1 border rounded"
+              >🗑️</button>
+            </div>
+          </div>
+          {it.patientId && (
+            <div className="text-[11px] text-neutral-500 mt-0.5">Paciente: {it.patientId}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  </SidebarGroupContent>
+</SidebarGroup>

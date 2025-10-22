@@ -27,6 +27,9 @@ import {
   getCurrentId, 
   createAtendimento, 
   removeAtendimento,
+  renameAtendimento,
+  setSaved,
+  isSaved,
   type Atendimento 
 } from "@/lib/atendimentos";
 import logoImage from "@assets/generated_images/Medical_logo_icon_green_50d6f1d5.png";
@@ -114,6 +117,21 @@ export function AppSidebar() {
     }
   };
 
+  const handleRenomear = (id: string, currentTitle: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const novo = prompt("Novo nome do atendimento:", currentTitle || "");
+    if (novo != null && novo.trim()) {
+      renameAtendimento(id, novo);
+      setAtendimentos(listAtendimentos());
+    }
+  };
+
+  const handleToggleSaved = (id: string, saved: boolean, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSaved(id, saved);
+    setAtendimentos(listAtendimentos());
+  };
+
   return (
     <Sidebar>
       <SidebarHeader className="px-6 py-6 border-b">
@@ -178,75 +196,150 @@ export function AppSidebar() {
 
         <SidebarSeparator className="my-2" />
 
-        {/* Histórico de Atendimentos */}
+        {/* Atendimentos */}
         <SidebarGroup>
-          <div className="px-6 py-2 flex items-center justify-between">
-            <SidebarGroupLabel>Histórico</SidebarGroupLabel>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleNovoAtendimento}
-              className="h-6 px-2 text-xs"
-              data-testid="button-novo-atendimento"
-            >
-              <Plus className="w-3 h-3 mr-1" />
-              Novo
-            </Button>
-          </div>
-          <SidebarGroupContent>
-            <ScrollArea className="h-[250px]">
-              {atendimentos.length === 0 ? (
-                <div className="px-6 py-3 text-xs text-neutral-500 dark:text-neutral-400">
-                  Sem atendimentos salvos.
-                </div>
-              ) : (
-                <div className="space-y-1 px-3">
-                  {atendimentos.map((at) => (
-                    <div
-                      key={at.id}
-                      onClick={() => handleAbrirAtendimento(at.id)}
-                      className={`group relative rounded-md px-3 py-2 cursor-pointer transition-colors ${
-                        currentId === at.id
-                          ? "bg-[#3cb371]/10 dark:bg-[#3cb371]/20"
-                          : "hover-elevate"
-                      }`}
-                      data-testid={`atendimento-item-${at.id}`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0 text-neutral-500 dark:text-neutral-400" />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium truncate text-neutral-900 dark:text-white">
-                            {at.title}
-                          </div>
-                          <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                            {new Date(at.updatedAt).toLocaleDateString('pt-BR', {
-                              day: '2-digit',
-                              month: 'short',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </div>
-                          {at.patientId && (
-                            <Badge variant="secondary" className="mt-1 text-[10px] h-4 px-1">
-                              Paciente
-                            </Badge>
-                          )}
-                        </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={(e) => handleRemoverAtendimento(at.id, e)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6"
-                          data-testid={`button-remover-${at.id}`}
-                        >
-                          <Trash2 className="w-3 h-3 text-neutral-500" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+          <SidebarGroupLabel>Atendimentos</SidebarGroupLabel>
+          <SidebarGroupContent className="space-y-2">
+            
+            {/* BOTÕES CABEÇALHO */}
+            <div className="flex items-center justify-between px-3">
+              <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Histórico</span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleNovoAtendimento}
+                className="h-6 px-2 text-xs"
+                data-testid="button-novo-atendimento"
+              >
+                Novo
+              </Button>
+            </div>
+
+            {/* LISTA VOLÁTIL (não salvos e sem paciente) */}
+            <div className="max-h-[22vh] overflow-auto divide-y rounded border border-neutral-200 dark:border-neutral-700">
+              {atendimentos.filter(it => !isSaved(it)).length === 0 && (
+                <div className="p-2 text-neutral-500 dark:text-neutral-400 text-xs">
+                  Sem históricos recentes.
                 </div>
               )}
-            </ScrollArea>
+              {atendimentos.filter(it => !isSaved(it)).map((it) => (
+                <div
+                  key={it.id}
+                  onClick={() => handleAbrirAtendimento(it.id)}
+                  className={`p-2 cursor-pointer transition-colors ${
+                    currentId === it.id
+                      ? "bg-[#3cb371]/10 dark:bg-[#3cb371]/20"
+                      : "hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  }`}
+                  title={new Date(it.updatedAt).toLocaleString()}
+                  data-testid={`atendimento-volatil-${it.id}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="truncate text-sm text-neutral-900 dark:text-white">{it.title}</div>
+                    <div className="flex items-center gap-1">
+                      {/* Salvar/Fixar */}
+                      <button
+                        title="Salvar em Atendimentos Salvos"
+                        onClick={(e) => handleToggleSaved(it.id, true, e)}
+                        className="text-[11px] px-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        data-testid={`button-save-${it.id}`}
+                      >
+                        📌
+                      </button>
+
+                      {/* Renomear */}
+                      <button
+                        title="Renomear"
+                        onClick={(e) => handleRenomear(it.id, it.title, e)}
+                        className="text-[11px] px-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        data-testid={`button-rename-${it.id}`}
+                      >
+                        ✏️
+                      </button>
+
+                      {/* Excluir */}
+                      <button
+                        title="Excluir"
+                        onClick={(e) => handleRemoverAtendimento(it.id, e)}
+                        className="text-[11px] px-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        data-testid={`button-delete-${it.id}`}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* SEÇÃO SALVOS */}
+            <div className="px-3 mt-3 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+              Atendimentos Salvos
+            </div>
+            <div className="max-h-[22vh] overflow-auto divide-y rounded border border-neutral-200 dark:border-neutral-700">
+              {atendimentos.filter(it => isSaved(it)).length === 0 && (
+                <div className="p-2 text-neutral-500 dark:text-neutral-400 text-xs">
+                  Nenhum salvo ainda.
+                </div>
+              )}
+              {atendimentos.filter(it => isSaved(it)).map((it) => (
+                <div
+                  key={it.id}
+                  onClick={() => handleAbrirAtendimento(it.id)}
+                  className={`p-2 cursor-pointer transition-colors ${
+                    currentId === it.id
+                      ? "bg-[#3cb371]/10 dark:bg-[#3cb371]/20"
+                      : "hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  }`}
+                  title={new Date(it.updatedAt).toLocaleString()}
+                  data-testid={`atendimento-salvo-${it.id}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="truncate text-sm text-neutral-900 dark:text-white">{it.title}</div>
+                    <div className="flex items-center gap-1">
+                      {/* Desfixar (se não tiver paciente) */}
+                      {!it.patientId && (
+                        <button
+                          title="Remover dos salvos"
+                          onClick={(e) => handleToggleSaved(it.id, false, e)}
+                          className="text-[11px] px-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                          data-testid={`button-unsave-${it.id}`}
+                        >
+                          📍
+                        </button>
+                      )}
+
+                      {/* Renomear */}
+                      <button
+                        title="Renomear"
+                        onClick={(e) => handleRenomear(it.id, it.title, e)}
+                        className="text-[11px] px-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        data-testid={`button-rename-${it.id}`}
+                      >
+                        ✏️
+                      </button>
+
+                      {/* Excluir */}
+                      <button
+                        title="Excluir"
+                        onClick={(e) => handleRemoverAtendimento(it.id, e)}
+                        className="text-[11px] px-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        data-testid={`button-delete-${it.id}`}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                  {it.patientId && (
+                    <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                      <Badge variant="secondary" className="text-[10px] h-4 px-1">
+                        Paciente
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </SidebarGroupContent>
         </SidebarGroup>
 

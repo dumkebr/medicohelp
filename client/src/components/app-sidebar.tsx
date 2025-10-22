@@ -88,6 +88,9 @@ export function AppSidebar() {
   const { user } = useAuth();
   const [showPatientMgmt, setShowPatientMgmt] = useLocalStorage<boolean>("mh_showPatientMgmt", true);
   const [showSaved, setShowSaved] = useLocalStorage<boolean>("mh_showSaved", true);
+  const [showHistory, setShowHistory] = useLocalStorage<boolean>("mh_showHistory", true);
+  const [showSearch, setShowSearch] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [atendimentos, setAtendimentos] = useState<Atendimento[]>([]);
   const [currentId, setCurrentIdState] = useState<string | null>(null);
 
@@ -135,6 +138,14 @@ export function AppSidebar() {
     setAtendimentos(listAtendimentos());
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    // TODO: Implementar busca real
+    console.log("Buscar:", searchQuery);
+    alert(`Buscando: "${searchQuery}"\n\n(Funcionalidade em desenvolvimento)`);
+  };
+
   return (
     <Sidebar>
       <SidebarHeader className="px-6 py-6 border-b">
@@ -159,7 +170,40 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              
+              {/* Novo atendimento - agora no Menu Principal */}
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleNovoAtendimento} data-testid="button-novo-atendimento-menu">
+                  <Plus className="w-5 h-5" />
+                  <span>Novo atendimento</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {/* Buscar em atendimentos */}
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => setShowSearch(!showSearch)} data-testid="button-toggle-search">
+                  <Search className="w-5 h-5" />
+                  <span>Buscar em atendimentos</span>
+                  {showSearch ? <ChevronDown className="ml-auto w-4 h-4" /> : <ChevronRight className="ml-auto w-4 h-4" />}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
+
+            {/* Campo de busca (expansível) */}
+            {showSearch && (
+              <form onSubmit={handleSearch} className="mt-2 px-2 space-y-2">
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Queixa, CID, nome ou data..."
+                  className="text-sm"
+                  data-testid="input-search-query"
+                />
+                <div className="text-[11px] text-muted-foreground">
+                  Dica: você pode colar uma data, nome, CID ou termo clínico.
+                </div>
+              </form>
+            )}
           </SidebarGroupContent>
         </SidebarGroup>
 
@@ -242,39 +286,45 @@ export function AppSidebar() {
 
               <SidebarSeparator className="my-2" />
 
-              {/* HISTÓRICO (EMBAIXO) */}
+              {/* HISTÓRICO (EMBAIXO) - COM TOGGLE, SEM BOTÃO NOVO */}
               <SidebarGroup>
-                <div className="flex items-center justify-between pr-1">
-                  <SidebarGroupLabel>Histórico</SidebarGroupLabel>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleNovoAtendimento}
-                    className="h-6 px-2 text-xs"
-                    data-testid="button-novo-atendimento"
-                  >
-                    Novo
-                  </Button>
-                </div>
-                <SidebarGroupContent className="space-y-2">
-                  <div className="max-h-[22vh] overflow-auto divide-y rounded border border-neutral-200 dark:border-neutral-700">
-                    {volatileItems.length === 0 && (
-                      <div className="p-2 text-neutral-500 dark:text-neutral-400 text-xs">
-                        Sem históricos recentes.
-                      </div>
-                    )}
-                    {volatileItems.map((it) => (
-                      <ItemRow
-                        key={it.id}
-                        item={it}
-                        isActive={currentId === it.id}
-                        onOpen={() => handleAbrirAtendimento(it.id)}
-                        onDelete={(e) => handleRemoverAtendimento(it.id, e)}
-                        refresh={() => setAtendimentos(listAtendimentos())}
-                      />
-                    ))}
+                <Collapsible open={showHistory} onOpenChange={setShowHistory}>
+                  <div className="flex items-center justify-between pr-1">
+                    <SidebarGroupLabel>Histórico</SidebarGroupLabel>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        data-testid="toggle-history"
+                      >
+                        {showHistory ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      </Button>
+                    </CollapsibleTrigger>
                   </div>
-                </SidebarGroupContent>
+                  
+                  <CollapsibleContent>
+                    <SidebarGroupContent className="space-y-2">
+                      <div className="max-h-[22vh] overflow-auto divide-y rounded border border-neutral-200 dark:border-neutral-700">
+                        {volatileItems.length === 0 && (
+                          <div className="p-2 text-neutral-500 dark:text-neutral-400 text-xs">
+                            Sem históricos recentes.
+                          </div>
+                        )}
+                        {volatileItems.map((it) => (
+                          <ItemRow
+                            key={it.id}
+                            item={it}
+                            isActive={currentId === it.id}
+                            onOpen={() => handleAbrirAtendimento(it.id)}
+                            onDelete={(e) => handleRemoverAtendimento(it.id, e)}
+                            refresh={() => setAtendimentos(listAtendimentos())}
+                          />
+                        ))}
+                      </div>
+                    </SidebarGroupContent>
+                  </CollapsibleContent>
+                </Collapsible>
               </SidebarGroup>
             </>
           );

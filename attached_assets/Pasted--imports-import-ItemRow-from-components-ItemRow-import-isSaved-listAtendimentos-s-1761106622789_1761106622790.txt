@@ -1,0 +1,54 @@
+// …imports…
+import { ItemRow } from "@/components/ItemRow";
+import { isSaved, listAtendimentos, setCurrentId, getCurrentId, createAtendimento, removeAtendimento } from "@/lib/atendimentos";
+
+// …dentro do componente…
+const savedItems   = items.filter(it => isSaved(it));
+const volatileItems = items.filter(it => !isSaved(it));
+
+// ===== Atendimentos (SALVOS em cima, Histórico embaixo) =====
+<SidebarGroup>
+  <SidebarGroupLabel>Atendimentos</SidebarGroupLabel>
+  <SidebarGroupContent className="space-y-2">
+
+    {/* SALVOS */}
+    <div className="flex items-center justify-between">
+      <span className="text-sm font-medium">Atendimentos Salvos</span>
+      <button onClick={novoAt} className="text-xs px-2 py-0.5 border rounded">Novo</button>
+    </div>
+    <div className="max-h-[22vh] overflow-auto divide-y rounded border">
+      {savedItems.length === 0 && (
+        <div className="p-2 text-neutral-500 text-xs">Nenhum salvo ainda.</div>
+      )}
+      {savedItems.map((it) => (
+        <ItemRow
+          key={it.id}
+          item={it}
+          isActive={current === it.id}
+          onOpen={() => openAt(it.id)}
+          onDelete={(e)=>{ e.stopPropagation(); removeAtendimento(it.id); setItems(listAtendimentos()); setCurrent(getCurrentId()); }}
+          refresh={()=>{ setItems(listAtendimentos()); }}
+        />
+      ))}
+    </div>
+
+    {/* HISTÓRICO (voláteis) */}
+    <div className="mt-3 text-sm font-medium">Histórico</div>
+    <div className="max-h-[22vh] overflow-auto divide-y rounded border">
+      {volatileItems.length === 0 && (
+        <div className="p-2 text-neutral-500 text-xs">Sem históricos recentes.</div>
+      )}
+      {volatileItems.map((it) => (
+        <ItemRow
+          key={it.id}
+          item={it}
+          isActive={current === it.id}
+          onOpen={() => openAt(it.id)}
+          onDelete={(e)=>{ e.stopPropagation(); removeAtendimento(it.id); setItems(listAtendimentos()); setCurrent(getCurrentId()); }}
+          refresh={()=>{ setItems(listAtendimentos()); }}
+        />
+      ))}
+    </div>
+
+  </SidebarGroupContent>
+</SidebarGroup>

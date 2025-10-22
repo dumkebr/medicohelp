@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Activity, FileText, Users, Shield } from "lucide-react";
+import logoImage from "@assets/logo_medicohelp.png";
 
 export default function Landing() {
   return (
@@ -8,9 +9,9 @@ export default function Landing() {
       {/* Hero Section */}
       <div className="bg-gradient-to-b from-primary/10 to-background py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl font-bold mb-6">
-            MédicoHelp
-          </h1>
+          <div className="flex justify-center mb-8">
+            <img src={logoImage} alt="MédicoHelp - A plataforma médica inteligente" className="h-24 w-auto object-contain" />
+          </div>
           <p className="text-xl text-muted-foreground mb-8">
             Assistência médica inteligente com IA para profissionais de saúde
           </p>

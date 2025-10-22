@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { login } from "@/lib/authService";
 import { Loader2 } from "lucide-react";
+import logoImage from "@assets/logo_medicohelp.png";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -62,9 +63,11 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">MédicoHelp</CardTitle>
-          <CardDescription>Entre com suas credenciais para acessar</CardDescription>
+        <CardHeader className="space-y-4">
+          <div className="flex justify-center">
+            <img src={logoImage} alt="MédicoHelp - A plataforma médica inteligente" className="h-16 w-auto object-contain" />
+          </div>
+          <CardDescription className="text-center">Entre com suas credenciais para acessar</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">

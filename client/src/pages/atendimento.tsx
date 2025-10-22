@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { FileAttachment, Patient, ScientificReference } from "@shared/schema";
 import { MedicalToolsMenu } from "@/components/MedicalToolsMenu";
+import { ModoResposta } from "@/components/ModoResposta";
 import { useAuth } from "@/lib/auth";
 
 interface ChatHistoryItem {
@@ -350,69 +351,19 @@ export default function Atendimento() {
 
             {/* CONTROLES FIXOS NO TOPO */}
             <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={mode === 'clinico' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setMode('clinico')}
-                  disabled={isLoading}
-                  data-testid="button-mode-clinico"
-                  className={mode === 'clinico' ? "bg-[#3cb371] hover:bg-[#2f9e62]" : ""}
-                >
-                  <FileText className="w-4 h-4 mr-1" />
-                  Clínico
-                </Button>
-                <Button
-                  variant={mode === 'explicativo' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setMode('explicativo')}
-                  disabled={isLoading}
-                  data-testid="button-mode-explicativo"
-                  className={mode === 'explicativo' ? "bg-[#3cb371] hover:bg-[#2f9e62]" : ""}
-                >
-                  <BookOpen className="w-4 h-4 mr-1" />
-                  Explicativo
-                </Button>
-              </div>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <label className="flex items-center gap-2 text-sm cursor-pointer">
-                    <Switch
-                      id="evidence-mode"
-                      checked={evidenceEnabled}
-                      onCheckedChange={setEvidenceEnabled}
-                      disabled={!isResearchAvailable || isLoading}
-                      data-testid="switch-evidence-mode"
-                      className="data-[state=checked]:bg-[#3cb371]"
-                    />
-                    <span className={`text-sm ${!isResearchAvailable ? "opacity-50" : ""}`}>
-                      Evidências
-                    </span>
-                  </label>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">
-                    {isResearchAvailable
-                      ? "Fornece fontes de referência bibliográfica"
-                      : "Evidências Clínicas indisponível"}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
+              <ModoResposta
+                initialMode={mode}
+                evidenceEnabled={evidenceEnabled}
+                onModeChange={(newMode, newEvidenceEnabled) => {
+                  setMode(newMode);
+                  setEvidenceEnabled(newEvidenceEnabled);
+                }}
+                onSave={() => setShowSavePanel(!showSavePanel)}
+                showSaveButton={history.length > 0}
+                disabled={isLoading}
+              />
 
               {user && <MedicalToolsMenu userRole={user.role} />}
-
-              {history.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowSavePanel(!showSavePanel)}
-                  data-testid="button-toggle-save-panel"
-                >
-                  <Save className="w-4 h-4 mr-1" />
-                  {showSavePanel ? "Fechar" : "Salvar"}
-                </Button>
-              )}
             </div>
           </div>
 

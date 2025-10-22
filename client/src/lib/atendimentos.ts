@@ -27,13 +27,17 @@ function saveAll(list: Atendimento[]) {
   try { localStorage.setItem(KEY, JSON.stringify(list)); } catch {}
 }
 
+// Helper: verifica se atendimento deve ser preservado (nunca expirar)
+export function isSaved(a: Atendimento) {
+  return !!(a.saved || a.patientId);
+}
+
 // Remove atendimentos "voláteis" > 30 dias (sem paciente e não salvos)
 function cleanup(list: Atendimento[]): Atendimento[] {
   const now = Date.now();
   const ms = RETENTION_DAYS * 24 * 60 * 60 * 1000;
   return list.filter(a => {
-    const keep = !!a.patientId || !!a.saved; // salvos ou com paciente: nunca expiram
-    if (keep) return true;
+    if (isSaved(a)) return true; // salvos ou com paciente: nunca expiram
     const age = now - new Date(a.updatedAt || a.createdAt).getTime();
     return age <= ms;
   });

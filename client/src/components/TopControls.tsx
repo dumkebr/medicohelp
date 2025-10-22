@@ -72,18 +72,10 @@ export default function TopControls({
         </Button>
       </div>
 
-      <Separator className="my-4" />
-
-      {/* Conteúdo de cada aba */}
-      {tab === "clinico" && (
-        <div className="text-center text-sm text-muted-foreground py-10">
-          <p className="font-medium">Chat Médico com IA</p>
-          <p className="mt-1">Digite sua pergunta clínica ou envie exames para análise</p>
-          <p className="text-xs mt-2">Os controles ficam fixos no topo. A conversa aqui é contínua.</p>
-        </div>
-      )}
-
+      {/* Conteúdo das abas (apenas Evidências e Calculadoras) */}
       {tab === "evidencias" && (
+        <>
+          <Separator className="my-4" />
         <Card className="p-4">
           <div className="text-sm font-medium mb-2">Explicações & Evidências Científicas</div>
           <div className="text-sm text-muted-foreground space-y-2">
@@ -97,9 +89,15 @@ export default function TopControls({
             </p>
           </div>
         </Card>
+        </>
       )}
 
-      {tab === "calculadoras" && <CalculadorasList onOpen={openCalc} />}
+      {tab === "calculadoras" && (
+        <>
+          <Separator className="my-4" />
+          <CalculadorasList onOpen={openCalc} />
+        </>
+      )}
     </>
   );
 }

@@ -1,5 +1,6 @@
-import { Activity, Users, Plus, FileText, Sparkles, Image, Home, Baby, Heart, AlertCircle } from "lucide-react";
+import { Activity, Users, Plus, FileText, Sparkles, Image, Home, Baby, Heart, AlertCircle, Trash2, MessageSquare } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { useEffect, useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -16,8 +17,18 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { 
+  listAtendimentos, 
+  setCurrentId, 
+  getCurrentId, 
+  createAtendimento, 
+  removeAtendimento,
+  type Atendimento 
+} from "@/lib/atendimentos";
 import logoImage from "@assets/generated_images/Medical_logo_icon_green_50d6f1d5.png";
 
 const menuItems = [
@@ -68,9 +79,40 @@ const specialModules = [
 ];
 
 export function AppSidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const [showPatientMgmt, setShowPatientMgmt] = useLocalStorage<boolean>("mh_showPatientMgmt", true);
+  const [atendimentos, setAtendimentos] = useState<Atendimento[]>([]);
+  const [currentId, setCurrentIdState] = useState<string | null>(null);
+
+  useEffect(() => {
+    const items = listAtendimentos();
+    setAtendimentos(items);
+    setCurrentIdState(getCurrentId());
+  }, [location]);
+
+  const handleNovoAtendimento = () => {
+    const novo = createAtendimento();
+    setAtendimentos(listAtendimentos());
+    setCurrentIdState(novo.id);
+    setCurrentId(novo.id);
+    setLocation("/");
+  };
+
+  const handleAbrirAtendimento = (id: string) => {
+    setCurrentId(id);
+    setCurrentIdState(id);
+    setLocation("/");
+  };
+
+  const handleRemoverAtendimento = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("Remover este atendimento?")) {
+      removeAtendimento(id);
+      setAtendimentos(listAtendimentos());
+      setCurrentIdState(getCurrentId());
+    }
+  };
 
   return (
     <Sidebar>
@@ -123,6 +165,80 @@ export function AppSidebar() {
             </SidebarGroup>
           </>
         )}
+
+        <SidebarSeparator className="my-2" />
+
+        {/* Histórico de Atendimentos */}
+        <SidebarGroup>
+          <div className="px-6 py-2 flex items-center justify-between">
+            <SidebarGroupLabel>Histórico</SidebarGroupLabel>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleNovoAtendimento}
+              className="h-6 px-2 text-xs"
+              data-testid="button-novo-atendimento"
+            >
+              <Plus className="w-3 h-3 mr-1" />
+              Novo
+            </Button>
+          </div>
+          <SidebarGroupContent>
+            <ScrollArea className="h-[250px]">
+              {atendimentos.length === 0 ? (
+                <div className="px-6 py-3 text-xs text-neutral-500 dark:text-neutral-400">
+                  Sem atendimentos salvos.
+                </div>
+              ) : (
+                <div className="space-y-1 px-3">
+                  {atendimentos.map((at) => (
+                    <div
+                      key={at.id}
+                      onClick={() => handleAbrirAtendimento(at.id)}
+                      className={`group relative rounded-md px-3 py-2 cursor-pointer transition-colors ${
+                        currentId === at.id
+                          ? "bg-[#3cb371]/10 dark:bg-[#3cb371]/20"
+                          : "hover-elevate"
+                      }`}
+                      data-testid={`atendimento-item-${at.id}`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0 text-neutral-500 dark:text-neutral-400" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate text-neutral-900 dark:text-white">
+                            {at.title}
+                          </div>
+                          <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                            {new Date(at.updatedAt).toLocaleDateString('pt-BR', {
+                              day: '2-digit',
+                              month: 'short',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                          {at.patientId && (
+                            <Badge variant="secondary" className="mt-1 text-[10px] h-4 px-1">
+                              Paciente
+                            </Badge>
+                          )}
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={(e) => handleRemoverAtendimento(at.id, e)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6"
+                          data-testid={`button-remover-${at.id}`}
+                        >
+                          <Trash2 className="w-3 h-3 text-neutral-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
         {/* Módulos Especiais - only show if at least one is enabled */}
         {user && specialModules.some(module => user[module.settingKey]) && (

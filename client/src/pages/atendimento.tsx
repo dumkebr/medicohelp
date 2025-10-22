@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Send, Paperclip, Loader2, FileImage, X, Save, Brain, ExternalLink, FileText, BookOpen } from "lucide-react";
+import { Send, Paperclip, Loader2, FileImage, X, Save, Brain, ExternalLink, FileText, BookOpen, Edit2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
@@ -24,6 +25,17 @@ import { MedicalToolsMenu } from "@/components/MedicalToolsMenu";
 import { ModoResposta } from "@/components/ModoResposta";
 import { useAuth } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import {
+  getCurrentId,
+  getAtendimento,
+  addMensagem,
+  renameAtendimento,
+  assignPatient,
+  updateMode,
+  createAtendimento,
+  type Atendimento as AtendimentoType,
+  type Mensagem
+} from "@/lib/atendimentos";
 
 interface ChatHistoryItem {
   user: string;
@@ -48,6 +60,11 @@ export default function Atendimento() {
   const { user } = useAuth();
   const threadRef = useRef<HTMLDivElement>(null);
   const [showPatientMgmt] = useLocalStorage<boolean>("mh_showPatientMgmt", true);
+  
+  // Histórico de atendimentos
+  const [currentAtendimento, setCurrentAtendimento] = useState<AtendimentoType | null>(null);
+  const [atendimentoTitle, setAtendimentoTitle] = useState("");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
 
   const { data: patients } = useQuery<Patient[]>({
     queryKey: ["/api/patients"],
@@ -71,6 +88,66 @@ export default function Atendimento() {
   });
 
   const streamAbortController = useRef<AbortController | null>(null);
+
+  // Carregar atendimento atual
+  useEffect(() => {
+    let curId = getCurrentId();
+    
+    if (!curId) {
+      // Criar novo atendimento se não existir
+      const novo = createAtendimento();
+      curId = novo.id;
+    }
+
+    const atendimento = getAtendimento(curId);
+    if (atendimento) {
+      setCurrentAtendimento(atendimento);
+      setAtendimentoTitle(atendimento.title);
+      setMode(atendimento.mode || 'clinico');
+      setSelectedPatientId(atendimento.patientId || "");
+      
+      // Carregar histórico de mensagens
+      const chatHistory: ChatHistoryItem[] = [];
+      for (let i = 0; i < atendimento.messages.length; i += 2) {
+        if (i + 1 < atendimento.messages.length) {
+          chatHistory.push({
+            user: atendimento.messages[i].content,
+            assistant: atendimento.messages[i + 1].content,
+          });
+        }
+      }
+      setHistory(chatHistory);
+    }
+  }, []);
+
+  // Salvar título quando editado
+  const handleSaveTitle = () => {
+    if (currentAtendimento && atendimentoTitle.trim()) {
+      renameAtendimento(currentAtendimento.id, atendimentoTitle);
+      setIsEditingTitle(false);
+      toast({
+        title: "Título salvo",
+        description: "O título do atendimento foi atualizado.",
+      });
+    }
+  };
+
+  // Salvar paciente quando selecionado
+  const handlePatientChange = (patientId: string) => {
+    setSelectedPatientId(patientId);
+    if (currentAtendimento) {
+      assignPatient(currentAtendimento.id, patientId || null);
+    }
+  };
+
+  // Salvar modo quando alterado
+  const handleModeChange = (newMode: 'clinico' | 'explicativo', newEvidenceEnabled: boolean) => {
+    setMode(newMode);
+    setEvidenceEnabled(newEvidenceEnabled);
+    if (currentAtendimento) {
+      updateMode(currentAtendimento.id, newMode);
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -183,6 +260,13 @@ export default function Atendimento() {
         } catch (error) {
           console.error("Erro ao buscar evidências:", error);
         }
+      }
+
+      // Salvar no localStorage
+      if (currentAtendimento) {
+        const now = new Date().toISOString();
+        addMensagem(currentAtendimento.id, { role: "user", content: userMessage, ts: now });
+        addMensagem(currentAtendimento.id, { role: "assistant", content: fullResponse, ts: now });
       }
 
       setHistory(prev => [...prev, {
@@ -341,6 +425,76 @@ export default function Atendimento() {
       {/* HEADER FIXO */}
       <header className="sticky top-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800">
         <div className="max-w-5xl mx-auto px-4 py-3">
+          {/* Título do Atendimento */}
+          <div className="flex items-center justify-between gap-4 mb-3 pb-3 border-b border-neutral-200 dark:border-neutral-800">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              {isEditingTitle ? (
+                <div className="flex items-center gap-2 flex-1">
+                  <Input
+                    value={atendimentoTitle}
+                    onChange={(e) => setAtendimentoTitle(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSaveTitle();
+                      if (e.key === 'Escape') {
+                        setIsEditingTitle(false);
+                        setAtendimentoTitle(currentAtendimento?.title || "Novo atendimento");
+                      }
+                    }}
+                    className="flex-1 text-sm"
+                    autoFocus
+                    data-testid="input-edit-title"
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleSaveTitle}
+                    data-testid="button-save-title"
+                  >
+                    <Check className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <span className="text-sm font-medium text-neutral-900 dark:text-white truncate">
+                    {atendimentoTitle}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsEditingTitle(true)}
+                    className="h-6 px-2"
+                    data-testid="button-edit-title"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                  </Button>
+                </>
+              )}
+            </div>
+
+            {/* Seletor de paciente */}
+            {showPatientMgmt && (
+              <Select value={selectedPatientId} onValueChange={handlePatientChange}>
+                <SelectTrigger className="w-[200px] h-8 text-xs" data-testid="select-patient-header">
+                  <SelectValue placeholder="Sem paciente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Sem paciente</SelectItem>
+                  {patients && patients.length > 0 ? (
+                    patients.map((patient) => (
+                      <SelectItem key={patient.id} value={patient.id}>
+                        {patient.nome}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>
+                      Nenhum paciente cadastrado
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
@@ -357,10 +511,7 @@ export default function Atendimento() {
               <ModoResposta
                 initialMode={mode}
                 evidenceEnabled={evidenceEnabled}
-                onModeChange={(newMode, newEvidenceEnabled) => {
-                  setMode(newMode);
-                  setEvidenceEnabled(newEvidenceEnabled);
-                }}
+                onModeChange={handleModeChange}
                 onSave={() => setShowSavePanel(!showSavePanel)}
                 showSaveButton={showPatientMgmt && history.length > 0}
                 disabled={isLoading}

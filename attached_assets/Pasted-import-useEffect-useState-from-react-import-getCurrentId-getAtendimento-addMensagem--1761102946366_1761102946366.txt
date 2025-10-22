@@ -1,0 +1,86 @@
+import { useEffect, useState } from "react";
+import {
+  getCurrentId, getAtendimento, addMensagem,
+  renameAtendimento, assignPatient, type Atendimento
+} from "@/lib/atendimentos";
+// use seu gerador de resposta:
+import { gerarResposta } from "@/lib/gerador-resposta"; // sua função existente
+
+// se usa gestão de pacientes, você lista aqui (ou busca da sua store)
+const pacientesFake = [
+  { id: "123", nome: "Maria Santos" },
+  { id: "456", nome: "João Silva" },
+];
+
+export default function AtendimentoPage() {
+  const [at, setAt] = useState<Atendimento | null>(null);
+  const [input, setInput] = useState("");
+  const [modo, setModo] = useState<"clinico"|"explicacao">("clinico");
+  const curId = getCurrentId();
+
+  useEffect(()=>{
+    if (!curId) return;
+    const a = getAtendimento(curId);
+    if (a) setAt(a);
+    else {
+      // se não existir, cria na navegação da Sidebar
+      window.location.href = "/";
+    }
+  }, [curId]);
+
+  const refresh = () => { if (!curId) return; const a = getAtendimento(curId); if (a) setAt(a); };
+
+  const enviar = async () => {
+    const pergunta = input.trim();
+    if (!pergunta || !curId) return;
+    const ts = new Date().toISOString();
+
+    addMensagem(curId, { role: "user", content: pergunta, ts });
+    refresh();
+
+    const resposta = await gerarResposta(pergunta, modo); // usa seu toggle Clinico/Explicacao
+    addMensagem(curId, { role: "assistant", content: resposta, ts: new Date().toISOString() });
+    setInput("");
+    refresh();
+  };
+
+  if (!at) return <div className="p-6">Carregando…</div>;
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Header com nome editável e vínculo a paciente */}
+      <div className="border-b p-3 flex items-center gap-3">
+        <input
+          value={at.title}
+          onChange={(e)=>{ renameAtendimento(at.id, e.target.value); refresh(); }}
+          className="text-lg font-semibold outline-none bg-transparent px-2 py-1 border rounded"
+        />
+        <div className="ml-auto flex items-center gap-3">
+          <label className="text-sm flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={modo === "explicacao"}
+              onChange={(e)=> setModo(e.target.checked ? "explicacao" : "clinico")}
+            />
+            Explicação + Evidências
+          </label>
+
+          {/* Se gestão de pacientes estiver ativa no app, renderize este select */}
+          <select
+            value={at.patientId || ""}
+            onChange={(e)=>{ assignPatient(at.id, e.target.value || null); refresh(); }}
+            className="text-sm border rounded px-2 py-1"
+          >
+            <option value="">Sem paciente</option>
+            {pacientesFake.map(p=>(
+              <option key={p.id} value={p.id}>{p.nome}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Timeline */}
+      <div className="flex-1 overflow-auto p-4 space-y-3">
+        {at.messages.map((m, i)=>(
+          <div key={i} className={`max-w-[80%] ${m.role==="user" ? "ml-auto text-right" : ""}`}>
+            <div className={`inline-blo

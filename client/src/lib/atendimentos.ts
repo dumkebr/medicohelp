@@ -1,0 +1,114 @@
+export type Mensagem = {
+  role: "user" | "assistant";
+  content: string;
+  ts: string; // ISO
+};
+
+export type Atendimento = {
+  id: string;                 // uuid
+  title: string;              // primeira pergunta (ou nome editado)
+  messages: Mensagem[];
+  createdAt: string;          // ISO
+  updatedAt: string;          // ISO
+  mode?: "clinico" | "explicativo";
+  patientId?: string | null;  // opcional: vinculado a paciente
+};
+
+const KEY = "mh_atendimentos";
+const CUR = "mh_current_atendimento_id";
+
+function loadAll(): Atendimento[] {
+  try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; }
+}
+
+function saveAll(list: Atendimento[]) {
+  try { localStorage.setItem(KEY, JSON.stringify(list)); } catch {}
+}
+
+export function getCurrentId(): string | null {
+  return localStorage.getItem(CUR);
+}
+
+export function setCurrentId(id: string | null) {
+  if (id) localStorage.setItem(CUR, id);
+  else localStorage.removeItem(CUR);
+}
+
+export function listAtendimentos(): Atendimento[] {
+  return loadAll().sort((a,b)=> new Date(b.updatedAt).getTime()-new Date(a.updatedAt).getTime());
+}
+
+export function createAtendimento(): Atendimento {
+  const id = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+  const now = new Date().toISOString();
+  const novo: Atendimento = { 
+    id, 
+    title: "Novo atendimento", 
+    messages: [], 
+    createdAt: now, 
+    updatedAt: now, 
+    patientId: null,
+    mode: "clinico"
+  };
+  const list = loadAll(); 
+  list.unshift(novo); 
+  saveAll(list);
+  setCurrentId(id);
+  return novo;
+}
+
+export function getAtendimento(id: string): Atendimento | null {
+  return loadAll().find(x => x.id === id) || null;
+}
+
+export function addMensagem(id: string, msg: Mensagem) {
+  const list = loadAll();
+  const idx = list.findIndex(x=>x.id===id);
+  if (idx === -1) return;
+  const a = list[idx];
+
+  // se for a primeira mensagem do médico, vira título automático
+  if (a.messages.length === 0 && msg.role === "user") {
+    const primeira = msg.content.trim().replace(/\s+/g," ").slice(0,60);
+    a.title = primeira || "Atendimento";
+  }
+
+  a.messages.push(msg);
+  a.updatedAt = new Date().toISOString();
+  list[idx] = a; 
+  saveAll(list);
+}
+
+export function renameAtendimento(id: string, novoNome: string) {
+  const list = loadAll();
+  const idx = list.findIndex(x=>x.id===id);
+  if (idx === -1) return;
+  list[idx].title = novoNome.trim() || list[idx].title;
+  list[idx].updatedAt = new Date().toISOString();
+  saveAll(list);
+}
+
+export function assignPatient(id: string, patientId: string | null) {
+  const list = loadAll();
+  const idx = list.findIndex(x=>x.id===id);
+  if (idx === -1) return;
+  list[idx].patientId = patientId;
+  list[idx].updatedAt = new Date().toISOString();
+  saveAll(list);
+}
+
+export function updateMode(id: string, mode: "clinico" | "explicativo") {
+  const list = loadAll();
+  const idx = list.findIndex(x=>x.id===id);
+  if (idx === -1) return;
+  list[idx].mode = mode;
+  list[idx].updatedAt = new Date().toISOString();
+  saveAll(list);
+}
+
+export function removeAtendimento(id: string) {
+  const list = loadAll().filter(x=>x.id!==id);
+  saveAll(list);
+  const cur = getCurrentId(); 
+  if (cur === id) setCurrentId(list[0]?.id || null);
+}

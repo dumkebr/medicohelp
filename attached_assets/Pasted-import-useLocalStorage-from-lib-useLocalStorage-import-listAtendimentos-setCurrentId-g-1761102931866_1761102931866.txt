@@ -1,0 +1,60 @@
+import { useLocalStorage } from "@/lib/useLocalStorage";
+import { listAtendimentos, setCurrentId, getCurrentId, createAtendimento, removeAtendimento } from "@/lib/atendimentos";
+import { useEffect, useState } from "react";
+
+export default function Sidebar() {
+  const [showPatientMgmt] = useLocalStorage<boolean>("mh_showPatientMgmt", false);
+  const [items, setItems] = useState(listAtendimentos());
+  const [current, setCurrent] = useState<string | null>(getCurrentId());
+
+  useEffect(()=>{ setItems(listAtendimentos()); setCurrent(getCurrentId()); }, []);
+
+  const open = (id: string) => { setCurrentId(id); setCurrent(id); window.location.href = "/atendimento"; };
+  const novo = () => { const a = createAtendimento(); setItems(listAtendimentos()); open(a.id); };
+
+  const del = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("Remover este atendimento?")) { removeAtendimento(id); setItems(listAtendimentos()); setCurrent(getCurrentId()); }
+  };
+
+  return (
+    <aside className="w-64 border-r">
+      <nav className="p-3 space-y-2 text-sm">
+        <a href="/atendimento" className="block">Atendimento médico</a>
+        <a href="/sobre" className="block">Sobre</a>
+
+        {showPatientMgmt && (
+          <>
+            <div className="mt-3 text-xs uppercase text-neutral-500">Gestão de Pacientes</div>
+            <a href="/novo-paciente" className="block">Novo paciente</a>
+            <a href="/pacientes" className="block">Todos os pacientes</a>
+          </>
+        )}
+
+        <div className="mt-3 text-xs uppercase text-neutral-500">Registros</div>
+        <div className="flex items-center justify-between">
+          <span className="font-medium">Atendimentos</span>
+          <button onClick={novo} className="text-xs px-2 py-0.5 border rounded">Novo</button>
+        </div>
+
+        <div className="max-h-[40vh] overflow-auto divide-y rounded border">
+          {items.length===0 && <div className="p-2 text-neutral-500 text-xs">Sem atendimentos.</div>}
+          {items.map(it=>(
+            <div
+              key={it.id}
+              onClick={()=>open(it.id)}
+              className={`p-2 cursor-pointer ${current===it.id ? "bg-emerald-50" : "hover:bg-neutral-50"}`}
+              title={new Date(it.updatedAt).toLocaleString()}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="truncate">{it.title}</div>
+                <button onClick={(e)=>del(it.id, e)} className="text-[11px] text-neutral-500">x</button>
+              </div>
+              {it.patientId && <div className="text-[11px] text-neutral-500 mt-0.5">Paciente: {it.patientId}</div>}
+            </div>
+          ))}
+        </div>
+      </nav>
+    </aside>
+  );
+}

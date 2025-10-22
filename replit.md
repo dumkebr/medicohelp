@@ -45,8 +45,17 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
     - Clinical: "⚡ CONDUTA CLÍNICA RÁPIDA" with 5-7 numbered action steps
     - Explanatory: Flowing educational text + "📚 Evidências clínicas:" section with guidelines and references
   - **Technical**: SSE streaming for real-time responses, full conversation history, attachment support.
+- **Histórico de Atendimentos (localStorage)**:
+  - **Multiple Conversations**: Create and manage multiple medical consultations, each saved independently in localStorage.
+  - **Sidebar Navigation**: Visual list of all saved consultations with title, timestamp, and patient link indicator.
+  - **Smart Titles**: First user message automatically becomes the title (editable inline).
+  - **Patient Association**: Link consultations to patients (optional, controlled by Patient Management toggle).
+  - **Mode Persistence**: Each consultation remembers its mode (Clinical/Explanatory).
+  - **Automatic Saving**: All messages auto-saved to localStorage after each AI response.
+  - **Quick Actions**: Create new consultation, switch between conversations, delete consultations, rename titles.
+  - **Data Structure**: Stored in `mh_atendimentos` key with full message history, metadata, and timestamps.
 - **Exam Analysis**: Multi-file upload, automatic analysis with GPT-5 Vision, contextual medical interpretation.
-- **Patient Management (CRUD)**: Complete patient lifecycle management, integrated with Memed for prescriptions.
+- **Patient Management (CRUD)**: Complete patient lifecycle management, integrated with Memed for prescriptions. Optional toggle in sidebar to show/hide patient features.
 - **Clinical Evidence**: Provides scientific literature from PubMed (NIH/NCBI E-utilities), integrated into Explanatory Mode, with a legacy toggle for explicit display.
 - **Consultation History System**: Saves patient consultations, chat history, attachments, and physician details in PostgreSQL (JSONB).
 - **Medical Professional Tools**: Six specialized clinical decision support tools for physicians and medical students:
@@ -76,6 +85,13 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
   - `consultations`: Detailed consultation records.
   - `research_analytics`: Optional logging for clinical evidence feature.
   - `medical_tools_audit`: Audit log for medical tools usage.
+- **localStorage Data Structures:**
+  - `mh_atendimentos`: Array of consultation objects (id, title, messages[], createdAt, updatedAt, mode, patientId).
+  - `mh_current_atendimento_id`: Currently active consultation ID.
+  - `mh_showPatientMgmt`: Boolean toggle for showing/hiding patient management features.
+  - `medicohelp_mode`: Persisted mode preference (clinico/explicativo).
+  - `medicohelp_evidence`: Evidence display preference.
+  - `calc_history`: Calculator results history (last 20 calculations).
 
 ## External Dependencies
 

@@ -153,7 +153,8 @@ export function AppSidebar() {
           <img 
             src={logoImage} 
             alt="MédicoHelp - A plataforma médica inteligente" 
-            className="h-16 w-auto object-contain"
+            className="h-18 w-auto object-contain"
+            style={{ height: '72px' }}
           />
         </div>
       </SidebarHeader>

@@ -19,6 +19,7 @@ import HistoricoPaciente from "@/pages/historico-paciente";
 import MeuPerfil from "@/pages/meu-perfil";
 import Sobre from "@/pages/sobre";
 import EmBreve from "@/pages/em-breve";
+import DemoTopControls from "@/pages/demo-top-controls";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import ForgotPassword from "@/pages/forgot-password";
@@ -80,6 +81,7 @@ function ProtectedRouter() {
         <Route path="/pediatria" component={EmBreve} />
         <Route path="/gestante" component={EmBreve} />
         <Route path="/emergencia" component={EmBreve} />
+        <Route path="/demo-top-controls" component={DemoTopControls} />
         <Route component={NotFound} />
       </Switch>
     </ProtectedRoute>

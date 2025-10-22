@@ -1,0 +1,76 @@
+import React, { useEffect, useRef, useState } from "react";
+onClick={handleSend}
+className="px-4 py-2 rounded-xl border hover:bg-gray-50 disabled:opacity-50"
+>
+Enviar
+</button>
+</div>
+</div>
+</div>
+);
+};
+
+
+export default ChatPanel;
+
+
+// ────────────────────────────────────────────────────────────────
+// NEXT.JS (APP ROUTER) — ENDPOINTS PRONTOS
+// Cole em: /app/api/upload/route.ts e /app/api/transcribe/route.ts
+// ────────────────────────────────────────────────────────────────
+
+
+// /app/api/upload/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { writeFile } from "fs/promises";
+import path from "path";
+
+
+export async function POST(req: NextRequest) {
+const formData = await req.formData();
+const files = formData.getAll("files") as File[];
+const saved: string[] = [];
+for (const f of files) {
+const bytes = Buffer.from(await f.arrayBuffer());
+const fp = path.join(process.cwd(), "tmp", `${Date.now()}_${f.name}`);
+await writeFile(fp, bytes);
+saved.push(fp);
+}
+return NextResponse.json({ ok: true, saved });
+}
+
+
+// /app/api/transcribe/route.ts (exemplo com Whisper via OpenAI)
+import { NextRequest, NextResponse } from "next/server";
+
+
+export async function POST(req: NextRequest) {
+const formData = await req.formData();
+const file = formData.get("file") as File | null;
+if (!file) return NextResponse.json({ error: "file missing" }, { status: 400 });
+
+
+// Exemplo genérico: encaminhe para seu serviço de ASR
+// Se usar OpenAI Whisper API, faça o fetch para sua API server-side (NUNCA exponha chave ao cliente)
+// const res = await fetch("https://api.openai.com/v1/audio/transcriptions", { ... })
+// const data = await res.json();
+// return NextResponse.json({ text: data.text });
+
+
+// Placeholder: devolve string simulada
+return NextResponse.json({ text: "(áudio transcrito — exemplo)" });
+}
+
+
+// ────────────────────────────────────────────────────────────────
+// PERMISSÕES E HTTPS
+// - Publique em HTTPS (Vercel resolve). Sem HTTPS, câmera/microfone podem falhar.
+// - No mobile, o botão "Foto" usa capture="environment" para abrir a câmera nativa.
+// - Para iOS/Safari, o ditado da Web Speech API é limitado; use a gravação + /api/transcribe.
+
+
+// ────────────────────────────────────────────────────────────────
+// DICAS DE UI (TRADIÇÃO QUE FUNCIONA)
+// - Barra em cima, input logo abaixo, histórico de mensagens livre, sem entulho no meio.
+// - Deixe a pré-visualização simples, sem modais. Médico não tem tempo para firula.
+// - Mantenha botões com rótulo claro: Arquivo, Foto, Câmera ao vivo, Falar (ditado), Gravar áudio.

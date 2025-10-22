@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Calculator } from "lucide-react";
+import { useLocation } from "wouter";
 
 type Tab = "clinico" | "evidencias" | "calculadoras";
 
@@ -11,6 +11,7 @@ interface TopControlsProps {
   onSave?: () => void;
   initialTab?: Tab;
   onTabChange?: (tab: Tab) => void;
+  onOpenCalculator?: (id: string) => void;
 }
 
 export default function TopControls({
@@ -18,16 +19,35 @@ export default function TopControls({
   onSave,
   initialTab = "clinico",
   onTabChange,
+  onOpenCalculator,
 }: TopControlsProps) {
   const [tab, setTab] = useState<Tab>(initialTab);
+  const [, setLocation] = useLocation();
 
-  const handleTabChange = (newTab: Tab) => {
-    setTab(newTab);
-    onTabChange?.(newTab);
+  useEffect(() => {
+    setTab(initialTab);
+  }, [initialTab]);
+
+  const setTabAndNotify = (next: Tab) => {
+    setTab(next);
+    onTabChange?.(next);
+  };
+
+  const openCalc = (id: string) => {
+    if (onOpenCalculator) {
+      onOpenCalculator(id);
+      return;
+    }
+    // Padrão: navega para rota /calculadoras/:id
+    try {
+      setLocation(`/calculadoras/${id}`);
+    } catch {
+      console.log("Abrir calculadora:", id);
+    }
   };
 
   return (
-    <div className="space-y-3">
+    <>
       {/* Linha do título + Salvar */}
       <div className="flex items-center justify-between gap-4">
         <div className="text-sm text-muted-foreground truncate">{currentTitle}</div>
@@ -43,14 +63,14 @@ export default function TopControls({
         )}
       </div>
 
-      <Separator />
+      <Separator className="my-3" />
 
-      {/* Botões principais */}
+      {/* Botões principais (limpos, sem logo/badge) */}
       <div className="flex items-center gap-2 flex-wrap">
         <Button
           variant={tab === "clinico" ? "default" : "outline"}
           size="sm"
-          onClick={() => handleTabChange("clinico")}
+          onClick={() => setTabAndNotify("clinico")}
           data-testid="tab-clinico"
         >
           Clínico
@@ -58,7 +78,7 @@ export default function TopControls({
         <Button
           variant={tab === "evidencias" ? "default" : "outline"}
           size="sm"
-          onClick={() => handleTabChange("evidencias")}
+          onClick={() => setTabAndNotify("evidencias")}
           data-testid="tab-evidencias"
         >
           Explicação + Evidências
@@ -66,42 +86,46 @@ export default function TopControls({
         <Button
           variant={tab === "calculadoras" ? "default" : "outline"}
           size="sm"
-          onClick={() => handleTabChange("calculadoras")}
+          onClick={() => setTabAndNotify("calculadoras")}
           data-testid="tab-calculadoras"
         >
-          <Calculator className="w-4 h-4 mr-1" />
           Calculadoras
         </Button>
       </div>
 
-      {/* Conteúdo da área conforme aba selecionada */}
-      {tab === "evidencias" && <EvidenciasPanel />}
-      {tab === "calculadoras" && <CalculadorasPanel />}
-    </div>
-  );
-}
+      <Separator className="my-4" />
 
-function EvidenciasPanel() {
-  return (
-    <div className="space-y-3 py-4">
-      <Card className="p-4">
-        <div className="text-sm font-medium mb-2">Explicações & Evidências Científicas</div>
-        <div className="text-sm text-muted-foreground space-y-2">
-          <p>
-            Use este modo para solicitar explicações detalhadas, racional fisiopatológico,
-            e referências de diretrizes baseadas em evidências.
-          </p>
-          <p className="text-xs">
-            O sistema buscará automaticamente evidências científicas da literatura médica
-            quando você fizer perguntas neste modo.
-          </p>
+      {/* Conteúdo de cada aba */}
+      {tab === "clinico" && (
+        <div className="text-center text-sm text-muted-foreground py-10">
+          <p className="font-medium">Chat Médico com IA</p>
+          <p className="mt-1">Digite sua pergunta clínica ou envie exames para análise</p>
+          <p className="text-xs mt-2">Os controles ficam fixos no topo. A conversa aqui é contínua.</p>
         </div>
-      </Card>
-    </div>
+      )}
+
+      {tab === "evidencias" && (
+        <Card className="p-4">
+          <div className="text-sm font-medium mb-2">Explicações & Evidências Científicas</div>
+          <div className="text-sm text-muted-foreground space-y-2">
+            <p>
+              Use este modo para solicitar explicações detalhadas, racional fisiopatológico,
+              e referências de diretrizes baseadas em evidências.
+            </p>
+            <p className="text-xs">
+              O sistema buscará automaticamente evidências científicas da literatura médica
+              quando você fizer perguntas neste modo.
+            </p>
+          </div>
+        </Card>
+      )}
+
+      {tab === "calculadoras" && <CalculadorasList onOpen={openCalc} />}
+    </>
   );
 }
 
-function CalculadorasPanel() {
+function CalculadorasList({ onOpen }: { onOpen: (id: string) => void }) {
   const calculadoras = [
     { id: "curb65", label: "CURB-65 (Pneumonia)" },
     { id: "wells-tvp", label: "Wells Score (TVP)" },
@@ -119,7 +143,7 @@ function CalculadorasPanel() {
   ];
 
   return (
-    <div className="space-y-3 py-4">
+    <div className="space-y-3">
       <div>
         <div className="text-xl font-semibold">Calculadoras Clínicas</div>
         <div className="text-sm text-muted-foreground">
@@ -131,7 +155,7 @@ function CalculadorasPanel() {
         {calculadoras.map((calc) => (
           <button
             key={calc.id}
-            onClick={() => openCalculadora(calc.id)}
+            onClick={() => onOpen(calc.id)}
             className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors"
             data-testid={`calc-${calc.id}`}
           >
@@ -141,15 +165,8 @@ function CalculadorasPanel() {
       </Card>
 
       <div className="text-xs text-muted-foreground px-2">
-        💡 Dica: As calculadoras abrem em um modal para fácil acesso durante o atendimento.
+        💡 Dica: As calculadoras abrem em uma página dedicada para uso durante o atendimento.
       </div>
     </div>
   );
-}
-
-function openCalculadora(id: string) {
-  // TODO: Implementar abertura de modal de calculadora
-  // Por enquanto, apenas console.log para desenvolvimento
-  console.log("Abrir calculadora:", id);
-  alert(`Calculadora "${id}" será aberta em breve.\n\n(Funcionalidade em desenvolvimento)`);
 }

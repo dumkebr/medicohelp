@@ -21,6 +21,11 @@ export default function DemoTopControls() {
     console.log("Aba mudou para:", tab);
   };
 
+  const handleOpenCalculator = (id: string) => {
+    console.log("Abrir calculadora:", id);
+    alert(`Calculadora "${id}" será aberta em breve.\n\n(As páginas de calculadoras serão implementadas)`);
+  };
+
   return (
     <div className="h-screen flex flex-col">
       {/* Header simples */}
@@ -36,6 +41,7 @@ export default function DemoTopControls() {
             onSave={handleSave}
             initialTab="clinico"
             onTabChange={handleTabChange}
+            onOpenCalculator={handleOpenCalculator}
           />
 
           {/* Área do chat (visível apenas em modo "clinico") */}

@@ -566,8 +566,6 @@ export default function Atendimento() {
 
           {/* TOPCONTROLS - Interface limpa com abas */}
           <TopControls
-            currentTitle={currentAtendimento?.title || "Novo atendimento"}
-            onSave={showPatientMgmt && history.length > 0 ? () => setShowSavePanel(!showSavePanel) : undefined}
             initialTab="clinico"
             onTabChange={(tab) => {
               if (tab === "clinico") {

@@ -7,16 +7,12 @@ import { useLocation } from "wouter";
 type Tab = "clinico" | "evidencias" | "calculadoras";
 
 interface TopControlsProps {
-  currentTitle?: string;
-  onSave?: () => void;
   initialTab?: Tab;
   onTabChange?: (tab: Tab) => void;
   onOpenCalculator?: (id: string) => void;
 }
 
 export default function TopControls({
-  currentTitle = "Novo atendimento",
-  onSave,
   initialTab = "clinico",
   onTabChange,
   onOpenCalculator,
@@ -48,24 +44,7 @@ export default function TopControls({
 
   return (
     <>
-      {/* Linha do título + Salvar */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="text-sm text-muted-foreground truncate">{currentTitle}</div>
-        {onSave && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={onSave}
-            data-testid="button-save-atendimento"
-          >
-            Salvar
-          </Button>
-        )}
-      </div>
-
-      <Separator className="my-3" />
-
-      {/* Botões principais (limpos, sem logo/badge) */}
+      {/* Abas principais */}
       <div className="flex items-center gap-2 flex-wrap">
         <Button
           variant={tab === "clinico" ? "default" : "outline"}

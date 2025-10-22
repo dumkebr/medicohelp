@@ -12,11 +12,6 @@ import TopControls from "@/components/TopControls";
  * 4. Quando aba="evidencias" ou "calculadoras", TopControls já renderiza o conteúdo
  */
 export default function DemoTopControls() {
-  const handleSave = () => {
-    console.log("Salvar atendimento");
-    alert("Atendimento salvo!\n\n(Função de demonstração)");
-  };
-
   const handleTabChange = (tab: string) => {
     console.log("Aba mudou para:", tab);
   };
@@ -37,8 +32,6 @@ export default function DemoTopControls() {
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-6">
           <TopControls
-            currentTitle="Paciente com taquicardia"
-            onSave={handleSave}
             initialTab="clinico"
             onTabChange={handleTabChange}
             onOpenCalculator={handleOpenCalculator}

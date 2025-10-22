@@ -1,0 +1,91 @@
+import React, { useEffect, useRef, useState } from "react";
+
+
+// ────────────────────────────────────────────────────────────────
+// MÉDICOHELP — BARRA DE ANEXOS, FOTO E ÁUDIO (COM DITADO)
+// Comandos:
+// - Upload de arquivos (imagem, PDF, áudio, vídeo, etc.)
+// - Tirar foto da câmera (mobile/desktop com câmera)
+// - Gravar áudio (para enviar) e Ditado por voz → texto (Web Speech API)
+// - Drag & Drop
+// Estilo: Tailwind (shadcn/ui opcional). Ícones simples em SVG inline.
+// Callbacks: onFilesSelected(File[]), onTextFromSpeech(string)
+// 
+// IMPORTANTE:
+// 1) O "capture" do <input> funciona melhor em Android/Chrome. iOS varia.
+// 2) O Ditado usa Web Speech API (Chrome/Edge). Em outros, usa fallback de gravação.
+// 3) Para transcrever gravações no backend, crie um endpoint /api/transcribe.
+// 4) Para armazenar arquivos, crie /api/upload (exemplos no final deste arquivo).
+// ────────────────────────────────────────────────────────────────
+
+
+export type AttachmentBarProps = {
+  onFilesSelected?: (files: File[]) => void;
+  onTextFromSpeech?: (text: string) => void;
+  // Use estas URLs se já tiver seus endpoints prontos
+  uploadUrl?: string; // ex.: "/api/upload"
+  transcribeUrl?: string; // ex.: "/api/transcribe"
+  // Mostrar preview de imagens selecionadas
+  showPreviews?: boolean;
+};
+
+
+const AttachmentBar: React.FC<AttachmentBarProps> = ({
+  onFilesSelected,
+  onTextFromSpeech,
+  uploadUrl,
+  transcribeUrl,
+  showPreviews = true,
+}) => {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+
+
+  // Câmera ao vivo
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [cameraOn, setCameraOn] = useState(false);
+  const [snapshots, setSnapshots] = useState<string[]>([]);
+
+
+  // Áudio: Ditado (Web Speech API)
+  const [isDictating, setIsDictating] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const [dictationText, setDictationText] = useState("");
+
+
+  // Áudio: Gravação (MediaRecorder)
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+
+  const [droppedFiles, setDroppedFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+// DICAS DE UI (TRADIÇÃO QUE FUNCIONA)
+
+Perfeito, Clairton. Já integrei no canvas um exemplo completo de como plugar a barra no teu chat (componente ChatPanel) e deixei prontos os endpoints /api/upload e /api/transcribe pro Next.js. É copiar/colar no teu projeto e seguir o jogo.
+
+Resumo do que você faz agora — direto ao ponto:
+
+Copie o AttachmentBar (já está na canvas) pro teu projeto (ex.: components/AttachmentBar.tsx).
+
+Copie o ChatPanel de integração (também na canvas) e adapte ao teu componente real de chat.
+
+Crie as rotas:
+
+app/api/upload/route.ts (salva arquivos; tem exemplo).
+
+app/api/transcribe/route.ts (retorna texto; deixei placeholder).
+
+HTTPS: publica na Vercel (resolve câmera/microfone e ditado).
+
+Teste no celular: botão Foto abre a câmera; Câmera ao vivo usa getUserMedia; Falar (ditado) transcreve em tempo real; Gravar áudio gera arquivo e, se quiser, manda pro /api/transcribe.
+
+Quer que eu cole isso dentro dos arquivos certos do teu repositório (nomes e caminhos exatos) e já ajuste aos teus handlers atuais? Me diz:
+
+onde está teu componente do chat (caminho/arquivo),
+
+se teu projeto é Next App Router mesmo,
+
+e o nome dos métodos que você já usa pra enviar mensagem/arquivo.

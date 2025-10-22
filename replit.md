@@ -13,9 +13,11 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 **UI/UX Decisions:**
 - **Framework**: React with Wouter for routing.
 - **Design System**: Shadcn/ui and Tailwind CSS for a professional, consistent UI.
-- **Theming**: Dark/light mode support with persistence.
-- **Color Palette**: Professional medical green (#00B37E).
+- **Theming**: Dark/light mode support with persistence (automatic via `prefers-color-scheme`).
+- **Color Palette**: Professional medical green (#3cb371).
 - **Design Guidelines**: Professional medical design with Inter typography, consistent spacing, subtle shadows, and visual feedback.
+- **Chat Interface**: Modern clean layout with fixed header (controls), scrollable thread (bubble messages), and fixed composer (similar to ChatGPT/Claude).
+- **Medical Tools Modal**: Refined layout with compact header, tab bar (#f8f9f9 background), 3px green underline on active tab, minimal gap (8px) between tabs and content, no scroll overflow issues, smooth fade-in animations (200ms) between tab switches, and full dark mode support.
 
 **Technical Implementations:**
 - **Frontend:**

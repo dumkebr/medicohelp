@@ -1,0 +1,61 @@
+TITLE: Fix big top gap in Ferramentas Profissionais modal (Calculadoras/Conduta/etc.)
+
+GOAL:
+Remover o espaço em branco excessivo entre as abas da modal (Posologia / Calculadoras / Conduta / Exames / Diferenciais) e o conteúdo do painel selecionado. O topo do conteúdo deve ficar a ~8–16px das abas, sem “buracão”, em TODOS os painéis (inclusive Calculadoras).
+
+FILES (prováveis):
+- client/src/components/ToolsModal/* (ou components/FerramentasProfissionais/*)
+- Se usar Tailwind: componentes onde aparecem classes "mt-*" e "pt-*" da área de conteúdo.
+
+STEPS:
+
+1) PROCURE PELOS CONTÊINERES DO PAINEL
+- O contêiner que troca com as abas (ex.: `.tab-panel`, `.tools-body`, `.panel-content`, `.mh-tools-content`, ou similar).
+- Remova `margin-top` ou `padding-top` exagerado (ex.: `mt-20`, `mt-16`, `pt-16`, valores altos em px/rem).
+- Troque por algo curto: `mt-2`–`mt-4` ou `padding-top: 8px;`
+
+2) SE FOR TAILWIND (PREFERENCIAL):
+- Busque na modal por algo do tipo:
+  className="mt-16 ..."  → substitua por "mt-2"
+  className="mt-24 ..."  → substitua por "mt-3"
+  className="pt-16 ..."  → substitua por "pt-2" (ou remova)
+- Onde houver um wrapper com `space-y-*` grande, reduza para `space-y-2` ou `space-y-3`.
+
+3) CSS DE SEGURANÇA (ADICIONE AO CSS GLOBAL OU MÓDULO DA MODAL)
+- Crie/edite um arquivo CSS ligado à modal (ex.: ToolsModal.css) e aplique:
+
+.mh-tools-modal .tools-tabs {
+  margin-bottom: 8px !important;
+}
+
+.mh-tools-modal .tab-panel,
+.mh-tools-modal .tools-body,
+.mh-tools-modal .panel-content,
+.mh-tools-modal .mh-tools-content {
+  margin-top: 0 !important;
+  padding-top: 8px !important;
+  min-height: auto !important;
+}
+
+.mh-tools-modal .tab-intro:empty,
+.mh-tools-modal .spacer:empty {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.mh-tools-modal .content-scroll {
+  max-height: calc(80vh - 140px);
+  overflow-y: auto;
+}
+
+4) REMOVA QUALQUER MIN-HEIGHT DESNECESSÁRIO
+- Se o contêiner do conteúdo tem `min-height` grande, remova/baixe. Use `min-height: auto` no CSS acima para garantir.
+
+5) TESTE TODOS OS PAINÉIS
+- Abra “Calculadoras”, “Conduta”, “Exames”, etc. O topo do conteúdo deve ficar colado (~8–16px) nas abas, sem área vazia.
+
+ACCEPTANCE:
+✅ O espaço entre as abas e o conteúdo fica pequeno (8–16px).
+✅ Não há rolagem dupla nem “buracos” em nenhuma aba.
+✅ As alterações não quebram o tema claro/escuro nem o layout de mobile.

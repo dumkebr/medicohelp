@@ -1,4 +1,4 @@
-import { Activity, Users, Plus, FileText, Sparkles, Image, Home, Baby, Heart, AlertCircle, Trash2, MessageSquare } from "lucide-react";
+import { Activity, Users, Plus, FileText, Sparkles, Image, Home, Baby, Heart, AlertCircle, Trash2, MessageSquare, MoreHorizontal, Save, Edit2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import {
@@ -19,6 +19,13 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { 
@@ -234,37 +241,57 @@ export function AppSidebar() {
                   title={new Date(it.updatedAt).toLocaleString()}
                   data-testid={`atendimento-volatil-${it.id}`}
                 >
-                  <div className="space-y-1">
+                  <div className="flex items-center justify-between gap-2">
                     <div className="truncate text-sm text-neutral-900 dark:text-white">{it.title}</div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setSaved(it.id, true); setAtendimentos(listAtendimentos()); }}
-                        className="text-sm px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                        data-testid={`button-save-${it.id}`}
-                      >
-                        Salvar
-                      </button>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const novo = prompt("Renomear para:", it.title || "");
-                          if (novo != null && novo.trim()) { renameAtendimento(it.id, novo); setAtendimentos(listAtendimentos()); }
-                        }}
-                        className="text-sm px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                        data-testid={`button-rename-${it.id}`}
-                      >
-                        Renomear
-                      </button>
-
-                      <button
-                        onClick={(e) => handleRemoverAtendimento(it.id, e)}
-                        className="text-sm px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-red-600 dark:text-red-400"
-                        data-testid={`button-delete-${it.id}`}
-                      >
-                        Excluir
-                      </button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 flex-shrink-0"
+                          onClick={(e) => e.stopPropagation()}
+                          data-testid={`button-menu-${it.id}`}
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSaved(it.id, true);
+                            setAtendimentos(listAtendimentos());
+                          }}
+                          data-testid={`menu-save-${it.id}`}
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          Salvar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const novo = prompt("Renomear para:", it.title || "");
+                            if (novo != null && novo.trim()) {
+                              renameAtendimento(it.id, novo);
+                              setAtendimentos(listAtendimentos());
+                            }
+                          }}
+                          data-testid={`menu-rename-${it.id}`}
+                        >
+                          <Edit2 className="w-4 h-4 mr-2" />
+                          Renomear
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={(e) => handleRemoverAtendimento(it.id, e)}
+                          className="text-red-600 dark:text-red-400"
+                          data-testid={`menu-delete-${it.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               ))}
@@ -292,8 +319,8 @@ export function AppSidebar() {
                   title={new Date(it.updatedAt).toLocaleString()}
                   data-testid={`atendimento-salvo-${it.id}`}
                 >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                       <div className="truncate text-sm text-neutral-900 dark:text-white">{it.title}</div>
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 flex-shrink-0">
                         Salvo
@@ -304,37 +331,60 @@ export function AppSidebar() {
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center gap-1">
-                      {!it.patientId && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setSaved(it.id, false); setAtendimentos(listAtendimentos()); }}
-                          className="text-sm px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                          data-testid={`button-unsave-${it.id}`}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 flex-shrink-0"
+                          onClick={(e) => e.stopPropagation()}
+                          data-testid={`button-menu-${it.id}`}
                         >
-                          Desfixar
-                        </button>
-                      )}
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const novo = prompt("Renomear para:", it.title || "");
-                          if (novo != null && novo.trim()) { renameAtendimento(it.id, novo); setAtendimentos(listAtendimentos()); }
-                        }}
-                        className="text-sm px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                        data-testid={`button-rename-${it.id}`}
-                      >
-                        Renomear
-                      </button>
-
-                      <button
-                        onClick={(e) => handleRemoverAtendimento(it.id, e)}
-                        className="text-sm px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-red-600 dark:text-red-400"
-                        data-testid={`button-delete-${it.id}`}
-                      >
-                        Excluir
-                      </button>
-                    </div>
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                        {!it.patientId && (
+                          <>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSaved(it.id, false);
+                                setAtendimentos(listAtendimentos());
+                              }}
+                              data-testid={`menu-unsave-${it.id}`}
+                            >
+                              <Save className="w-4 h-4 mr-2" />
+                              Desfixar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                          </>
+                        )}
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const novo = prompt("Renomear para:", it.title || "");
+                            if (novo != null && novo.trim()) {
+                              renameAtendimento(it.id, novo);
+                              setAtendimentos(listAtendimentos());
+                            }
+                          }}
+                          data-testid={`menu-rename-${it.id}`}
+                        >
+                          <Edit2 className="w-4 h-4 mr-2" />
+                          Renomear
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={(e) => handleRemoverAtendimento(it.id, e)}
+                          className="text-red-600 dark:text-red-400"
+                          data-testid={`menu-delete-${it.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               ))}

@@ -149,11 +149,11 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="px-4 py-2 border-b">
-        <div className="flex items-center justify-center w-full">
+        <div className="flex items-center justify-start w-full">
           <img 
             src={logoImage} 
             alt="MédicoHelp - A plataforma médica inteligente" 
-            className="h-12 w-auto object-contain"
+            className="h-14 w-auto object-contain"
           />
         </div>
       </SidebarHeader>

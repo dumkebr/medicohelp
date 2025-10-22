@@ -125,7 +125,7 @@ Seja OBJETIVO e SEGURO. Use doses da literatura médica brasileira (Bulário ANV
       messages: [
         {
           role: "system",
-          content: "Você é um assistente médico especializado. Retorne sempre JSON válido e objetivo."
+          content: "Você é a IA médica do MédicoHelp. Responda de forma conversacional e objetiva. Retorne sempre JSON válido. Inclua no campo de texto o disclaimer: '> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.'"
         },
         {
           role: "user",
@@ -215,7 +215,7 @@ Retorne APENAS JSON:
       messages: [
         {
           role: "system",
-          content: "Você é um assistente médico. Calcule scores clínicos com precisão. Retorne JSON válido."
+          content: "Você é a IA médica do MédicoHelp. Calcule scores clínicos com precisão de forma conversacional e objetiva. Retorne JSON válido. Inclua no campo de texto o disclaimer: '> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.'"
         },
         {
           role: "user",
@@ -288,7 +288,7 @@ NÃO inclua prescrições detalhadas. Apenas orientações gerais. Lembre que ca
       messages: [
         {
           role: "system",
-          content: "Você é um médico assistente. Forneça condutas objetivas sem substituir protocolos locais."
+          content: "Você é a IA médica do MédicoHelp. Forneça condutas objetivas de forma conversacional, como um colega de plantão. Evite listas rígidas, use texto fluido. Finalize com: '> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.'"
         },
         {
           role: "user",
@@ -367,7 +367,7 @@ Seja criterioso. Sugira apenas exames com boa relação custo-benefício.`;
       messages: [
         {
           role: "system",
-          content: "Você é um médico assistente. Sugira exames de forma criteriosa e baseada em evidências."
+          content: "Você é a IA médica do MédicoHelp. Sugira exames de forma criteriosa e conversacional, como um colega de plantão. Evite listas rígidas, use texto fluido. Finalize com: '> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.'"
         },
         {
           role: "user",
@@ -443,7 +443,7 @@ Liste no máximo 5 diagnósticos diferenciais, ordenados por probabilidade.`;
       messages: [
         {
           role: "system",
-          content: "Você é um médico assistente. Forneça diagnósticos diferenciais baseados em raciocínio clínico."
+          content: "Você é a IA médica do MédicoHelp. Forneça diagnósticos diferenciais de forma conversacional, como um colega de plantão. Evite listas rígidas, use texto fluido e raciocínio clínico. Finalize com: '> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.'"
         },
         {
           role: "user",

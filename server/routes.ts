@@ -759,70 +759,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Construir prompt de Modo Clínico
   function buildClinicalPrompt(style: string, customTemplate?: string): string {
-    const baseRules = `Você é um REGISTRADOR MÉDICO (clinical scribe). Sua função é documentar prontuários, não ensinar ou aconselhar.
+    const basePrompt = `Você é a IA médica do MédicoHelp, ferramenta exclusiva para médicos com CRM validado.
 
-REGRAS OBRIGATÓRIAS:
-1. O usuário é SEMPRE um médico escrevendo prontuário/nota clínica
-2. Responda APENAS com o conteúdo solicitado - SEM introduções, explicações ou comentários
-3. NUNCA dê aulas, explicações teóricas, revisões de conduta ou conselhos genéricos
-4. Mantenha formato CURTO, ESTRUTURADO e OBJETIVO
-5. Português do Brasil, terminologia médica adequada
-6. Tom profissional e conciso
+Responda em **texto corrido e natural**, como se estivesse em uma conversa médica entre colegas.
 
-NUNCA inclua:
-❌ "Espero que isso ajude"
-❌ "Recomendo que..."
-❌ "É importante lembrar que..."
-❌ Explicações didáticas
-❌ Revisões de literatura
-❌ Citações de diretrizes`;
+Evite listas numeradas, negritos, ou divisões fixas (como Queixa / História / Conduta), a menos que o médico peça explicitamente.
+
+Use raciocínio clínico tradicional, frases completas, diretas e enxutas, como em uma conversa de plantão.
+
+Mantenha o tom profissional, claro e objetivo, priorizando a fluidez e a continuidade do diálogo.
+
+Sempre permita que o médico possa continuar a conversa sobre o mesmo caso.
+
+Finalize com o aviso discreto:
+> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.`;
 
     if (style === 'soap') {
-      return `${baseRules}
+      return `${basePrompt}
 
-FORMATO OBRIGATÓRIO (SOAP):
-**S (Subjetivo):** [queixa e história]
-**O (Objetivo):** [sinais vitais e exame físico]
-**A (Avaliação):** [hipóteses diagnósticas]
-**P (Plano):** [conduta e prescrições]`;
+Formato SOAP solicitado - use as divisões S/O/A/P mas mantenha o texto fluido dentro de cada seção.`;
     } else if (style === 'personalizado' && customTemplate) {
-      return `${baseRules}
+      return `${basePrompt}
 
-FORMATO PERSONALIZADO:
+Template personalizado:
 ${customTemplate}`;
     } else {
-      // Tradicional (default)
-      return `${baseRules}
-
-FORMATO PADRÃO (Tradicional MédicoHelp):
-**QUEIXA PRINCIPAL:** [breve]
-**HISTÓRIA CLÍNICA:** [concisa]
-**EXAME FÍSICO:** [objetivo]
-**CONDUTA:** [clara]`;
+      // Tradicional (default) - agora conversacional
+      return basePrompt;
     }
   }
 
   // Construir prompt de Modo Explicativo
   function buildExplanatoryPrompt(evidenceContext?: string): string {
-    const basePrompt = `Você é um ASSISTENTE MÉDICO EDUCACIONAL. Sua função é explicar conceitos médicos de forma objetiva e baseada em evidências.
+    const basePrompt = `Você é a IA médica do MédicoHelp, ferramenta exclusiva para médicos com CRM validado.
 
-REGRAS:
-1. Linguagem técnica médica, objetiva e profissional
-2. Cite diretrizes nacionais/internacionais quando relevante
-3. Explique o racional científico das condutas
-4. Seja conciso mas completo
-5. Português do Brasil
+No modo explicativo, responda de forma educacional mas **mantenha o formato conversacional e fluido**.
 
-ESTRUTURA DA RESPOSTA:
-1. **Resumo clínico** do tema
-2. **Diretrizes** (se houver)
-3. **Racional científico** da conduta
-4. **Conclusão prática** (curta)
+Explique conceitos médicos com linguagem técnica profissional, cite diretrizes quando relevante, e apresente o racional científico das condutas.
 
-NUNCA:
-❌ Formatar como prontuário
-❌ Dar conselhos genéricos sem base científica
-❌ Usar tom didático excessivo`;
+Use texto corrido natural, evitando listas numeradas excessivas ou divisões rígidas, a menos que o médico solicite.
+
+Seja conciso mas completo, mantendo sempre a fluidez da conversa de plantão entre colegas.
+
+Finalize com o aviso discreto:
+> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.`;
 
     if (evidenceContext) {
       return `${basePrompt}
@@ -1020,6 +1000,13 @@ Use este contexto para fundamentar sua explicação, mas não cite explicitament
         sendEvent("chunk", { content: fullAnswer });
       }
 
+      // Ensure disclaimer is always present
+      const disclaimer = "\n\n> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.";
+      if (!fullAnswer.includes("Conteúdo de apoio clínico")) {
+        fullAnswer += disclaimer;
+        sendEvent("chunk", { content: disclaimer });
+      }
+
       // Increment quota after successful completion
       await storage.incrementQuota(userId);
       const newQuota = await checkQuota(userId);
@@ -1184,14 +1171,16 @@ Use este contexto para fundamentar sua explicação, mas não cite explicitament
               messages: [
                 {
                   role: "system",
-                  content: `Você é um especialista em análise de imagens médicas. Analise a imagem fornecida e forneça:
-                  
-                  1. Tipo de exame/imagem (raio-x, tomografia, ultrassom, foto clínica, etc.)
-                  2. Principais achados visuais
-                  3. Possíveis interpretações clínicas
-                  4. Recomendações para avaliação adicional
-                  
-                  IMPORTANTE: Sempre enfatize que esta é uma análise preliminar e que um médico deve avaliar pessoalmente.`,
+                  content: `Você é a IA médica do MédicoHelp, ferramenta exclusiva para médicos com CRM validado.
+
+Analise a imagem médica de forma conversacional e fluida, identificando o tipo de exame, achados relevantes e interpretações clínicas.
+
+Use texto corrido natural, como uma discussão de caso entre colegas, evitando listas numeradas excessivas.
+
+Seja objetivo e técnico, mas mantenha o tom de conversa de plantão.
+
+Finalize com o aviso discreto:
+> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.`,
                 },
                 {
                   role: "user",

@@ -24,6 +24,7 @@ import type { FileAttachment, Patient, ScientificReference } from "@shared/schem
 import TopControls from "@/components/TopControls";
 import { useAuth } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { AttachmentBar } from "@/components/AttachmentBar";
 import {
   getCurrentId,
   getAtendimento,
@@ -357,6 +358,74 @@ export default function Atendimento() {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Handler para arquivos do AttachmentBar
+  const handleFilesFromAttachmentBar = async (selectedFiles: File[]) => {
+    // Verificar se algum arquivo é áudio
+    const audioFiles = selectedFiles.filter(f => 
+      f.type.startsWith('audio/') || f.name.match(/\.(webm|mp3|wav|m4a|ogg)$/i)
+    );
+    
+    const otherFiles = selectedFiles.filter(f => 
+      !f.type.startsWith('audio/') && !f.name.match(/\.(webm|mp3|wav|m4a|ogg)$/i)
+    );
+
+    // Adicionar arquivos não-áudio à lista normal
+    if (otherFiles.length > 0) {
+      setFiles(prev => [...prev, ...otherFiles].slice(0, 10));
+    }
+
+    // Transcrever arquivos de áudio automaticamente
+    if (audioFiles.length > 0) {
+      for (const audioFile of audioFiles) {
+        await handleTranscribeAudio(audioFile);
+      }
+    }
+  };
+
+  // Handler para texto ditado
+  const handleTextFromSpeech = (text: string) => {
+    setMessage(prev => prev ? `${prev} ${text}` : text);
+  };
+
+  // Transcrever áudio automaticamente
+  const handleTranscribeAudio = async (audioFile: File) => {
+    try {
+      toast({
+        title: "🎙️ Transcrevendo áudio...",
+        description: "Aguarde enquanto processamos sua gravação.",
+      });
+
+      const formData = new FormData();
+      formData.append("audio", audioFile);
+
+      const response = await fetch("/api/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erro na transcrição");
+      }
+
+      const data = await response.json();
+      
+      // Adicionar texto transcrito ao message
+      setMessage(prev => prev ? `${prev}\n\n${data.text}` : data.text);
+
+      toast({
+        title: "✅ Áudio transcrito",
+        description: "O texto foi adicionado à sua mensagem.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro na transcrição",
+        description: error.message || "Não foi possível transcrever o áudio.",
+      });
+    }
+  };
+
   const handleSend = async () => {
     if (!message.trim() && files.length === 0) return;
 
@@ -636,27 +705,13 @@ export default function Atendimento() {
             {/* FOOTER ACTIONS */}
             <div className="flex items-center justify-between px-2 pt-2">
               <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => document.getElementById("file-input")?.click()}
-                  disabled={isLoading}
-                  data-testid="button-attach-files"
-                  className="h-8"
-                >
-                  <Paperclip className="w-4 h-4" />
-                </Button>
-                <input
-                  id="file-input"
-                  type="file"
-                  accept="image/*,application/pdf"
-                  multiple
-                  className="hidden"
-                  onChange={handleFileChange}
+                <AttachmentBar
+                  onFilesSelected={handleFilesFromAttachmentBar}
+                  onTextFromSpeech={handleTextFromSpeech}
                   disabled={isLoading}
                 />
                 <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                  Até 10 arquivos (imagens ou PDF)
+                  Anexos, foto, falar ou gravar
                 </span>
               </div>
 

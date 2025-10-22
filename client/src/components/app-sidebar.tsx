@@ -148,7 +148,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="px-4 py-4 border-b">
+      <SidebarHeader className="px-4 py-2 border-b">
         <div className="flex items-center justify-center w-full">
           <img 
             src={logoImage} 

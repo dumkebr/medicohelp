@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Send, Paperclip, Loader2, FileImage, X, Save, Brain, ExternalLink, FileText, BookOpen, Stethoscope } from "lucide-react";
+import { Send, Paperclip, Loader2, FileImage, X, Save, Brain, ExternalLink, FileText, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -43,8 +41,10 @@ export default function Atendimento() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState("");
   const [currentUserMessage, setCurrentUserMessage] = useState("");
+  const [showSavePanel, setShowSavePanel] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const threadRef = useRef<HTMLDivElement>(null);
 
   const { data: patients } = useQuery<Patient[]>({
     queryKey: ["/api/patients"],
@@ -66,10 +66,8 @@ export default function Atendimento() {
     },
   });
 
-  // AbortController ref for cancelling streams
   const streamAbortController = useRef<AbortController | null>(null);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (streamAbortController.current) {
@@ -78,14 +76,15 @@ export default function Atendimento() {
     };
   }, []);
 
-  // SSE Chat handler with streaming
+  useEffect(() => {
+    threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
+  }, [history.length, streamingMessage]);
+
   const handleChatStream = async (userMessage: string, chatHistory: any[], enableEvidence: boolean) => {
-    // Cancel any previous stream
     if (streamAbortController.current) {
       streamAbortController.current.abort();
     }
 
-    // Create new AbortController for this request
     const abortController = new AbortController();
     streamAbortController.current = abortController;
     setIsStreaming(true);
@@ -96,12 +95,10 @@ export default function Atendimento() {
     let references: ScientificReference[] | undefined;
 
     try {
-      // Timeout safeguard: fail after 60 seconds
       const timeoutId = setTimeout(() => {
         abortController.abort();
       }, 60000);
 
-      // Create SSE connection via fetch with streaming
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -131,7 +128,7 @@ export default function Atendimento() {
 
       let buffer = "";
       let currentEvent = "";
-      let dataBuffer: string[] = []; // Buffer for multi-line data payloads
+      let dataBuffer: string[] = [];
 
       while (true) {
         const { done, value } = await reader.read();
@@ -140,7 +137,7 @@ export default function Atendimento() {
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
-        buffer = lines.pop() || ""; // Keep incomplete line in buffer
+        buffer = lines.pop() || "";
 
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i];
@@ -148,10 +145,8 @@ export default function Atendimento() {
           if (line.startsWith("event:")) {
             currentEvent = line.slice(6).trim();
           } else if (line.startsWith("data:")) {
-            // Buffer data lines (multi-line data is separated by empty lines)
             dataBuffer.push(line.slice(5).trim());
           } else if (line.trim() === "" && dataBuffer.length > 0) {
-            // Empty line signals end of multi-line data payload
             const fullData = dataBuffer.join("\n");
             dataBuffer = [];
             
@@ -162,7 +157,6 @@ export default function Atendimento() {
                 fullResponse += data.content;
                 setStreamingMessage(fullResponse);
               } else if (currentEvent === "complete") {
-                // Stream completed successfully
                 console.log(`Chat completed: ${data.tokens} tokens in ${data.duration}ms`);
               } else if (currentEvent === "error") {
                 throw new Error(data.message);
@@ -171,15 +165,13 @@ export default function Atendimento() {
               console.error("Failed to parse SSE data:", fullData, parseError);
             }
             
-            currentEvent = ""; // Reset after processing
+            currentEvent = "";
           }
         }
       }
 
-      // CRITICAL: Disable streaming state FIRST to re-enable button immediately
       setIsStreaming(false);
       
-      // Fetch scientific references if evidence mode is enabled
       if (enableEvidence && fullResponse) {
         try {
           const researchData = await researchMutation.mutateAsync(userMessage);
@@ -189,14 +181,12 @@ export default function Atendimento() {
         }
       }
 
-      // Add to history
       setHistory(prev => [...prev, {
         user: userMessage,
         assistant: fullResponse,
         references,
       }]);
 
-      // Clear inputs and streaming state markers
       setMessage("");
       setFiles([]);
       setStreamingMessage("");
@@ -206,9 +196,8 @@ export default function Atendimento() {
       console.error("Erro no chat stream:", error);
       setStreamingMessage("");
       setCurrentUserMessage("");
-      setIsStreaming(false); // Explicitly disable streaming state on error
+      setIsStreaming(false);
       
-      // Don't show error toast for intentional cancellations
       if (error.name !== "AbortError") {
         toast({
           variant: "destructive",
@@ -282,6 +271,7 @@ export default function Atendimento() {
       setFiles([]);
       setSavedAttachments([]);
       setSelectedPatientId("");
+      setShowSavePanel(false);
     },
     onError: (error: any) => {
       toast({
@@ -330,7 +320,6 @@ export default function Atendimento() {
       { role: "assistant" as const, content: h.assistant },
     ]);
 
-    // Call streaming chat handler
     handleChatStream(enrichedMessage, chatHistory, evidenceEnabled);
   };
 
@@ -344,32 +333,95 @@ export default function Atendimento() {
   const isLoading = isStreaming || uploadMutation.isPending;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div>
-        <div className="flex items-center justify-between gap-4 mb-2">
-          <h1 className="text-2xl font-bold">Atendimento Médico com IA</h1>
-          {user && (user.role === "medico" || user.role === "estudante") && (
-            <Badge variant="secondary" className="gap-1" data-testid="badge-professional-mode">
-              <Stethoscope className="w-3 h-3" />
-              Modo Profissional {user.role === "estudante" && "(Estudante)"}
-            </Badge>
-          )}
-        </div>
-        <p className="text-muted-foreground">
-          Faça perguntas clínicas e envie imagens de exames para análise
-        </p>
-      </div>
+    <div className="h-screen w-full bg-neutral-50 dark:bg-neutral-900 flex flex-col">
+      {/* HEADER FIXO */}
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800">
+        <div className="max-w-5xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-[#3cb371] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                  M
+                </div>
+                <span className="font-semibold text-neutral-900 dark:text-white">MédicoHelp</span>
+              </div>
+              <Badge variant="secondary" className="text-xs">Beta Gratuito</Badge>
+            </div>
 
-      {history.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Salvar Histórico no Prontuário</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
+            {/* CONTROLES FIXOS NO TOPO */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={mode === 'clinico' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setMode('clinico')}
+                  disabled={isLoading}
+                  data-testid="button-mode-clinico"
+                  className={mode === 'clinico' ? "bg-[#3cb371] hover:bg-[#2f9e62]" : ""}
+                >
+                  <FileText className="w-4 h-4 mr-1" />
+                  Clínico
+                </Button>
+                <Button
+                  variant={mode === 'explicativo' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setMode('explicativo')}
+                  disabled={isLoading}
+                  data-testid="button-mode-explicativo"
+                  className={mode === 'explicativo' ? "bg-[#3cb371] hover:bg-[#2f9e62]" : ""}
+                >
+                  <BookOpen className="w-4 h-4 mr-1" />
+                  Explicativo
+                </Button>
+              </div>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <Switch
+                      id="evidence-mode"
+                      checked={evidenceEnabled}
+                      onCheckedChange={setEvidenceEnabled}
+                      disabled={!isResearchAvailable || isLoading}
+                      data-testid="switch-evidence-mode"
+                      className="data-[state=checked]:bg-[#3cb371]"
+                    />
+                    <span className={`text-sm ${!isResearchAvailable ? "opacity-50" : ""}`}>
+                      Evidências
+                    </span>
+                  </label>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">
+                    {isResearchAvailable
+                      ? "Fornece fontes de referência bibliográfica"
+                      : "Evidências Clínicas indisponível"}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+
+              {user && <MedicalToolsMenu userRole={user.role} />}
+
+              {history.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowSavePanel(!showSavePanel)}
+                  data-testid="button-toggle-save-panel"
+                >
+                  <Save className="w-4 h-4 mr-1" />
+                  {showSavePanel ? "Fechar" : "Salvar"}
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* PAINEL DE SALVAR CONSULTA (COLAPSÁVEL) */}
+          {showSavePanel && history.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-800">
+              <div className="flex items-center gap-3">
                 <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
-                  <SelectTrigger data-testid="select-paciente">
+                  <SelectTrigger className="flex-1 max-w-xs" data-testid="select-paciente">
                     <SelectValue placeholder="Selecione um paciente" />
                   </SelectTrigger>
                   <SelectContent>
@@ -386,270 +438,220 @@ export default function Atendimento() {
                     )}
                   </SelectContent>
                 </Select>
+                <Button
+                  onClick={() => saveConsultationMutation.mutate()}
+                  disabled={!selectedPatientId || saveConsultationMutation.isPending}
+                  data-testid="button-salvar-consulta"
+                  className="bg-[#3cb371] hover:bg-[#2f9e62]"
+                >
+                  {saveConsultationMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Salvar Consulta
+                    </>
+                  )}
+                </Button>
               </div>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">
+                Ao salvar, todo o histórico desta conversa será registrado no prontuário do paciente
+              </p>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* THREAD - SÓ A CONVERSA */}
+      <main
+        ref={threadRef}
+        className="flex-1 overflow-y-auto max-w-3xl w-full mx-auto px-4 py-6"
+      >
+        {history.length === 0 && !isStreaming ? (
+          <div className="text-neutral-500 dark:text-neutral-400 text-sm mt-12 text-center space-y-2">
+            <p className="text-base font-medium">Chat Médico com IA</p>
+            <p>Digite sua pergunta clínica ou envie exames para análise</p>
+            <p className="text-xs">Os controles ficam fixos no topo. A conversa aqui é contínua.</p>
+          </div>
+        ) : (
+          <div className="space-y-6" data-testid="card-chat-history">
+            {history.map((item, index) => (
+              <div key={index} className="space-y-4">
+                {/* USER BUBBLE */}
+                <div className="flex justify-end">
+                  <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-[#3cb371] text-white">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{item.user}</p>
+                  </div>
+                </div>
+
+                {/* ASSISTANT BUBBLE */}
+                <div className="flex justify-start">
+                  <div className="max-w-[85%] space-y-3">
+                    <div className="rounded-2xl px-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100">
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{item.assistant}</p>
+                    </div>
+
+                    {/* REFERÊNCIAS CIENTÍFICAS */}
+                    {item.references && item.references.length > 0 && (
+                      <div className="bg-neutral-100 dark:bg-neutral-800/50 rounded-xl p-3 border border-neutral-200 dark:border-neutral-700">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Brain className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
+                          <p className="text-xs font-semibold text-neutral-600 dark:text-neutral-400">
+                            Referências Científicas
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          {item.references.slice(0, 5).map((ref, refIndex) => (
+                            <a
+                              key={refIndex}
+                              href={ref.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-start gap-2 text-xs hover-elevate p-2 rounded-md transition-colors"
+                              data-testid={`link-reference-${refIndex}`}
+                            >
+                              <ExternalLink className="w-3 h-3 mt-0.5 text-neutral-500 dark:text-neutral-400 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-neutral-900 dark:text-neutral-100 line-clamp-2">
+                                  {ref.title}
+                                </p>
+                                {(ref.source || ref.authors || ref.year) && (
+                                  <p className="text-neutral-500 dark:text-neutral-400 mt-1">
+                                    {[ref.source, ref.authors, ref.year].filter(Boolean).join(" • ")}
+                                  </p>
+                                )}
+                              </div>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* STREAMING MESSAGE */}
+            {isStreaming && currentUserMessage && (
+              <div className="space-y-4 opacity-90">
+                <div className="flex justify-end">
+                  <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-[#3cb371] text-white">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{currentUserMessage}</p>
+                  </div>
+                </div>
+
+                <div className="flex justify-start">
+                  <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100">
+                    {streamingMessage ? (
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{streamingMessage}</p>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin text-neutral-500" />
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400 italic">Gerando resposta...</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* COMPOSER FIXO EMBAIXO */}
+      <footer className="sticky bottom-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800">
+        <div className="max-w-3xl mx-auto px-4 py-4" data-testid="card-chat-input">
+          <div className="rounded-2xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-3 shadow-sm">
+            {/* FILES PREVIEW */}
+            {files.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3 pb-3 border-b border-neutral-200 dark:border-neutral-700">
+                {files.map((file, index) => (
+                  <Badge key={index} variant="secondary" className="gap-2 pr-1">
+                    <FileImage className="w-3 h-3" />
+                    <span className="text-xs max-w-[150px] truncate">{file.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-4 w-4 p-0 hover:bg-destructive/20"
+                      onClick={() => removeFile(index)}
+                      data-testid={`button-remove-file-${index}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* TEXTAREA */}
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Digite sua pergunta clínica... (Ctrl+Enter para enviar)"
+              rows={1}
+              disabled={isLoading}
+              data-testid="input-chat-message"
+              className="w-full resize-none outline-none bg-transparent p-2 text-[15px] leading-6 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
+            />
+
+            {/* FOOTER ACTIONS */}
+            <div className="flex items-center justify-between px-2 pt-2">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => document.getElementById("file-input")?.click()}
+                  disabled={isLoading}
+                  data-testid="button-attach-files"
+                  className="h-8"
+                >
+                  <Paperclip className="w-4 h-4" />
+                </Button>
+                <input
+                  id="file-input"
+                  type="file"
+                  accept="image/*,application/pdf"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileChange}
+                  disabled={isLoading}
+                />
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                  Até 10 arquivos (imagens ou PDF)
+                </span>
+              </div>
+
               <Button
-                onClick={() => saveConsultationMutation.mutate()}
-                disabled={!selectedPatientId || saveConsultationMutation.isPending}
-                data-testid="button-salvar-consulta"
+                onClick={handleSend}
+                disabled={isLoading || (!message.trim() && files.length === 0)}
+                data-testid="button-send-message"
+                className="px-4 py-2 rounded-xl bg-[#3cb371] text-white font-semibold hover:bg-[#2f9e62] disabled:opacity-50"
               >
-                {saveConsultationMutation.isPending ? (
+                {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Salvando...
+                    Processando...
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Salvar Consulta
+                    <Send className="w-4 h-4 mr-2" />
+                    Enviar
                   </>
                 )}
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Ao salvar, todo o histórico desta conversa será registrado no prontuário do paciente
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {(history.length > 0 || isStreaming) && (
-        <Card data-testid="card-chat-history">
-          <CardContent className="p-6 space-y-6">
-            {history.map((item, index) => (
-              <div key={index} className="space-y-4">
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-primary">Você:</p>
-                  <p className="text-sm whitespace-pre-wrap">{item.user}</p>
-                </div>
-                <div className="space-y-3 bg-muted/30 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-primary">Médico Help:</p>
-                  <p className="text-sm whitespace-pre-wrap">{item.assistant}</p>
-                  
-                  {item.references && item.references.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-border space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Brain className="w-4 h-4 text-muted-foreground" />
-                        <p className="text-xs font-semibold text-muted-foreground">
-                          Referências Científicas
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        {item.references.slice(0, 5).map((ref, refIndex) => (
-                          <a
-                            key={refIndex}
-                            href={ref.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-start gap-2 text-xs hover-elevate p-2 rounded-md transition-colors"
-                            data-testid={`link-reference-${refIndex}`}
-                          >
-                            <ExternalLink className="w-3 h-3 mt-0.5 text-muted-foreground flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-foreground line-clamp-2">
-                                {ref.title}
-                              </p>
-                              {(ref.source || ref.authors || ref.year) && (
-                                <p className="text-muted-foreground mt-1">
-                                  {[ref.source, ref.authors, ref.year].filter(Boolean).join(" • ")}
-                                </p>
-                              )}
-                            </div>
-                          </a>
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground italic mt-2">
-                        Material de apoio. Não substitui avaliação médica.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-            
-            {/* Show streaming message while it's being generated */}
-            {isStreaming && currentUserMessage && (
-              <div className="space-y-4 opacity-90">
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-primary">Você:</p>
-                  <p className="text-sm whitespace-pre-wrap">{currentUserMessage}</p>
-                </div>
-                <div className="space-y-3 bg-muted/30 p-4 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-primary">Médico Help:</p>
-                    {!streamingMessage && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
-                  </div>
-                  {streamingMessage ? (
-                    <p className="text-sm whitespace-pre-wrap">{streamingMessage}</p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground italic">Gerando resposta...</p>
-                  )}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      <Card data-testid="card-chat-input">
-        <CardContent className="p-6 space-y-4">
-          <div className="flex items-center gap-4 pb-2 border-b border-border flex-wrap">
-            <div className="flex items-center gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant={mode === 'clinico' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setMode('clinico')}
-                      disabled={isLoading}
-                      data-testid="button-mode-clinico"
-                      className="gap-2"
-                    >
-                      <FileText className="w-4 h-4" />
-                      Modo Clínico
-                    </Button>
-                    <Button
-                      variant={mode === 'explicativo' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setMode('explicativo')}
-                      disabled={isLoading}
-                      data-testid="button-mode-explicativo"
-                      className="gap-2"
-                    >
-                      <BookOpen className="w-4 h-4" />
-                      Modo Explicativo
-                    </Button>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-sm">
-                  <p className="font-semibold mb-1">
-                    {mode === 'clinico' ? '🩺 Modo Clínico' : '📘 Modo Explicativo'}
-                  </p>
-                  <p className="text-xs">
-                    {mode === 'clinico'
-                      ? 'Respostas diretas e estruturadas para prontuário médico. Sem explicações teóricas.'
-                      : 'Explicações educacionais com fundamentos científicos e diretrizes. Pode acessar evidências clínicas se habilitado no perfil.'}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      id="evidence-mode"
-                      checked={evidenceEnabled}
-                      onCheckedChange={setEvidenceEnabled}
-                      disabled={!isResearchAvailable || isLoading}
-                      data-testid="switch-evidence-mode"
-                    />
-                    <Label
-                      htmlFor="evidence-mode"
-                      className={`text-sm font-medium cursor-pointer flex items-center gap-2 ${
-                        !isResearchAvailable ? "opacity-50" : ""
-                      }`}
-                    >
-                      <Brain className="w-4 h-4" />
-                      Evidências Clínicas
-                    </Label>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p>
-                    {isResearchAvailable
-                      ? "Fornece fontes de referência bibliográfica — uso apenas como apoio clínico."
-                      : "Evidências Clínicas indisponível (API não configurada)"}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-              {evidenceEnabled && (
-                <Badge variant="secondary" className="text-xs" data-testid="badge-evidence-active">
-                  Ativo
-                </Badge>
-              )}
-            </div>
-
-            {user && <MedicalToolsMenu userRole={user.role} />}
           </div>
 
-          <Textarea
-            placeholder="Digite sua pergunta clínica... (Ctrl+Enter para enviar)"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="min-h-[120px] resize-none"
-            disabled={isLoading}
-            data-testid="input-chat-message"
-          />
-
-          {files.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {files.map((file, index) => (
-                <Badge key={index} variant="secondary" className="gap-2 pr-1">
-                  <FileImage className="w-3 h-3" />
-                  <span className="text-xs">{file.name}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-4 w-4 p-0 hover:bg-destructive/20"
-                    onClick={() => removeFile(index)}
-                    data-testid={`button-remove-file-${index}`}
-                  >
-                    <X className="w-3 h-3" />
-                  </Button>
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => document.getElementById("file-input")?.click()}
-                disabled={isLoading}
-                data-testid="button-attach-files"
-              >
-                <Paperclip className="w-4 h-4 mr-2" />
-                Anexar arquivos
-              </Button>
-              <input
-                id="file-input"
-                type="file"
-                accept="image/*,application/pdf"
-                multiple
-                className="hidden"
-                onChange={handleFileChange}
-                disabled={isLoading}
-              />
-              <span className="text-xs text-muted-foreground">
-                Até 10 arquivos (imagens ou PDF)
-              </span>
-            </div>
-
-            <Button
-              onClick={handleSend}
-              disabled={isLoading || (!message.trim() && files.length === 0)}
-              data-testid="button-send-message"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processando...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4 mr-2" />
-                  Enviar
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          {/* DISCLAIMER */}
+          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 text-center">
+            Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

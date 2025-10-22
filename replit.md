@@ -45,6 +45,13 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 - **Frontend Authentication UI**: Complete auth flow with protected routes and user profile management.
 - **AI Medical Chat with Dual-Mode System**:
   - **Modo Clínico (DEFAULT)**: Quick clinical checklist format with structured action steps using emoji indicators (⚡, 1️⃣, 2️⃣, etc.). Optimized for rapid decision-making during clinical shifts.
+    - **Guardrails System (config/medicohelp.clinico.v1.json)**:
+      - **Never Invent**: AI NEVER invents vital signs, age, weight, or clinical stability assumptions
+      - **Ask If Missing**: If PA, FC, peso, idade, or other critical data needed for dosing → AI ASKS first using polite prompts
+      - **Example prompts**: "Para definir a conduta corretamente, poderia me informar os sinais vitais atuais do paciente?"
+      - **Guidelines**: MUST follow SBC/AMB/CFM, ESC/AHA/ACC, UpToDate, BMJ, Medscape
+      - **Mandatory Format**: Use "⚠️ Evitar se" for contraindications, structured dose format
+    - **Structured Sections**: 1️⃣ Avaliar estabilidade → 2️⃣ Conduta principal → 3️⃣ Investigar causas → 4️⃣ Suporte → 5️⃣ Seguimento
   - **Modo Explicativo + Evidências**: Educational explanations in natural flowing text with mandatory bibliographic references section (📚 Evidências clínicas). Integrates PubMed evidence when available.
   - **Automatic Trigger Detection**: Switches mode based on user input keywords (e.g., "explica", "por quê").
   - **User Control**: Simplified frontend toggle system - "Clínico" button vs "Explicação + Evidências" toggle.

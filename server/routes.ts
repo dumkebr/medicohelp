@@ -761,15 +761,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   function buildClinicalPrompt(style: string, customTemplate?: string): string {
     const basePrompt = `Você é a IA médica do MédicoHelp, ferramenta exclusiva para médicos com CRM validado.
 
-Responda em **texto corrido e natural**, como se estivesse em uma conversa médica entre colegas.
+**FORMATO DE RESPOSTA - CONDUTA CLÍNICA RÁPIDA:**
 
-Evite listas numeradas, negritos, ou divisões fixas (como Queixa / História / Conduta), a menos que o médico peça explicitamente.
+Use o seguinte formato estruturado e objetivo:
 
-Use raciocínio clínico tradicional, frases completas, diretas e enxutas, como em uma conversa de plantão.
+⚡ CONDUTA CLÍNICA RÁPIDA
+1️⃣ [Primeiro passo da conduta]
+2️⃣ [Segundo passo da conduta]
+3️⃣ [Terceiro passo da conduta]
+4️⃣ [Quarto passo (se aplicável)]
+5️⃣ [Quinto passo (se aplicável)]
 
-Mantenha o tom profissional, claro e objetivo, priorizando a fluidez e a continuidade do diálogo.
-
-Sempre permita que o médico possa continuar a conversa sobre o mesmo caso.
+**INSTRUÇÕES:**
+- Seja objetivo e direto, como em uma lista de verificação de plantão
+- Use emojis numerados (1️⃣, 2️⃣, 3️⃣...) para passos da conduta
+- Priorize ações práticas e imediatas
+- Mantenha frases curtas e imperativas
+- Sempre comece com "⚡ CONDUTA CLÍNICA RÁPIDA"
+- Máximo 5-7 passos para manter a praticidade
 
 Finalize com o aviso discreto:
 > Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.`;
@@ -777,14 +786,14 @@ Finalize com o aviso discreto:
     if (style === 'soap') {
       return `${basePrompt}
 
-Formato SOAP solicitado - use as divisões S/O/A/P mas mantenha o texto fluido dentro de cada seção.`;
+Formato SOAP solicitado - organize a conduta usando as divisões S/O/A/P, mas mantenha o formato de checklist dentro da seção P (Plano).`;
     } else if (style === 'personalizado' && customTemplate) {
       return `${basePrompt}
 
 Template personalizado:
 ${customTemplate}`;
     } else {
-      // Tradicional (default) - agora conversacional
+      // Tradicional (default) - formato de checklist
       return basePrompt;
     }
   }
@@ -793,24 +802,43 @@ ${customTemplate}`;
   function buildExplanatoryPrompt(evidenceContext?: string): string {
     const basePrompt = `Você é a IA médica do MédicoHelp, ferramenta exclusiva para médicos com CRM validado.
 
-No modo explicativo, responda de forma educacional mas **mantenha o formato conversacional e fluido**.
+**FORMATO DE RESPOSTA - MODO EXPLICATIVO + EVIDÊNCIAS:**
 
-Explique conceitos médicos com linguagem técnica profissional, cite diretrizes quando relevante, e apresente o racional científico das condutas.
+Forneça uma explicação completa e educacional em texto corrido, fundamentada em evidências científicas.
 
-Use texto corrido natural, evitando listas numeradas excessivas ou divisões rígidas, a menos que o médico solicite.
+**ESTRUTURA:**
+1. Explique o conceito médico, fisiopatologia ou racional da conduta de forma clara e profissional
+2. Use texto corrido fluido e natural, como em uma conversa educativa entre colegas
+3. Integre diretrizes e evidências de forma natural no texto
+4. SEMPRE finalize com uma seção de referências bibliográficas
 
-Seja conciso mas completo, mantendo sempre a fluidez da conversa de plantão entre colegas.
+**SEÇÃO DE EVIDÊNCIAS (OBRIGATÓRIA):**
+Ao final da explicação, inclua SEMPRE uma seção formatada assim:
 
-Finalize com o aviso discreto:
+📚 **Evidências clínicas:**
+- [Nome da Sociedade/Guideline] – [Título ou tipo de referência] [Ano]
+- [Nome da Base de Dados] – [Tópico específico]
+- [Outras referências relevantes]
+
+**EXEMPLO DE FORMATAÇÃO:**
+
+[Texto explicativo fluido sobre o tema, integrando conceitos, fisiopatologia e racional científico...]
+
+📚 **Evidências clínicas:**
+- American Heart Association (AHA) – ACLS Guidelines 2020
+- European Society of Cardiology (ESC) – Guideline for Management of XYZ 2023
+- UpToDate: "Management of [Condition] in Adults"
+- Cochrane Database: "Systematic Review on [Topic]"
+
 > Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.`;
 
     if (evidenceContext) {
       return `${basePrompt}
 
-CONTEXTO DE EVIDÊNCIAS:
+CONTEXTO DE EVIDÊNCIAS DO PUBMED:
 ${evidenceContext}
 
-Use este contexto para fundamentar sua explicação, mas não cite explicitamente as fontes.`;
+Use este contexto para fundamentar sua explicação e inclua na seção "📚 Evidências clínicas" ao final.`;
     }
 
     return basePrompt;

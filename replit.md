@@ -37,10 +37,13 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 **Feature Specifications:**
 - **Frontend Authentication UI**: Complete auth flow with protected routes and user profile management.
 - **AI Medical Chat with Dual-Mode System**:
-  - **Modo Clínico (DEFAULT)**: Medical scribe for structured clinical documentation (Tradicional, SOAP, Personalizado formats). Returns only structured content without explanations.
-  - **Modo Explicativo**: Educational assistant providing detailed explanations, pathophysiology, and clinical reasoning. Can silently integrate PubMed evidence.
+  - **Modo Clínico (DEFAULT)**: Quick clinical checklist format with structured action steps using emoji indicators (⚡, 1️⃣, 2️⃣, etc.). Optimized for rapid decision-making during clinical shifts.
+  - **Modo Explicativo + Evidências**: Educational explanations in natural flowing text with mandatory bibliographic references section (📚 Evidências clínicas). Integrates PubMed evidence when available.
   - **Automatic Trigger Detection**: Switches mode based on user input keywords (e.g., "explica", "por quê").
-  - **User Control**: Frontend toggle buttons for mode selection.
+  - **User Control**: Simplified frontend toggle system - "Clínico" button vs "Explicação + Evidências" toggle.
+  - **Response Formats**:
+    - Clinical: "⚡ CONDUTA CLÍNICA RÁPIDA" with 5-7 numbered action steps
+    - Explanatory: Flowing educational text + "📚 Evidências clínicas:" section with guidelines and references
   - **Technical**: SSE streaming for real-time responses, full conversation history, attachment support.
 - **Exam Analysis**: Multi-file upload, automatic analysis with GPT-5 Vision, contextual medical interpretation.
 - **Patient Management (CRUD)**: Complete patient lifecycle management, integrated with Memed for prescriptions.

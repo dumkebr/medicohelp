@@ -238,16 +238,20 @@ export function AppSidebar() {
                     <div className="truncate text-sm text-neutral-900 dark:text-white">{it.title}</div>
                     <div className="flex items-center gap-1">
                       <button
-                        onClick={(e) => handleToggleSaved(it.id, true, e)}
-                        className="text-xs px-2 py-0.5 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        onClick={(e) => { e.stopPropagation(); setSaved(it.id, true); setAtendimentos(listAtendimentos()); }}
+                        className="text-sm px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
                         data-testid={`button-save-${it.id}`}
                       >
                         Salvar
                       </button>
 
                       <button
-                        onClick={(e) => handleRenomear(it.id, it.title, e)}
-                        className="text-xs px-2 py-0.5 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const novo = prompt("Renomear para:", it.title || "");
+                          if (novo != null && novo.trim()) { renameAtendimento(it.id, novo); setAtendimentos(listAtendimentos()); }
+                        }}
+                        className="text-sm px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
                         data-testid={`button-rename-${it.id}`}
                       >
                         Renomear
@@ -255,7 +259,7 @@ export function AppSidebar() {
 
                       <button
                         onClick={(e) => handleRemoverAtendimento(it.id, e)}
-                        className="text-xs px-2 py-0.5 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-red-600 dark:text-red-400"
+                        className="text-sm px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-red-600 dark:text-red-400"
                         data-testid={`button-delete-${it.id}`}
                       >
                         Excluir
@@ -300,8 +304,8 @@ export function AppSidebar() {
                     <div className="flex items-center gap-1">
                       {!it.patientId && (
                         <button
-                          onClick={(e) => handleToggleSaved(it.id, false, e)}
-                          className="text-xs px-2 py-0.5 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                          onClick={(e) => { e.stopPropagation(); setSaved(it.id, false); setAtendimentos(listAtendimentos()); }}
+                          className="text-sm px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
                           data-testid={`button-unsave-${it.id}`}
                         >
                           Desfixar
@@ -309,8 +313,12 @@ export function AppSidebar() {
                       )}
 
                       <button
-                        onClick={(e) => handleRenomear(it.id, it.title, e)}
-                        className="text-xs px-2 py-0.5 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const novo = prompt("Renomear para:", it.title || "");
+                          if (novo != null && novo.trim()) { renameAtendimento(it.id, novo); setAtendimentos(listAtendimentos()); }
+                        }}
+                        className="text-sm px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
                         data-testid={`button-rename-${it.id}`}
                       >
                         Renomear
@@ -318,7 +326,7 @@ export function AppSidebar() {
 
                       <button
                         onClick={(e) => handleRemoverAtendimento(it.id, e)}
-                        className="text-xs px-2 py-0.5 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-red-600 dark:text-red-400"
+                        className="text-sm px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-red-600 dark:text-red-400"
                         data-testid={`button-delete-${it.id}`}
                       >
                         Excluir

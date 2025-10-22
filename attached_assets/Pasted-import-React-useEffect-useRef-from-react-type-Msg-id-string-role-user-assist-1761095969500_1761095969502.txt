@@ -1,0 +1,160 @@
+import React, { useEffect, useRef } from "react";
+
+type Msg = { id: string; role: "user" | "assistant"; text: string };
+
+export default function ChatScreen() {
+  // exemplo de estado (troque pelo seu store)
+  const [mode, setMode] = React.useState<"clinico" | "explicativo">("clinico");
+  const [evidence, setEvidence] = React.useState(false);
+  const [input, setInput] = React.useState("");
+  const [msgs, setMsgs] = React.useState<Msg[]>([]);
+  const threadRef = useRef<HTMLDivElement>(null);
+
+  // rolar pro fim quando chegam mensagens
+  useEffect(() => {
+    threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
+  }, [msgs.length]);
+
+  // enviar mensagem (substitua pela sua chamada de IA)
+  async function onSend() {
+    const content = input.trim();
+    if (!content) return;
+    const userMsg: Msg = { id: crypto.randomUUID(), role: "user", text: content };
+    setMsgs((m) => [...m, userMsg]);
+    setInput("");
+
+    // chame sua API passando historico + opções
+    // const res = await fetch("/api/ai/respond", { ... });
+    // const data = await res.json();
+    // Simulação:
+    const answer = `Beleza. (modo: ${mode}${evidence ? " + evidências" : ""})\n` +
+                   `Resposta em texto corrido, sem blocos repetidos.`;
+    const aiMsg: Msg = { id: crypto.randomUUID(), role: "assistant", text: answer };
+    setMsgs((m) => [...m, aiMsg]);
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) onSend();
+  }
+
+  return (
+    <div className="h-screen w-full bg-neutral-50 text-neutral-900 flex flex-col">
+      {/* TOPO FIXO */}
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-neutral-200">
+        <div className="max-w-5xl mx-auto px-3 py-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <img src="/logo-medicohelp.svg" alt="MédicoHelp" className="w-6 h-6" />
+            <span className="font-semibold">MédicoHelp</span>
+            <span className="text-xs text-neutral-500">Beta Gratuito</span>
+          </div>
+
+          {/* CONTROLES (fixos no topo) */}
+          <div className="flex items-center gap-2">
+            <Toggle
+              active={mode === "clinico"}
+              onClick={() => setMode("clinico")}
+              label="Modo Clínico"
+            />
+            <Toggle
+              active={mode === "explicativo"}
+              onClick={() => setMode("explicativo")}
+              label="Modo Explicativo"
+            />
+            <label className="flex items-center gap-2 text-sm ml-2">
+              <input
+                type="checkbox"
+                className="accent-emerald-600"
+                checked={evidence}
+                onChange={(e) => setEvidence(e.target.checked)}
+              />
+              Evidências Clínicas
+            </label>
+          </div>
+        </div>
+      </header>
+
+      {/* THREAD – só a conversa; sem nenhum bloco de controles aqui */}
+      <main
+        ref={threadRef}
+        className="flex-1 overflow-y-auto max-w-3xl w-full mx-auto px-3 py-4"
+      >
+        {msgs.length === 0 ? (
+          <div className="text-neutral-500 text-sm mt-8">
+            Digite abaixo para iniciar. Os controles ficam fixos no topo. A conversa aqui é contínua, sem seções repetidas.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {msgs.map((m) => (
+              <Bubble key={m.id} role={m.role} text={m.text} />
+            ))}
+          </div>
+        )}
+      </main>
+
+      {/* COMPOSER FIXO EMBAIXO */}
+      <footer className="sticky bottom-0 z-40 bg-white/90 backdrop-blur border-t border-neutral-200">
+        <div className="max-w-3xl mx-auto px-3 py-3">
+          <div className="rounded-2xl border border-neutral-300 bg-white p-2">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder="Digite sua pergunta clínica... (Ctrl+Enter para enviar)"
+              rows={1}
+              className="w-full resize-none outline-none p-2 text-[15px] leading-6"
+            />
+            <div className="flex items-center justify-between px-2 pb-1">
+              <span className="text-xs text-neutral-500">Até 10 arquivos (imagens ou PDF)</span>
+              <button
+                onClick={onSend}
+                className="px-4 py-1.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+              >
+                Enviar
+              </button>
+            </div>
+          </div>
+          <p className="text-[11px] text-neutral-500 mt-1">
+            Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+/* ====== componentes auxiliares ====== */
+
+function Toggle({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className={
+        "text-sm px-3 py-1.5 rounded-lg border transition " +
+        (active
+          ? "bg-emerald-600 text-white border-emerald-600"
+          : "bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-100")
+      }
+      aria-pressed={active}
+    >
+      {label}
+    </button>
+  );
+}
+
+function Bubble({ role, text }: { role: "user" | "assistant"; text: string }) {
+  const isUser = role === "user";
+  return (
+    <div className={"flex " + (isUser ? "justify-end" : "justify-start")}>
+      <div
+        className={
+          "max-w-[85%] rounded-2xl px-4 py-2 text-[15px] leading-6 whitespace-pre-line " +
+          (isUser
+            ? "bg-emerald-600 text-white"
+            : "bg-white border border-neutral-200 text-neutral-900")
+        }
+      >
+        {text}
+      </div>
+    </div>
+  );
+}

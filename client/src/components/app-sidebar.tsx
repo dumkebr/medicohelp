@@ -197,62 +197,26 @@ export function AppSidebar() {
 
         <SidebarSeparator className="my-2" />
 
-        {/* Atendimentos */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Atendimentos</SidebarGroupLabel>
-          <SidebarGroupContent className="space-y-2">
-            {(() => {
-              const savedItems = atendimentos.filter(it => isSaved(it));
-              const volatileItems = atendimentos.filter(it => !isSaved(it));
+        {(() => {
+          const savedItems = atendimentos.filter(it => isSaved(it));
+          const volatileItems = atendimentos.filter(it => !isSaved(it));
 
-              return (
-                <>
-                  {/* BOTÕES CABEÇALHO */}
-                  <div className="flex items-center justify-between px-3">
-                    <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Histórico</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleNovoAtendimento}
-                      className="h-6 px-2 text-xs"
-                      data-testid="button-novo-atendimento"
-                    >
-                      Novo
-                    </Button>
-                  </div>
+          return (
+            <>
+              {/* ATENDIMENTOS SALVOS (EM CIMA) */}
+              <SidebarGroup>
+                <div className="flex items-center justify-between pr-1">
+                  <SidebarGroupLabel>Atendimentos Salvos</SidebarGroupLabel>
+                  <Switch
+                    checked={showSaved}
+                    onCheckedChange={setShowSaved}
+                    className="scale-75 translate-y-[1px]"
+                    data-testid="toggle-saved"
+                  />
+                </div>
 
-                  {/* LISTA VOLÁTIL (não salvos e sem paciente) */}
-                  <div className="max-h-[22vh] overflow-auto divide-y rounded border border-neutral-200 dark:border-neutral-700">
-                    {volatileItems.length === 0 && (
-                      <div className="p-2 text-neutral-500 dark:text-neutral-400 text-xs">
-                        Sem históricos recentes.
-                      </div>
-                    )}
-                    {volatileItems.map((it) => (
-                      <ItemRow
-                        key={it.id}
-                        item={it}
-                        isActive={currentId === it.id}
-                        onOpen={() => handleAbrirAtendimento(it.id)}
-                        onDelete={(e) => handleRemoverAtendimento(it.id, e)}
-                        refresh={() => setAtendimentos(listAtendimentos())}
-                      />
-                    ))}
-                  </div>
-
-                  {/* SEÇÃO SALVOS */}
-                  <div className="flex items-center justify-between px-3 mt-3">
-                    <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                      Atendimentos Salvos
-                    </span>
-                    <Switch
-                      checked={showSaved}
-                      onCheckedChange={setShowSaved}
-                      className="scale-75"
-                      data-testid="toggle-saved"
-                    />
-                  </div>
-                  {showSaved && (
+                {showSaved && (
+                  <SidebarGroupContent className="space-y-2">
                     <div className="max-h-[22vh] overflow-auto divide-y rounded border border-neutral-200 dark:border-neutral-700">
                       {savedItems.length === 0 && (
                         <div className="p-2 text-neutral-500 dark:text-neutral-400 text-xs">
@@ -270,12 +234,49 @@ export function AppSidebar() {
                         />
                       ))}
                     </div>
-                  )}
-                </>
-              );
-            })()}
-          </SidebarGroupContent>
-        </SidebarGroup>
+                  </SidebarGroupContent>
+                )}
+              </SidebarGroup>
+
+              <SidebarSeparator className="my-2" />
+
+              {/* HISTÓRICO (EMBAIXO) */}
+              <SidebarGroup>
+                <div className="flex items-center justify-between pr-1">
+                  <SidebarGroupLabel>Histórico</SidebarGroupLabel>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleNovoAtendimento}
+                    className="h-6 px-2 text-xs"
+                    data-testid="button-novo-atendimento"
+                  >
+                    Novo
+                  </Button>
+                </div>
+                <SidebarGroupContent className="space-y-2">
+                  <div className="max-h-[22vh] overflow-auto divide-y rounded border border-neutral-200 dark:border-neutral-700">
+                    {volatileItems.length === 0 && (
+                      <div className="p-2 text-neutral-500 dark:text-neutral-400 text-xs">
+                        Sem históricos recentes.
+                      </div>
+                    )}
+                    {volatileItems.map((it) => (
+                      <ItemRow
+                        key={it.id}
+                        item={it}
+                        isActive={currentId === it.id}
+                        onOpen={() => handleAbrirAtendimento(it.id)}
+                        onDelete={(e) => handleRemoverAtendimento(it.id, e)}
+                        refresh={() => setAtendimentos(listAtendimentos())}
+                      />
+                    ))}
+                  </div>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </>
+          );
+        })()}
 
         {/* Módulos Especiais - only show if at least one is enabled */}
         {user && specialModules.some(module => user[module.settingKey]) && (

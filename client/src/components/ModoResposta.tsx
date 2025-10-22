@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Toggle } from "@/components/ui/toggle";
 import { Button } from "@/components/ui/button";
 import { FileText, BookOpen, Save } from "lucide-react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 interface ModoRespostaProps {
   initialMode?: 'clinico' | 'explicativo';
@@ -20,13 +21,28 @@ export function ModoResposta({
   showSaveButton = false,
   disabled = false,
 }: ModoRespostaProps) {
-  const [modoClinico, setModoClinico] = useState(initialMode === 'clinico');
-  const [mostrarExplicacao, setMostrarExplicacao] = useState(initialMode === 'explicativo' && evidenceEnabled);
+  // Persistir preferência do usuário
+  const [savedMode, setSavedMode] = useLocalStorage<'clinico' | 'explicativo'>('medicohelp_mode', initialMode);
+  const [savedEvidence, setSavedEvidence] = useLocalStorage<boolean>('medicohelp_evidence', evidenceEnabled);
+
+  const [modoClinico, setModoClinico] = useState(savedMode === 'clinico');
+  const [mostrarExplicacao, setMostrarExplicacao] = useState(savedMode === 'explicativo' && savedEvidence);
+
+  // Sincronizar com localStorage na inicialização
+  useEffect(() => {
+    if (savedMode === 'explicativo' && savedEvidence) {
+      setMostrarExplicacao(true);
+      setModoClinico(false);
+      onModeChange('explicativo', true);
+    }
+  }, []);
 
   const handleToggleClinico = () => {
     if (!modoClinico) {
       setModoClinico(true);
       setMostrarExplicacao(false);
+      setSavedMode('clinico');
+      setSavedEvidence(false);
       onModeChange('clinico', false);
     }
   };
@@ -35,6 +51,8 @@ export function ModoResposta({
     const novoValor = !mostrarExplicacao;
     setMostrarExplicacao(novoValor);
     setModoClinico(!novoValor);
+    setSavedMode(novoValor ? 'explicativo' : 'clinico');
+    setSavedEvidence(novoValor);
     onModeChange(novoValor ? 'explicativo' : 'clinico', novoValor);
   };
 

@@ -39,6 +39,7 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 -   **AI Medical Chat with Dual-Mode System**:
     -   **Modo Clínico (DEFAULT)**: Structured, rapid checklist format with guardrails, enforcing medical guidelines (SBC/AMB/CFM, ESC/AHA/ACC, etc.) and a mandatory 5-section response format (e.g., 1️⃣ Avaliar estabilidade → 5️⃣ Seguimento).
     -   **Modo Explicativo + Evidências**: Educational explanations with mandatory bibliographic references (📚 Evidências clínicas), integrating PubMed evidence.
+    -   **Personalized Greeting System**: Every AI response starts with an informal greeting using the physician's first name (e.g., "Beleza, João. Vamos direto ao ponto:"), followed by formal technical content. Name is automatically extracted from authenticated user data and stored in localStorage.
     -   Automatic mode switching based on user input, with user-controlled toggles.
 -   **Histórico de Atendimentos**: Manages multiple medical consultations, saved in localStorage, with sidebar navigation, search functionality, smart titling, and optional patient association. Includes a retention policy for consultations.
 -   **Exam Analysis**: Multi-file upload for automatic analysis and contextual medical interpretation.

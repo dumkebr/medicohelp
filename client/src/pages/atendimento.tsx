@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Send, Paperclip, Loader2, FileImage, X, Save, Brain, ExternalLink, FileText, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,47 @@ import {
   type Atendimento as AtendimentoType,
   type Mensagem
 } from "@/lib/atendimentos";
+
+// ========================= PERSONALIZAÇÃO DO MÉDICO =========================
+interface MedicoInfo {
+  nome: string;
+  especialidade?: string;
+  estilo?: string;
+}
+
+function getMedicoFromStorage(): MedicoInfo {
+  if (typeof window === "undefined") {
+    return { nome: "Dr. Médic(o)a" };
+  }
+
+  // Tentar localStorage primeiro
+  const raw = localStorage.getItem("medicohelp_user");
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      const nome = parsed?.nome || parsed?.name || parsed?.displayName;
+      if (nome) {
+        return { 
+          nome: nome.toString().startsWith("Dr") ? nome : `Dr. ${nome}`,
+          especialidade: parsed?.especialidade,
+          estilo: parsed?.estilo
+        };
+      }
+    } catch {}
+  }
+
+  return { nome: "Dr. Médic(o)a" };
+}
+
+function firstName(full: string): string {
+  const clean = full.replace(/^Dr\.?\s*/i, "").trim();
+  return clean.split(" ")[0] || clean;
+}
+
+function buildSaudacao(medico: MedicoInfo): string {
+  const nomeCurto = firstName(medico.nome);
+  return `Beleza, ${nomeCurto}. Vamos direto ao ponto:`;
+}
 
 // ========================= CLAIRTON STYLE SYSTEM =========================
 // Sistema de detecção local de cenários clínicos - "Estilo Clairton"
@@ -284,6 +325,11 @@ interface ChatHistoryItem {
 }
 
 export default function Atendimento() {
+  // ===== PERSONALIZAÇÃO =====
+  const medico = useMemo<MedicoInfo>(() => getMedicoFromStorage(), []);
+  const saudacao = useMemo(() => buildSaudacao(medico), [medico]);
+
+  // ===== ESTADO =====
   const [message, setMessage] = useState("");
   const [history, setHistory] = useState<ChatHistoryItem[]>([]);
   const [files, setFiles] = useState<File[]>([]);
@@ -487,16 +533,21 @@ export default function Atendimento() {
         }
       }
 
+      // 4️⃣ GARANTIR SAUDAÇÃO NO INÍCIO
+      const finalResponse = fullResponse.startsWith("Beleza,") || fullResponse.includes(saudacao)
+        ? fullResponse
+        : `**${saudacao}**\n\n${fullResponse}`;
+
       // Salvar no localStorage
       if (currentAtendimento) {
         const now = new Date().toISOString();
         addMensagem(currentAtendimento.id, { role: "user", content: userMessage, ts: now });
-        addMensagem(currentAtendimento.id, { role: "assistant", content: fullResponse, ts: now });
+        addMensagem(currentAtendimento.id, { role: "assistant", content: finalResponse, ts: now });
       }
 
       setHistory(prev => [...prev, {
         user: userMessage,
-        assistant: fullResponse,
+        assistant: finalResponse,
         references,
       }]);
 
@@ -513,7 +564,8 @@ export default function Atendimento() {
       setStreamingMessage("");
       
       if (error.name !== "AbortError") {
-        const fallbackResponse = localReply.body;
+        // Adicionar saudação na resposta local
+        const fallbackResponse = `**${saudacao}**\n\n${localReply.body}`;
         
         // Salvar resposta local
         if (currentAtendimento) {
@@ -898,7 +950,7 @@ export default function Atendimento() {
             }}
             uploadUrl="/api/upload"
             transcribeUrl="/api/transcribe"
-            placeholder="Digite sua pergunta clínica…"
+            placeholder={`Fala comigo como no plantão, ${firstName(medico.nome)} (ex.: 'IAM inferior com supra em D2, D3 e aVF, PA 90x60, FC 50').`}
             disabled={isLoading}
           />
 

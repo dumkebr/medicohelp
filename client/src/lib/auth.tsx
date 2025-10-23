@@ -36,6 +36,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     retry: false,
   });
 
+  // Salvar dados do médico no localStorage para personalização
+  useEffect(() => {
+    if (user && user.name) {
+      const medicoInfo = {
+        nome: user.name.startsWith("Dr") ? user.name : `Dr. ${user.name}`,
+        especialidade: user.role === "medico" ? (user.crm ? `CRM ${user.crm}/${user.uf}` : undefined) : undefined,
+      };
+      localStorage.setItem("medicohelp_user", JSON.stringify(medicoInfo));
+    } else {
+      localStorage.removeItem("medicohelp_user");
+    }
+  }, [user]);
+
   const login = (token: string) => {
     setAuthToken(token);
     setIsAuthenticated(true);
@@ -44,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     clearAuthToken();
     setIsAuthenticated(false);
+    localStorage.removeItem("medicohelp_user");
   };
 
   const refetchUser = () => {

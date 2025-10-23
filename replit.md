@@ -27,13 +27,14 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 **Technical Implementations:**
 -   **Frontend**: React, TanStack Query for state management.
 -   **Backend**: Node.js with Express.
--   **AI - Sistema Híbrido GPT-5**:
+-   **AI - Sistema Híbrido GPT-5 (LIBERADO TOTAL)**:
     -   **Primary Model**: GPT-5 with refined medical prompts (temperature 0.4, max 900 tokens for objective responses)
     -   **New API Integration**: Uses `client.responses.create()` and `client.responses.stream()` (latest OpenAI SDK)
     -   **Automatic Fallback Chain**: GPT-5 → GPT-4o (new API) → GPT-4o (legacy API) for maximum reliability
-    -   **NO Topic Restrictions**: Removed all medical-only filters - system maintains medical tone but responds to any subject
-    -   **Refined Prompts**: Specialist system prompts (`server/medicohelp-gpt5.ts`) that respect medical terminology (CAIXA ALTA, abbreviations like BEG, LOTE, MV+)
-    -   **Structured Responses**: Mode-specific formatting (Clínico: 👉⚡🔎📇, Explicativo: 👉📚⚡💡)
+    -   **✅ ZERO RESTRICTIONS**: Dra. Clarice responds to ABSOLUTELY ANY subject (weather, sports, jokes, recipes, etc.) - no medical-only filters
+    -   **Simplified Prompts**: Direct, conversational system prompts (`server/medicohelp-gpt5.ts`) with EXPLICIT "responde sobre qualquer assunto" instruction
+    -   **Medical Mode**: When topic is medical, maintains professional terminology (CAIXA ALTA, BEG, LOTE, MV+) and structured responses
+    -   **External Integrations**: New `/api/weather` endpoint demonstrates ability to fetch external data (weather from wttr.in)
     -   **Real-time Streaming**: Server-Sent Events (SSE) with chunk-by-chunk delivery via `event.type === 'response.output_text.delta'`
 -   **AI Tone**: Hybrid communication style combining informal personalized greeting with formal technical content. Starts with casual greeting using physician's first name (e.g., "Beleza, João. Vamos direto ao ponto:"), followed by formal technical communication with precise medical terminology (CID-10/11, SNOMED-CT, MeSH), evidence-based medicine (SBC, ESC, AHA, ACC, AMB, CFM), and professional language compatible with specialist-to-specialist communication.
 -   **Configuration System**: JSON-based configuration (`config/medicohelp.clinico.v1.json`) defines AI clinical response structure with 5 mandatory sections and guardrails to prevent AI from inventing data and to ensure it requests missing critical information. It enforces 5 "Leis do MédicoHelp" for response quality.
@@ -94,6 +95,16 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 -   **GitHub OAuth**: User authentication.
 
 ## Recent Updates (October 2025)
+
+### Dra. Clarice LIBERADA - Zero Restrictions (October 23, 2025) ✅
+- **System prompts simplified**: Removed all complex structures, made EXPLICIT that Dra. Clarice responds to ANY subject
+- **New weather endpoint**: `/api/weather` demonstrates external API integration (fetches weather from wttr.in)
+- **Updated prompts in `server/medicohelp-gpt5.ts`**: 
+  - SYSTEM_PROMPT_BASE now explicitly states "REGRA ABSOLUTA: Você responde sobre QUALQUER assunto"
+  - Removed all "medical-only" language and filters
+  - Simplified MODE_CLINICO and MODE_EXPLICATIVO prompts
+- **Documentation updated**: replit.md now reflects "ZERO RESTRICTIONS" policy
+- **Test it**: Ask about weather, sports, jokes, recipes, technology - Dra. Clarice will respond naturally!
 
 ### Voice Call Integration ✅
 - Integrated real-time voice calls using WebRTC + OpenAI Realtime API

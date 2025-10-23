@@ -1674,6 +1674,43 @@ Seja objetivo e técnico, mas mantenha o tom de conversa de plantão.`,
     }
   });
 
+  // ===== WEATHER ENDPOINT (Exemplo de integração externa) =====
+  app.get("/api/weather", async (req, res) => {
+    const city = req.query.city as string || "Terra Rica, PR";
+    
+    try {
+      const encodedCity = encodeURIComponent(city);
+      const response = await fetch(`https://wttr.in/${encodedCity}?format=j1`);
+      
+      if (!response.ok) {
+        throw new Error("Serviço de clima indisponível");
+      }
+      
+      const data: any = await response.json();
+      const area = data.nearest_area?.[0]?.areaName?.[0]?.value || city;
+      const current = data.current_condition?.[0];
+      const temp = current?.temp_C;
+      const desc = current?.lang_pt?.[0]?.value || current?.weatherDesc?.[0]?.value;
+      const precipMM = current?.precipMM;
+      
+      const weatherText = `Tempo em ${area}: ${desc}, ${temp}°C, precipitação ${precipMM}mm (fonte: wttr.in).`;
+      
+      res.json({ 
+        text: weatherText,
+        location: area,
+        temperature: temp,
+        description: desc,
+        precipitation: precipMM
+      });
+    } catch (error: any) {
+      console.error("Erro ao consultar clima:", error);
+      res.status(500).json({ 
+        text: "Não consegui consultar o tempo agora. Tente novamente mais tarde.",
+        error: error.message 
+      });
+    }
+  });
+
   // ===== MEDICAL TOOLS ROUTES =====
   const medicalToolsRouter = (await import("./routes/medicalTools")).default;
   app.use("/api/tools", medicalToolsRouter);

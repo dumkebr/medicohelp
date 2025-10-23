@@ -2,11 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* VERSION: 2024-10-23-TEAL-V2-FORCE-RELOAD */
-
 /* LIGHT MODE */
 :root {
-  --test-color: #00A79D; /* TEAL PRIMARY COLOR */
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
 

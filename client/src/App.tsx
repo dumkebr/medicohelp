@@ -30,6 +30,8 @@ import CalcPlaceholder from "@/pages/calc-placeholder";
 import CalcWells from "@/pages/calc-wells";
 import CalcGasometria from "@/pages/calc-gasometria";
 import CalcIG from "@/pages/calc-ig";
+import DemoLandingTeal from "@/pages/demo-landing-teal";
+import DemoChatTeal from "@/pages/demo-chat-teal";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -67,6 +69,8 @@ function AuthRouter() {
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/verify-code" component={VerifyCode} />
       <Route path="/demo-top-controls" component={DemoTopControls} />
+      <Route path="/demo-landing-teal" component={DemoLandingTeal} />
+      <Route path="/demo-chat-teal" component={DemoChatTeal} />
       <Route component={NotFound} />
     </Switch>
   );

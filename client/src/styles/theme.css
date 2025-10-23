@@ -1,5 +1,5 @@
-/* 🎨 MédicoHelp - Design Teal Profissional Simplificado */
-/* Versão: 2025-10-23-FINAL-CLEAN */
+/* 🎨 MédicoHelp - Design System Teal */
+/* Versão: 2025-10-23-V4-COMPLETE */
 
 :root {
   --brand-900: #004C5E;
@@ -25,43 +25,65 @@
 }
 
 body {
-  font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
   background: var(--bg);
   color: var(--text);
-  margin: 0;
-  transition: background .25s, color .25s;
+  font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
-header {
+.container {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.header {
   background: var(--bg);
   border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 12px 0;
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .hero {
   display: flex;
-  gap: 24px;
+  gap: 28px;
   align-items: center;
   justify-content: space-between;
-  padding: 24px;
-  margin: 24px;
   background: var(--bg-soft);
   border: 1px solid var(--border);
   border-radius: 16px;
+  padding: 28px;
+  margin-top: 24px;
+}
+
+.btn {
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s;
 }
 
 .btn-primary {
   background: var(--brand-500);
   color: #fff;
   border: none;
-  border-radius: 12px;
-  padding: 10px 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
 }
 
 .btn-primary:hover {
@@ -70,17 +92,103 @@ header {
 }
 
 .btn-outline {
-  border: 1px solid var(--brand-500);
-  color: var(--brand-500);
   background: transparent;
-  border-radius: 12px;
-  padding: 10px 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
+  color: var(--brand-500);
+  border: 1px solid var(--brand-500);
 }
 
 .btn-outline:hover {
   background: var(--muted);
   border-color: var(--brand-800);
+}
+
+.card {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.sidebar {
+  width: 280px;
+}
+
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 70vh;
+}
+
+.msgs {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+  padding: 12px;
+}
+
+.bubble {
+  max-width: 70%;
+  padding: 12px 14px;
+  border-radius: 14px;
+}
+
+.bubble.user {
+  align-self: flex-end;
+  background: #1c3b3f;
+}
+
+.bubble.ai {
+  align-self: flex-start;
+  background: #0e3336;
+  border: 1px solid var(--border);
+}
+
+.inputbar {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.inputbar input {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  padding: 12px;
+}
+
+.inputbar input::placeholder {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.grid {
+  display: flex;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+@media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .grid {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+  }
 }

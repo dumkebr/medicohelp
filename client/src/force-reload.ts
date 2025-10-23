@@ -1,3 +1,3 @@
-// Force reload timestamp - Design Final Clean
+// Force reload timestamp - Design Teal V4 Complete
 export const BUILD_TIME = Date.now();
-export const VERSION = "TEAL_FINAL_CLEAN";
+export const VERSION = "TEAL_V4_COMPLETE";

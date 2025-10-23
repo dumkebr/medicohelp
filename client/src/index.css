@@ -1,4 +1,4 @@
-/* 🔥 FORCE RELOAD: v20251023-DARK-UNICO-v2 - Tudo no mesmo tom escuro */
+/* 🔥 FORCE RELOAD: v20251023-GREEN-SIDEBAR - Sidebar verde com coração */
 @import './styles/theme.css';
 
 @tailwind base;
@@ -13,25 +13,19 @@ html,
   color: #e8f4f8 !important;
 }
 
-/* Sidebar e Header no mesmo tom */
+/* Sidebar e Header no tom verde brilhante */
 [data-sidebar],
-header,
-.sidebar-header {
-  background-color: #041012 !important;
+header {
+  background-color: #00e699 !important;
 }
 
-/* Textos bem claros para contrastar */
-[data-sidebar] * {
-  color: #e8f4f8 !important;
-}
-
-/* Preservar cores dos botões verdes */
-[data-sidebar] button[class*="bg-"],
-[data-sidebar] a[class*="bg-"],
-.text-primary,
-[style*="#00e699"],
-[class*="text-[#00e699]"] {
-  color: inherit !important;
+/* Texto ESCURO no sidebar verde */
+[data-sidebar],
+[data-sidebar] *,
+[data-sidebar] button,
+[data-sidebar] a,
+[data-sidebar] span {
+  color: #041012 !important;
 }
 
 /* LIGHT MODE */

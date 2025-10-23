@@ -40,7 +40,7 @@ export function Header() {
             <div className="flex flex-col">
               <div className="flex items-center gap-1 font-serif text-xl leading-none">
                 <span className="text-foreground">Médico</span>
-                <span className="text-primary">Help</span>
+                <span className="text-[#1affb8]">Help</span>
               </div>
               <p className="text-xs text-muted-foreground">Sua aliada inteligente na decisão clínica</p>
             </div>

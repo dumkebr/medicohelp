@@ -157,7 +157,7 @@ export function AppSidebar() {
           />
           <div className="flex items-baseline gap-0.5">
             <span className="text-[28px] font-black tracking-tight text-white">Médico</span>
-            <span className="text-[28px] font-black tracking-tight text-[#00d9a3]">Help</span>
+            <span className="text-[28px] font-black tracking-tight text-[#1affb8]">Help</span>
           </div>
         </Link>
       </SidebarHeader>

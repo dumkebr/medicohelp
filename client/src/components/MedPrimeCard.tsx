@@ -29,7 +29,7 @@ export default function MedPrimeCard({ onAccess, className = "", restricted = tr
 
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3">
-          <img src={medprimeHeartIcon} alt="" className="h-24 w-24" aria-hidden="true" />
+          <img src={medprimeHeartIcon} alt="" className="h-32 w-32" aria-hidden="true" />
           <div className="min-w-0">
             <CardTitle className="text-2xl font-bold tracking-tight">MedPrime</CardTitle>
             <CardDescription className="text-emerald-100/90">

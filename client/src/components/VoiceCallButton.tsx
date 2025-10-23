@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
 import { Phone, PhoneOff } from "lucide-react";
+import CallOverlay from "./CallOverlay";
 
 export default function VoiceCallButton() {
+  const [isConnecting, setIsConnecting] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
@@ -9,9 +11,12 @@ export default function VoiceCallButton() {
 
   async function startCall() {
     try {
+      setIsConnecting(true);
+      
       // 1) Pega token efêmero e configurações
       const ticket = await fetch("/api/voice/session").then(r => r.json());
       if (!ticket?.client_secret?.value) {
+        setIsConnecting(false);
         alert("Falha ao obter token efêmero para chamada de voz.");
         return;
       }
@@ -69,10 +74,12 @@ export default function VoiceCallButton() {
       const answer: RTCSessionDescriptionInit = { type: "answer", sdp: answerSdp };
       await pc.setRemoteDescription(answer);
 
+      setIsConnecting(false);
       setIsCalling(true);
     } catch (err: any) {
       console.error("Erro ao iniciar chamada:", err);
       alert("Não foi possível iniciar a chamada de voz: " + err.message);
+      setIsConnecting(false);
       await hangup();
     }
   }
@@ -80,6 +87,7 @@ export default function VoiceCallButton() {
   async function hangup() {
     try {
       setIsCalling(false);
+      setIsConnecting(false);
       if (pcRef.current) {
         pcRef.current.getSenders().forEach(sender => {
           try { sender.track?.stop(); } catch {}
@@ -99,24 +107,39 @@ export default function VoiceCallButton() {
     }
   }
 
+  const overlayVisible = isConnecting || isCalling;
+  const overlayStatus = isConnecting 
+    ? "Ligando para Dra. Clarice..." 
+    : "Em chamada com Dra. Clarice";
+
   return (
-    <button
-      onClick={isCalling ? hangup : startCall}
-      className={`btn ${isCalling ? "btn-outline" : "btn-primary"}`}
-      style={{ 
-        display: "flex", 
-        alignItems: "center", 
-        gap: 8,
-        padding: "10px 16px",
-        backgroundColor: isCalling ? "transparent" : "var(--brand-500)",
-        color: isCalling ? "var(--brand-500)" : "#fff",
-        border: isCalling ? "1px solid var(--brand-500)" : "none"
-      }}
-      title={isCalling ? "Encerrar chamada de voz" : "Ligar para Dra. Clarice"}
-      data-testid={isCalling ? "button-hangup" : "button-call"}
-    >
-      {isCalling ? <PhoneOff size={18} /> : <Phone size={18} />}
-      <span>{isCalling ? "Encerrar" : "Ligar"}</span>
-    </button>
+    <>
+      <CallOverlay 
+        visible={overlayVisible} 
+        status={overlayStatus} 
+        photoSrc="/clarice-voice.png"
+        onClose={() => {}}
+      />
+      
+      <button
+        onClick={isCalling ? hangup : startCall}
+        className={`btn ${isCalling || isConnecting ? "btn-outline" : "btn-primary"}`}
+        style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: 8,
+          padding: "10px 16px",
+          backgroundColor: isCalling || isConnecting ? "transparent" : "var(--brand-500)",
+          color: isCalling || isConnecting ? "var(--brand-500)" : "#fff",
+          border: isCalling || isConnecting ? "1px solid var(--brand-500)" : "none"
+        }}
+        title={isCalling ? "Encerrar chamada de voz" : isConnecting ? "Conectando..." : "Ligar para Dra. Clarice"}
+        data-testid={isCalling ? "button-hangup" : "button-call"}
+        disabled={isConnecting}
+      >
+        {isCalling ? <PhoneOff size={18} /> : <Phone size={18} />}
+        <span>{isConnecting ? "Conectando..." : isCalling ? "Encerrar" : "Ligar"}</span>
+      </button>
+    </>
   );
 }

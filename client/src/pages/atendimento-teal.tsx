@@ -2,7 +2,6 @@ import "../styles/theme.css";
 import "../styles/responsive.css";
 import Mascote from "../components/Mascote";
 import VoiceCallButton from "../components/VoiceCallButton";
-import ClariceAvatar from "../components/ClariceAvatar";
 import { useState, useRef, useEffect } from "react";
 import { sendChatStream } from "../services/chat-stream";
 import { Paperclip, Image as ImageIcon, Mic, MicOff, Download, X } from "lucide-react";
@@ -216,7 +215,7 @@ export default function AtendimentoTeal() {
 
       {/* Chat área - ocupa todo espaço disponível */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-        <section className="chat card" style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, position: "relative", overflow: "visible" }}>
+        <section className="chat card" style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
           <div className="msgs" ref={chatRef} style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
             {messages.length === 1 && (
               <div style={{ 
@@ -360,8 +359,6 @@ export default function AtendimentoTeal() {
               {loading ? "..." : "Enviar"}
             </button>
           </div>
-          
-          <ClariceAvatar />
         </section>
       </div>
     </div>

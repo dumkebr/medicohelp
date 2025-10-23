@@ -135,43 +135,44 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  --background: 160 80% 8%;
+  /* 🎨 ESQUEMA ESCURO ÚNICO - Fundo #041012 em tudo */
+  --background: 180 55% 4%;  /* #041012 - escuro único */
 
-  --foreground: 160 10% 95%;
+  --foreground: 180 10% 95%;
 
-  --border: 160 40% 18%;
+  --border: 180 40% 12%;  /* #0b2c33 - borda discreta */
 
-  --card: 160 60% 12%;
+  --card: 180 50% 8%;  /* #062027 - leve contraste interno */
 
-  --card-foreground: 160 10% 95%;
+  --card-foreground: 180 10% 95%;
 
-  --card-border: 160 50% 16%;
+  --card-border: 180 40% 12%;  /* #0b2c33 */
 
-  --sidebar: 160 55% 14%;
+  --sidebar: 180 55% 4%;  /* mesmo tom do background */
 
-  --sidebar-foreground: 160 10% 95%;
+  --sidebar-foreground: 180 10% 95%;
 
-  --sidebar-border: 160 45% 20%;
+  --sidebar-border: 180 40% 12%;  /* #0b2c33 */
 
-  --sidebar-primary: 176 60% 55%;
+  --sidebar-primary: 155 100% 45%;  /* #00e699 - verde teal brilhante */
 
-  --sidebar-primary-foreground: 176 10% 98%;
+  --sidebar-primary-foreground: 180 55% 4%;  /* texto escuro no verde */
 
-  --sidebar-accent: 160 50% 18%;
+  --sidebar-accent: 180 45% 10%;  /* #0a2530 */
 
-  --sidebar-accent-foreground: 160 10% 95%;
+  --sidebar-accent-foreground: 180 80% 85%;  /* #d2f7ff */
 
-  --sidebar-ring: 176 60% 55%;
+  --sidebar-ring: 155 100% 45%;
 
-  --popover: 160 55% 16%;
+  --popover: 180 50% 8%;
 
-  --popover-foreground: 160 10% 95%;
+  --popover-foreground: 180 10% 95%;
 
-  --popover-border: 160 50% 20%;
+  --popover-border: 180 40% 12%;
 
-  --primary: 176 80% 45%;
+  --primary: 155 100% 45%;  /* #00e699 */
 
-  --primary-foreground: 176 10% 98%;
+  --primary-foreground: 180 55% 4%;  /* texto escuro no verde */
 
   --secondary: 160 45% 20%;
 

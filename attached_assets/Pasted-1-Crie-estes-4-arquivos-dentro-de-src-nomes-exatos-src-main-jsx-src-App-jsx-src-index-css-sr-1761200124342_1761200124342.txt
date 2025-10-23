@@ -1,0 +1,233 @@
+1) Crie estes 4 arquivos dentro de src/ (nomes exatos)
+
+src/main.jsx
+
+src/App.jsx
+
+src/index.css
+
+src/DrHelpChat.jsx
+
+Se alguma pasta/arquivo já existe, substitui o conteúdo pelo que vai abaixo.
+
+src/main.jsx
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.jsx'
+
+createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+)
+
+src/App.jsx
+import React from 'react'
+import DrHelpChatShell from './DrHelpChat.jsx'
+
+export default function App() {
+  return <DrHelpChatShell />
+}
+
+src/index.css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* rolagem bonita */
+html, body, #root { height: 100%; }
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-thumb { border-radius: 8px; background: #d1d5db; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+src/DrHelpChat.jsx
+import React, { useEffect, useRef, useState } from "react";
+import { Mic, MicOff, Image as ImageIcon, Paperclip, Send, Download, Plus } from "lucide-react";
+
+const STORAGE_KEY = "drhelp_chat_messages_v1";
+const STORAGE_MODE_KEY = "drhelp_chat_mode_v1"; // "clinico" | "fundamentacao"
+
+export default function DrHelpChatShell() {
+  return (
+    <div className="flex h-screen w-full bg-white text-gray-800">
+      <div className="flex-1 border-l">
+        <DrHelpChatBox />
+      </div>
+    </div>
+  );
+}
+
+function DrHelpChatBox() {
+  const [messages, setMessages] = useState(() => {
+    try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; } catch { return []; }
+  });
+  const [mode, setMode] = useState(() => {
+    try { return localStorage.getItem(STORAGE_MODE_KEY) || "clinico"; } catch { return "clinico"; }
+  });
+  const [input, setInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [streamingText, setStreamingText] = useState("");
+  const chatRef = useRef(null);
+  const fileRef = useRef(null);
+  const photoRef = useRef(null);
+  const recognitionRef = useRef(null);
+
+  useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages)); }, [messages]);
+  useEffect(() => { localStorage.setItem(STORAGE_MODE_KEY, mode); }, [mode]);
+  useEffect(() => {
+    const el = chatRef.current; if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [messages, streamingText]);
+
+  async function handleSend() {
+    const trimmed = input.trim();
+    if (!trimmed || isSending) return;
+    setIsSending(true);
+    const userMsg = { id: crypto.randomUUID(), role: "user", content: trimmed };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+
+    try {
+      const aiText = await mockSendToDrHelp(trimmed, mode);
+      await streamAssistantText(aiText);
+    } catch {
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: "[Erro ao obter resposta. Tente novamente.]" }]);
+    } finally { setIsSending(false); }
+  }
+
+  async function streamAssistantText(fullText) {
+    const id = crypto.randomUUID();
+    setMessages((prev) => [...prev, { id, role: "assistant", content: "" }]);
+    let acc = "";
+    for (let i = 0; i < fullText.length; i++) {
+      acc += fullText[i];
+      setStreamingText(acc);
+      setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, content: acc } : m)));
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((r) => setTimeout(r, 10));
+    }
+    setStreamingText("");
+  }
+
+  function downloadChat() {
+    const text = messages.map((m) => `${m.role === "user" ? "MÉDICO" : "DR. HELP"}: ${m.content}`).join("\n\n");
+    const blob = new Blob([text], { type: "text/plain" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `conversa-${new Date().toISOString().slice(0, 19)}.txt`;
+    link.click();
+  }
+
+  function newEncounter() { setMessages([]); setInput(""); setStreamingText(""); }
+
+  function onAttachClick() { fileRef.current?.click(); }
+  function onPhotoClick() { photoRef.current?.click(); }
+  function onFilesSelected(e) {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    const info = files.map((f) => `• ${f.name} (${Math.round(f.size / 1024)} KB)`).join("\n");
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content: `Anexos adicionados:\n${info}` }]);
+    e.target.value = "";
+  }
+
+  function toggleVoice() {
+    if (isListening && recognitionRef.current) { recognitionRef.current.stop(); return; }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert("Reconhecimento de voz não suportado neste navegador."); return; }
+    const rec = new SR();
+    rec.lang = "pt-BR"; rec.interimResults = true; rec.continuous = true;
+    rec.onstart = () => setIsListening(true);
+    rec.onend = () => setIsListening(false);
+    rec.onerror = () => setIsListening(false);
+    rec.onresult = (ev) => {
+      let transcript = "";
+      for (let i = ev.resultIndex; i < ev.results.length; i++) transcript += ev.results[i][0].transcript;
+      setInput((prev) => (prev ? prev + " " : "") + transcript.trim());
+    };
+    recognitionRef.current = rec; rec.start();
+  }
+
+  const modeBtn = (m, label) => (
+    <button onClick={() => setMode(m)}
+      className={`px-3 py-1 rounded-lg border text-sm ${mode === m ? "bg-green-600 text-white border-green-700" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"}`}>
+      {label}
+    </button>
+  );
+
+  return (
+    <div className="flex h-full w-full flex-col bg-white">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white/80 px-4 py-2 backdrop-blur">
+        <div className="flex gap-2">
+          {modeBtn("clinico", "Clínico")}
+          {modeBtn("fundamentacao", "Fundamentação teórica")}
+        </div>
+        <div className="flex gap-2">
+          <button onClick={newEncounter} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm text-gray-700 hover:bg-gray-50"><Plus className="h-4 w-4" /> Novo</button>
+          <button onClick={downloadChat} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm text-gray-700 hover:bg-gray-50"><Download className="h-4 w-4" /> Baixar</button>
+        </div>
+      </div>
+
+      <div ref={chatRef} className="flex-1 overflow-y-auto px-4 py-4" style={{ scrollBehavior: "smooth" }}>
+        {messages.length === 0 && (
+          <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-dashed border-gray-300 p-6 text-sm text-gray-500">
+            Beleza, Doutor. Vamos direto ao ponto: em que posso ajudar?
+            <br />
+            <span className="text-xs">Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.</span>
+          </div>
+        )}
+        {messages.map((m) => (<ChatBubble key={m.id} role={m.role} text={m.content} />))}
+        {streamingText && <ChatBubble role="assistant" text={streamingText} streaming />}
+      </div>
+
+      <div className="sticky bottom-0 z-10 border-t bg-white/80 px-4 py-3 backdrop-blur">
+        <div className="mx-auto flex max-w-3xl items-end gap-2">
+          <div className="flex items-center gap-2">
+            <button onClick={toggleVoice} className={`rounded-lg border px-2 py-2 ${isListening ? "border-green-600 text-green-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>{isListening ? <MicOff className="h-5 w-5"/> : <Mic className="h-5 w-5"/>}</button>
+            <button onClick={onAttachClick} className="rounded-lg border border-gray-300 px-2 py-2 text-gray-600 hover:bg-gray-50"><Paperclip className="h-5 w-5"/></button>
+            <input ref={fileRef} type="file" multiple className="hidden" onChange={onFilesSelected} />
+            <button onClick={onPhotoClick} className="rounded-lg border border-gray-300 px-2 py-2 text-gray-600 hover:bg-gray-50"><ImageIcon className="h-5 w-5"/></button>
+            <input ref={photoRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onFilesSelected} />
+          </div>
+          <div className="relative flex-1">
+            <textarea
+              value={input}
+              onChange={(e) => { setInput(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+              rows={1}
+              placeholder={mode === "clinico" ? "Descreva o caso clínico (ex.: 'IAM inferior com supra em D2, D3 e aVF, PA 90×60, FC 50')" : "Faça sua pergunta. O Dr. Help responde com fundamentação teórica."}
+              className="max-h-40 w-full resize-none overflow-hidden rounded-xl border border-gray-300 bg-white p-3 pr-10 text-sm shadow-sm focus:border-green-600 focus:outline-none"
+            />
+            <button onClick={handleSend} disabled={isSending || !input.trim()} className="absolute bottom-2 right-2 rounded-lg bg-green-600 px-3 py-2 text-white shadow-sm hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"><Send className="h-4 w-4" /></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChatBubble({ role, text, streaming }) {
+  const isUser = role === "user";
+  return (
+    <div className={`mb-3 flex ${isUser ? "justify-end" : "justify-start"}`}>
+      <div className={`${isUser ? "bg-green-600 text-white" : "bg-gray-100 text-gray-900"} max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm shadow`}>
+        {text}
+        {streaming && <span className="ml-1 animate-pulse">▍</span>}
+      </div>
+    </div>
+  );
+}
+
+async function mockSendToDrHelp(prompt, mode) {
+  const header = mode === "clinico" ? "Beleza, Doutor. Vamos direto ao ponto:" : "Fundamentação teórica (resumo):";
+  const txt = `${header}\n\nVocê disse: ${prompt}\n\n> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.`;
+  await new Promise((r) => setTimeout(r, 300));
+  return txt;
+}
+
+2) Instalar e rodar
+
+No Shell do Replit:
+
+npm install
+npm run dev

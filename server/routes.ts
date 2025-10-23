@@ -1614,6 +1614,66 @@ Seja objetivo e técnico, mas mantenha o tom de conversa de plantão.`,
     }
   });
 
+  // ===== VOICE CALL ROUTES =====
+  // Endpoint para criar token efêmero para chamada de voz com Realtime API
+  app.get("/api/voice/session", async (req, res) => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({
+          error: "OPENAI_API_KEY não configurada",
+        });
+      }
+
+      const MODEL = "gpt-4o-realtime-preview";
+      const VOICE = "aria"; // Voz feminina
+
+      // Cria sessão/ticket efêmero de Realtime
+      const response = await fetch("https://api.openai.com/v1/realtime/sessions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          voice: VOICE,
+          modalities: ["text", "audio"],
+          instructions: "Você é a Dra. Clarice, uma médica experiente e acolhedora. Fale em português brasileiro, de forma clara e profissional, mas amigável.",
+        })
+      });
+
+      if (!response.ok) {
+        const errTxt = await response.text();
+        console.error("Erro ao criar sessão Realtime:", errTxt);
+        return res.status(response.status).json({
+          error: "Falha ao criar sessão Realtime",
+          details: errTxt
+        });
+      }
+
+      const data = await response.json();
+      
+      if (!data?.client_secret?.value) {
+        return res.status(500).json({
+          error: "Resposta da OpenAI sem client_secret.value",
+          raw: data
+        });
+      }
+
+      res.json({
+        client_secret: data.client_secret,
+        model: MODEL,
+        voice: VOICE
+      });
+    } catch (error: any) {
+      console.error("Erro /api/voice/session:", error);
+      res.status(500).json({
+        error: "Erro inesperado ao criar sessão de voz",
+        details: String(error)
+      });
+    }
+  });
+
   // ===== MEDICAL TOOLS ROUTES =====
   const medicalToolsRouter = (await import("./routes/medicalTools")).default;
   app.use("/api/tools", medicalToolsRouter);

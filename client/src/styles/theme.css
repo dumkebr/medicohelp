@@ -22,6 +22,16 @@
   margin-bottom: 16px;
 }
 
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
 .light {
   --bg: #F5FAF9;
   --bg-soft: #E9F7F6;

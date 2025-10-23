@@ -34,6 +34,7 @@ import CalcIG from "@/pages/calc-ig";
 import DemoLandingTeal from "@/pages/demo-landing-teal";
 import DemoChatTeal from "@/pages/demo-chat-teal";
 import AtendimentoTeal from "@/pages/atendimento-teal";
+import Landing from "@/pages/landing";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -57,15 +58,9 @@ function OAuthHandler() {
 }
 
 function AuthRouter() {
-  const [location] = useLocation();
-  
-  // Redirect root to login only when at exact root path
-  if (location === "/") {
-    return <Redirect to="/login" />;
-  }
-  
   return (
     <Switch>
+      <Route path="/" component={Landing} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/forgot-password" component={ForgotPassword} />

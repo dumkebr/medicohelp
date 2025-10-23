@@ -1,29 +1,16 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
-import "./index.css";
+import "./index.css"; // Import direto (cache busting via HTML)
 import { BUILD_TIME, VERSION } from "./force-reload";
 
-// 🔥 CACHE KILLER: Limpar service workers e cache do navegador
-async function killCache() {
-  console.log("🧹 Limpando cache e service workers...");
-  
-  // Matar service workers
-  if ("serviceWorker" in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(registrations.map(r => r.unregister()));
-  }
-  
-  // Limpar cache storage
-  if ("caches" in window) {
-    const keys = await caches.keys();
-    await Promise.all(keys.map(k => caches.delete(k)));
-  }
-  
-  console.log("✅ Cache limpo!");
+const __BUILD_VERSION__ = "2025-10-23-05";
+
+// 🔥 CACHE KILLER: Matar service workers e limpar caches antigos
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+  if (window.caches) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
 }
 
-killCache().catch(console.error);
-
-console.log(`🎨 MédicoHelp ${VERSION} - Build: ${BUILD_TIME}`);
+console.log(`🎨 MédicoHelp ${VERSION} - Build: ${BUILD_TIME} (v${__BUILD_VERSION__})`);
 
 createRoot(document.getElementById("root")!).render(<App />);

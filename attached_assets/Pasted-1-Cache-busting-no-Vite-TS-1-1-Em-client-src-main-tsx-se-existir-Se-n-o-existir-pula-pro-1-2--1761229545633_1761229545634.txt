@@ -1,0 +1,195 @@
+1) Cache-busting no Vite + TS
+1.1 Em client/src/main.tsx (se existir)
+
+Se não existir, pula pro 1.2 e faz direto no index.html.
+
+Cola no topo:
+
+const __BUILD_VERSION__ = "2025-10-23-04";
+
+// mata SW e limpa caches antigos
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+  if (window.caches) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+}
+
+// importa seu tema com query p/ bust
+import "./styles/theme.css?ver="+__BUILD_VERSION__;
+
+1.2 Em client/index.html (funciona MESMO que não tenha main.tsx)
+
+Abra e garanta que os assets estão com versão:
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- busta favicon e css se for o caso -->
+    <link rel="icon" href="/favicon.svg?v=2025-10-23-04">
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Vite carrega o entry; adiciona ?v= -->
+    <script type="module" src="/src/main.tsx?v=2025-10-23-04"></script>
+  </body>
+</html>
+
+
+Se teu entry for index.tsx em vez de main.tsx, troca o nome ali.
+Dica: na própria imagem aparece “Opened client/index.html”, então é aqui mesmo.
+
+1.3 Importar o tema no TS
+
+No arquivo de entrada (ex.: client/src/main.tsx ou index.tsx):
+
+import "./styles/theme.css?ver=2025-10-23-04";
+
+1.4 Se usa PWA/Workbox (service worker)
+
+Em client/vite.config.ts, desliga o plugin PWA (ou evita registrar em dev):
+
+// se estiver usando vite-plugin-pwa, comente a linha do plugin
+// PWA()...
+
+
+E remova qualquer registerSW() do front.
+
+2) Atualiza logo/tema no TS (apenas caminhos)
+
+client/public/logo-medicohelp-horizontal.svg
+
+client/public/logo-medicohelp-icon.svg
+
+No teu React:
+
+<img src={"/logo-medicohelp-horizontal.svg?v=2025-10-23-04"} alt="MédicoHelp" />
+
+
+E o CSS:
+
+import "../styles/theme.css?ver=2025-10-23-04";
+
+3) Proxy do GPT-5 (server) — compatível com teu projeto
+
+Se teu backend já existe, mantém.
+Se não tiver, cria na raiz do repositório (fora de client/) um server.js igual abaixo e inicia em paralelo.
+
+server.js
+
+const express = require("express");
+const fetch = require("node-fetch");
+const cors = require("cors");
+const path = require("path");
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: "2mb" }));
+
+// evita cache chato em HTML/CSS/SVG
+app.use((req, res, next) => {
+  if (/\.(html|css|svg)$/.test(req.url)) {
+    res.set("Cache-Control", "no-store, max-age=0");
+  }
+  next();
+});
+
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { messages, model = "gpt-5", temperature = 0.2 } = req.body || {};
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ error: "OPENAI_API_KEY ausente nos Secrets do Replit." });
+    }
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ model, messages, temperature })
+    });
+    const data = await r.json();
+    if (!r.ok) return res.status(r.status).json(data);
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message || "Erro desconhecido no proxy." });
+  }
+});
+
+app.get("/api/ping", (_req, res) => res.json({ ok: true }));
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log("✅ Proxy OpenAI em http://localhost:"+PORT));
+
+
+package.json (na raiz) — scripts pra subir client Vite + proxy:
+
+{
+  "name": "medicohelp",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev:client": "vite --config client/vite.config.ts --host 0.0.0.0 --port 5173",
+    "server": "node server.js",
+    "start": "concurrently \"npm run server\" \"npm run dev:client\"",
+    "build:client": "vite build --config client/vite.config.ts",
+    "preview:client": "vite preview --config client/vite.config.ts --host 0.0.0.0 --port 5173",
+    "start:preview": "concurrently \"npm run server\" \"npm run preview:client\""
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "node-fetch": "^2.6.11"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}
+
+
+Se teu vite.config.ts já está dentro de client/, esse script já aponta pra ele.
+Secrets do Replit: adicione OPENAI_API_KEY.
+
+4) Rodar do zero no Replit (sem pegadinha)
+
+No Shell:
+
+rm -rf node_modules client/node_modules dist client/dist
+npm i
+npm run start
+
+
+Abra em aba anônima:
+
+https://SEU-PROJETO.replit.app/?v=2025-10-23-04
+
+
+Teste o proxy:
+
+https://SEU-PROJETO.replit.app/api/ping   ->  { "ok": true }
+
+
+Se o chat ainda “não muda”:
+
+Hard reload (Ctrl+F5)
+
+Limpa Storage (F12 → Application → Clear site data)
+
+Confere a URL está com ?v=2025-10-23-04
+
+5) Onde colocar o tema teal e a logo no TS
+
+client/src/styles/theme.css → já com tuas variáveis.
+
+client/public/logo-medicohelp-horizontal.svg e logo-medicohelp-icon.svg.
+
+Nos teus componentes TSX (ex.: client/src/App.tsx), use:
+
+import "./styles/theme.css?ver=2025-10-23-04";
+<img src={"/logo-medicohelp-horizontal.svg?v=2025-10-23-04"} />
+
+6) Dica específica pro teu print
+
+O agente do Replit disse: “Projeto tem client/src/App.tsx e não tem src/main.jsx”.
+Beleza — faz o bust de cache no client/index.html (item 1.2) e importa o tema com ?ver= no App.tsx ou no entry (se existir main.tsx/index.tsx). Isso resolve na hora.

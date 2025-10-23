@@ -17,6 +17,11 @@
   --ring: 176 100% 33%;
 }
 
+/* Tabs styling */
+.tabs {
+  margin-bottom: 16px;
+}
+
 .light {
   --bg: #F5FAF9;
   --bg-soft: #E9F7F6;

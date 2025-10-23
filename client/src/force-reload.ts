@@ -1,3 +1,3 @@
-// Force reload timestamp - Design Teal V4 Complete
+// Force reload timestamp - Atendimento Teal Ready
 export const BUILD_TIME = Date.now();
-export const VERSION = "TEAL_V4_COMPLETE";
+export const VERSION = "ATENDIMENTO_TEAL";

@@ -1,0 +1,42 @@
+/* Responsive Design for MédicoHelp */
+
+@media (max-width: 980px) {
+  .hero, .grid {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+  }
+  
+  .chat {
+    height: 60vh;
+  }
+  
+  .navbar {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 12px;
+  }
+  
+  .hero {
+    padding: 16px;
+    margin: 12px;
+  }
+  
+  .msgs {
+    gap: 10px;
+  }
+  
+  .bubble {
+    max-width: 100%;
+  }
+  
+  .small {
+    font-size: 11px;
+  }
+}

@@ -32,6 +32,7 @@ import CalcGasometria from "@/pages/calc-gasometria";
 import CalcIG from "@/pages/calc-ig";
 import DemoLandingTeal from "@/pages/demo-landing-teal";
 import DemoChatTeal from "@/pages/demo-chat-teal";
+import AtendimentoTeal from "@/pages/atendimento-teal";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -82,6 +83,7 @@ function ProtectedRouter() {
       <Switch>
         <Route path="/" component={Atendimento} />
         <Route path="/atendimento" component={Atendimento} />
+        <Route path="/atendimento-teal" component={AtendimentoTeal} />
         <Route path="/novo-paciente" component={NovoPaciente} />
         <Route path="/pacientes/:id/historico" component={HistoricoPaciente} />
         <Route path="/pacientes/:id/editar" component={EditarPaciente} />

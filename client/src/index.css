@@ -1,4 +1,6 @@
-/* 🔥 FORCE RELOAD: v20251023-DESIGN-TEAL-FINAL - Design teal profissional atualizado */
+/* 🔥 FORCE RELOAD: v20251023-TEAL-MARCANTE - Design teal marcante aplicado */
+@import './styles/theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -1,9 +1,10 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css"; // Import direto (cache busting via HTML)
+import "./styles/theme.css?v=2025-10-23-TEAL"; // Theme teal marcante
 import { BUILD_TIME, VERSION } from "./force-reload";
 
-const __BUILD_VERSION__ = "DESIGN-TEAL-V2";
+const __BUILD_VERSION__ = "TEAL-MARCANTE-V1";
 
 // 🔥 FORÇAR RELOAD TOTAL - Deletar TUDO
 localStorage.clear();

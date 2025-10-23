@@ -1,3 +1,3 @@
-// Force reload timestamp - Design Teal Atualizado
+// Force reload timestamp - Design Teal Marcante
 export const BUILD_TIME = Date.now();
-export const VERSION = "DESIGN_TEAL_PROFISSIONAL";
+export const VERSION = "TEAL_MARCANTE_PROFISSIONAL";

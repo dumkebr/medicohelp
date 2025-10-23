@@ -1,0 +1,170 @@
+1) package.json (substitui o seu)
+
+Scripts prontos: sobe o proxy Express (3001) e o Vite (5173) juntos.
+Usa CommonJS pra não dar zica no Replit.
+
+{
+  "name": "medicohelp",
+  "version": "2.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 5173",
+    "server": "node server.js",
+    "start": "concurrently \"npm run server\" \"npm run dev -- --host 0.0.0.0 --port 5173\"",
+    "start:preview": "concurrently \"npm run server\" \"npm run preview\""
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "node-fetch": "^2.6.11"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}
+
+2) server.js (novo arquivo na raiz)
+
+Proxy seguro em /api/chat. Lê process.env.OPENAI_API_KEY.
+Evita CORS e não expõe a chave no front.
+
+// server.js (CommonJS)
+const express = require("express");
+const fetch = require("node-fetch");
+const cors = require("cors");
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: "2mb" }));
+
+// Proxy de chat (ajuste o modelo se quiser)
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { messages, model = "gpt-5", temperature = 0.2 } = req.body || {};
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ error: "OPENAI_API_KEY ausente nos Secrets do Replit." });
+    }
+
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ model, messages, temperature })
+    });
+
+    const data = await r.json();
+    if (!r.ok) {
+      return res.status(r.status).json(data);
+    }
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message || "Erro desconhecido no proxy." });
+  }
+});
+
+// healthcheck
+app.get("/api/ping", (_req, res) => res.json({ ok: true }));
+
+const PORT = 3001;
+app.listen(PORT, () => console.log("✅ Proxy OpenAI rodando em http://localhost:" + PORT));
+
+3) .replit (na raiz)
+
+Garante que o Replit execute os 2 processos (proxy + vite).
+
+run = "npm run start"
+
+
+Se já tiver, só substitui a linha run.
+
+4) src/main.jsx (ou src/index.jsx) — força atualização e mata cache
+
+Isso resolve “mudo o design e nada muda”.
+
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.jsx";
+
+// Bust de cache e mata service worker antigo
+const __BUILD_VERSION__ = "2025-10-23-02";
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+  if (window.caches) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+}
+
+// importa tema com query de versão
+import "./styles/theme.css?ver="+__BUILD_VERSION__;
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+5) Chamada do chat no front (src/services/chat.js)
+
+Use essa função quando enviar a mensagem no seu chat UI.
+
+// src/services/chat.js
+export async function sendChat(messages, { model = "gpt-5", temperature = 0.2 } = {}) {
+  const r = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages, model, temperature })
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data?.error || "Falha na API");
+  return data?.choices?.[0]?.message?.content || "";
+}
+
+
+Exemplo de uso (onde você manda pro modelo):
+
+import { sendChat } from "../services/chat";
+
+async function onSend(texto) {
+  const content = await sendChat([
+    { role: "system", content: "Você é a Dra. Clarice, médica veterana, direta, tradicional." },
+    { role: "user", content: texto }
+  ]);
+  // renderize 'content' no seu chat
+}
+
+6) Secrets do Replit
+
+No canto superior direito → Secrets (🔑) → adicione:
+
+OPENAI_API_KEY = sua chave da OpenAI
+
+Sem isso, o proxy não funciona.
+
+7) Rodar do zero (limpo)
+
+No Shell do Replit:
+
+rm -rf node_modules dist
+npm i
+npm run start
+
+
+Vai subir Vite em 5173 e proxy em 3001.
+A aba do Replit deve abrir a URL do Vite; o front chama /api/chat e o proxy resolve internamente.
+
+Se preferir build estático:
+
+npm run build
+npm run start:preview
+
+8) Dicas rápidas se ainda “não muda”
+
+Abra a URL com ?v=2025-10-23-02 no final (busta CDN do Replit).
+
+Teste em guia anônima.
+
+Confirme que você está no repl correto (às vezes fica em fork antigo).
+
+Veja o Console do navegador (F12) — erros de 404 em SVG/CSS indicam caminho errado.
+
+OPENAI_API_KEY setado? Teste GET /api/ping no navegador: https://seu-projeto.replit.app/api/ping

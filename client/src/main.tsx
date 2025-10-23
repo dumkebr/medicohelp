@@ -3,7 +3,7 @@ import App from "./App";
 import "./index.css"; // Import direto (cache busting via HTML)
 import { BUILD_TIME, VERSION } from "./force-reload";
 
-const __BUILD_VERSION__ = "2025-10-23-FINAL";
+const __BUILD_VERSION__ = "DESIGN-TEAL-V2";
 
 // 🔥 FORÇAR RELOAD TOTAL - Deletar TUDO
 localStorage.clear();

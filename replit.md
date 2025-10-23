@@ -1,157 +1,65 @@
-# MédicoHelp - Assistente Médico com IA
+# MédicoHelp - AI Medical Assistant
 
 ## Overview
-MédicoHelp is a professional medical platform designed to assist healthcare professionals with AI-powered tools. It provides AI medical consultations with conversation history, automatic analysis of medical images using GPT-5 Vision, a comprehensive patient registration and management system, and direct integration with Memed for digital prescription. The project aims to enhance diagnostic and administrative workflows for medical professionals.
+MédicoHelp is a professional AI-powered medical platform designed for healthcare professionals. It offers AI medical consultations with conversation history, automatic analysis of medical images, a comprehensive patient registration and management system, and direct integration with Memed for digital prescriptions. The project aims to streamline diagnostic and administrative workflows, enhancing efficiency and accuracy for medical professionals.
 
 ## User Preferences
 I prefer simple language and clear explanations. I want iterative development with frequent updates and feedback. Ask before making major changes or architectural decisions. Do not make changes to the folder `Z` or the file `Y`.
 
 ## System Architecture
 
-MédicoHelp is built with a modern full-stack JavaScript architecture.
-
-**Configuration System:**
-- **Clinical Mode Config**: `config/medicohelp.clinico.v1.json` - JSON-based configuration for AI clinical responses
-  - Defines response structure with 5 mandatory sections (1️⃣ Avaliar estabilidade → 5️⃣ Seguimento)
-  - Guardrails system: prevents AI from inventing vitals, forces asking for missing data (PA, FC, peso, idade)
-  - **Leis do MédicoHelp**: 5 fundamental behavioral rules enforced in all responses
-    1. Responder primeiro, perguntar depois (deliver value immediately)
-    2. Proibido chutar tema não relacionado (stay focused on question)
-    3. Priorizar termos médicos consagrados (medical terms = clinical tools)
-    4. Corrigir erros em silêncio (auto-correct typos without commenting)
-    5. Formato enxuto e prático (concise, direct responses)
-  - Template loader: `server/config-loader.ts` loads and caches config at startup
-  - Applied to all clinical mode (modo clínico) conversations via system prompt injection
-  - Full documentation: `config/LEIS_MEDICOHELP.md`
+MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a professional UI/UX and robust backend.
 
 **UI/UX Decisions:**
-- **Framework**: React with Wouter for routing.
-- **Design System**: Shadcn/ui and Tailwind CSS for a professional, consistent UI.
-- **Theming**: Dark/light mode support with persistence (automatic via `prefers-color-scheme`).
-- **Color Palette**: Professional medical green (#3cb371).
-- **Design Guidelines**: Professional medical design with Inter typography, consistent spacing, subtle shadows, and visual feedback.
-- **Chat Interface**: Modern clean layout with fixed header (controls), scrollable thread (bubble messages), and fixed composer (similar to ChatGPT/Claude).
-- **ChatComposer**: WhatsApp/ChatGPT-style multimodal input bar with 4 integrated methods:
-  - 📎 **File Upload**: Images, PDFs, audio, video
-  - 📷 **Camera**: Direct camera access (mobile native camera)
-  - 🖼️ **Gallery**: Select existing photos
-  - 🎤 **Microphone**: Dual-function (tap = real-time dictation via Web Speech API, hold = record and auto-transcribe via Whisper)
-  - **Features**: Enter to send, Shift+Enter for new line, auto-transcription, file preview
-- **Medical Tools Modal**: Refined layout with compact header, tab bar (#f8f9f9 background), 3px green underline on active tab, minimal gap (8px) between tabs and content, no scroll overflow issues, smooth fade-in animations (200ms) between tab switches, and full dark mode support.
-- **Sidebar Organization**: Menu Principal with 5 items (Atendimento médico, Ferramentas Avançadas, Sobre, Novo atendimento, Buscar), expandable search field, collapsible sections (Gestão de Pacientes, Atendimentos Salvos, Histórico).
-- **TopControls Component**: Reusable tabbed interface for atendimento workflow with three controls:
-  - **Clínico Tab**: Default view for AI medical chat
-  - **Explicação + Evidências Tab**: Shows evidence panel with educational information
-  - **Ferramentas Médico PRO Button**: Navigates to AdvancedHub (/avancado) for calculators and advanced tools
-  - Includes save button, title display, and responsive tab layout
-  - Demo available at `/demo-top-controls` (publicly accessible)
-- **AdvancedHub** (`/avancado`): Central hub for advanced tools and calculators:
-  - **Calculadoras Clínicas**: 6 calculator cards (Wells, Gasometria, IG, Child-Pugh, GRACE, CHA₂DS₂-VASc) linking to `/calc/*` routes
-  - **PosologiaCerta**: Placeholder card marked "Em breve"
-  - **Ferramentas PRO**: 3 cards for advanced features (Gestão de Pacientes, Protocolos PS, Modelos)
-  - **Upload Section**: Links back to chat for multimodal input
-  - Clean grid layout, responsive design, shadcn Card components
+-   **Frameworks**: React with Wouter for routing, Shadcn/ui and Tailwind CSS for design.
+-   **Theming**: Dark/light mode support, professional medical green color palette.
+-   **Chat Interface**: Modern layout inspired by popular chat applications, featuring multimodal input (file upload, camera, gallery, microphone with transcription).
+-   **Medical Tools Modal**: Refined layout with tabs and fade-in animations for a seamless user experience.
+-   **Sidebar Organization**: Intuitive navigation with main menu items, expandable search, and collapsible sections for patient management and history.
+-   **TopControls Component**: Reusable tabbed interface for the medical consultation workflow, offering "Clínico" (clinical mode), "Explicação + Evidências" (explanatory mode), and navigation to advanced tools.
+-   **AdvancedHub**: Central hub (`/avancado`) for clinical calculators and advanced features, presented in a responsive grid layout.
+-   **Medical Calculators**: Interactive forms for various clinical assessments (e.g., Wells Score, Arterial/Venous Blood Gas Analysis, Gestational Age), providing real-time calculations, interpretations, and copy/clear functions.
 
 **Technical Implementations:**
-- **Frontend:**
-  - State Management: TanStack Query.
-- **Backend:**
-  - **Runtime**: Node.js with Express.
-  - **AI**: OpenAI GPT-4o for medical chat, GPT-5 Vision for image analysis and scientific summaries.
-  - **Clinical Score Detector**: Semantic detection system (`server/clinical-detector.ts`) that intercepts queries about clinical scales/scores BEFORE calling OpenAI, returning structured responses instantly (~4ms vs ~3000ms). Recognizes 14 calculators with keyword variations (e.g., "alvarado", "alvorado", "alvorada") and contextual indicators ("escala", "score", "calcular").
-  - **Intent Detection System (Motor Único)**: Expanded system (`server/intent-detector.ts`) that detects 7 types of medical intents beyond scores: protocols/conduct, prescriptions/posology, clinical documents, explanations, administrative commands, and utilities. Uses scoring-based matching with keyword, context, and priority weighting. Templates available in `server/templates/` for structured responses. **Status**: Implemented but not integrated (opt-in, coexists with clinical-detector). Documentation: `server/README_motor_unico.md`.
-  - **Streaming**: Server-Sent Events (SSE) for real-time chat responses with exponential backoff retry.
-  - **Database**: PostgreSQL (Neon) with Drizzle ORM.
-  - **Authentication**: JWT for role-based access control, Email/Password with bcrypt, OAuth (Google, Apple, Microsoft, GitHub), 6-digit verification codes.
-  - **Storage**: DbStorage with PostgreSQL persistence.
-  - **File Upload**: Multer.
-  - **Validation**: Zod for data schema validation.
-  - **Rate Limiting**: Daily request limits using `express-rate-limit`.
-  - **SPA Routing**: `connect-history-api-fallback` middleware.
+-   **Frontend**: React, TanStack Query for state management.
+-   **Backend**: Node.js with Express.
+-   **AI**: OpenAI GPT-4o for medical chat, GPT-5 Vision for image analysis.
+-   **Configuration System**: JSON-based configuration (`config/medicohelp.clinico.v1.json`) defines AI clinical response structure with 5 mandatory sections and guardrails to prevent AI from inventing data and to ensure it requests missing critical information. It enforces 5 "Leis do MédicoHelp" for response quality.
+-   **Clinical Score Detector**: Semantic detection system (`server/clinical-detector.ts`) for instantly identifying and responding to queries about clinical scales/scores without involving the main AI.
+-   **Intent Detection System (Motor Único)**: An expanded system (`server/intent-detector.ts`) to detect 7 types of medical intents, using keyword, context, and priority weighting for structured responses.
+-   **Streaming**: Server-Sent Events (SSE) for real-time chat responses.
+-   **Database**: PostgreSQL with Drizzle ORM.
+-   **Authentication**: JWT for role-based access, Email/Password, OAuth (Google, Apple, Microsoft, GitHub), and 6-digit verification codes.
+-   **Storage**: DbStorage (PostgreSQL), Multer for file uploads.
+-   **Validation**: Zod for data schema validation.
+-   **Security**: Rate limiting using `express-rate-limit`.
 
 **Feature Specifications:**
-- **Frontend Authentication UI**: Complete auth flow with protected routes and user profile management.
-- **AI Medical Chat with Dual-Mode System**:
-  - **Modo Clínico (DEFAULT)**: Quick clinical checklist format with structured action steps using emoji indicators (⚡, 1️⃣, 2️⃣, etc.). Optimized for rapid decision-making during clinical shifts.
-    - **Guardrails System (config/medicohelp.clinico.v1.json)**:
-      - **Never Invent**: AI NEVER invents vital signs, age, weight, or clinical stability assumptions
-      - **Ask If Missing**: If PA, FC, peso, idade, or other critical data needed for dosing → AI ASKS first using polite prompts
-      - **Example prompts**: "Para definir a conduta corretamente, poderia me informar os sinais vitais atuais do paciente?"
-      - **Guidelines**: MUST follow SBC/AMB/CFM, ESC/AHA/ACC, UpToDate, BMJ, Medscape
-      - **Mandatory Format**: Use "⚠️ Evitar se" for contraindications, structured dose format
-    - **Structured Sections**: 1️⃣ Avaliar estabilidade → 2️⃣ Conduta principal → 3️⃣ Investigar causas → 4️⃣ Suporte → 5️⃣ Seguimento
-  - **Modo Explicativo + Evidências**: Educational explanations in natural flowing text with mandatory bibliographic references section (📚 Evidências clínicas). Integrates PubMed evidence when available.
-  - **Automatic Trigger Detection**: Switches mode based on user input keywords (e.g., "explica", "por quê").
-  - **User Control**: Simplified frontend toggle system - "Clínico" button vs "Explicação + Evidências" toggle.
-  - **Response Formats**:
-    - Clinical: "⚡ CONDUTA CLÍNICA RÁPIDA" with 5-7 numbered action steps
-    - Explanatory: Flowing educational text + "📚 Evidências clínicas:" section with guidelines and references
-  - **Technical**: SSE streaming for real-time responses, full conversation history, attachment support.
-- **Histórico de Atendimentos (localStorage)**:
-  - **Multiple Conversations**: Create and manage multiple medical consultations, each saved independently in localStorage.
-  - **Sidebar Navigation**: Visual list of all saved consultations with title, timestamp, and patient link indicator.
-  - **Menu Principal**: Reorganized structure with "Novo atendimento" and "Buscar em atendimentos" in main menu.
-  - **Search Feature**: Inline expandable search field for finding consultations by complaint, CID, patient name, or date.
-  - **Collapsible History**: History section with toggle (expand/collapse) for better space management.
-  - **Smart Titles**: First user message automatically becomes the title (editable inline).
-  - **Patient Association**: Link consultations to patients (optional, controlled by Patient Management toggle).
-  - **Mode Persistence**: Each consultation remembers its mode (Clinical/Explanatory).
-  - **Automatic Saving**: All messages auto-saved to localStorage after each AI response.
-  - **Quick Actions**: Create new consultation, switch between conversations, delete consultations, rename titles.
-  - **Data Structure**: Stored in `mh_atendimentos` key with full message history, metadata, and timestamps.
-- **Exam Analysis**: Multi-file upload, automatic analysis with GPT-5 Vision, contextual medical interpretation.
-- **Patient Management (CRUD)**: Complete patient lifecycle management, integrated with Memed for prescriptions. Optional toggle in sidebar to show/hide patient features.
-- **Clinical Evidence**: Provides scientific literature from PubMed (NIH/NCBI E-utilities), integrated into Explanatory Mode, with a legacy toggle for explicit display.
-- **Consultation History System**: Saves patient consultations, chat history, attachments, and physician details in PostgreSQL (JSONB).
-- **Medical Professional Tools**: Six specialized clinical decision support tools for physicians and medical students:
-  - **Posologia**: Simplified placeholder with "PosologiaCerta" branding (beta notice, no backend).
-  - **Calculadoras Clínicas**: 16 medical calculators with friendly forms and interpretation:
-    - **Clinical (11)**: CURB-65, Alvarado, Wells TVP/TEP, CHA₂DS₂-VASc, HAS-BLED, qSOFA, SIRS, GCS, IMC, **Gasometria Arterial/Venosa**
-    - **Obstetric (5)**: IG por DUM/DPP/USG, Escore de Bishop (pré-indução), Apgar (1' e 5')
-    - **Features**: Dynamic forms, severity-colored interpretation, copy/print actions, localStorage history (last 20), medical disclaimer
-    - **Gasometria**: Complete blood gas analysis with automatic acid-base disturbance detection, AG calculation (with albumin correction), Winter's formula, compensation calculations, Delta/Delta ratio for mixed disorders, oxygenation analysis (PAO₂, A-a gradient, PaO₂/FiO₂), venous-to-arterial conversion
-  - **Partograma**: Interactive labor partogram with Recharts visualization:
-    - **Data Points**: Time, cervical dilation (0-10cm), fetal station, FHR, blood pressure, notes
-    - **Alert/Action Lines**: Configurable parameters (default: 4cm start, 1cm/h rate, 2h action offset)
-    - **Visualization**: Recharts line chart with patient evolution vs alert/action reference lines
-    - **Attention System**: Badge indicator when patient curve crosses action line
-    - **Export**: Multi-format export (PNG/PDF/JSON) using html2canvas and jsPDF
-    - **Persistence**: localStorage for data retention across sessions
-  - **Conduta**: Evidence-based management plans.
-  - **Solicitação de Exames**: Intelligent exam ordering.
-  - **Diagnósticos Diferenciais**: Comprehensive differential diagnosis generation.
-  - **Technical**: Role-based access control, dedicated rate limiting, audit logging.
+-   **AI Medical Chat with Dual-Mode System**:
+    -   **Modo Clínico (DEFAULT)**: Structured, rapid checklist format with guardrails, enforcing medical guidelines (SBC/AMB/CFM, ESC/AHA/ACC, etc.) and a mandatory 5-section response format (e.g., 1️⃣ Avaliar estabilidade → 5️⃣ Seguimento).
+    -   **Modo Explicativo + Evidências**: Educational explanations with mandatory bibliographic references (📚 Evidências clínicas), integrating PubMed evidence.
+    -   Automatic mode switching based on user input, with user-controlled toggles.
+-   **Histórico de Atendimentos**: Manages multiple medical consultations, saved in localStorage, with sidebar navigation, search functionality, smart titling, and optional patient association. Includes a retention policy for consultations.
+-   **Exam Analysis**: Multi-file upload for automatic analysis and contextual medical interpretation.
+-   **Patient Management**: CRUD operations for patient data, integrated with Memed.
+-   **Clinical Evidence**: Provides scientific literature from PubMed, integrated into Explanatory Mode.
+-   **Medical Professional Tools**:
+    -   **Calculadoras Clínicas**: 16 medical calculators with dynamic forms, severity-colored interpretation, and calculation history. Includes advanced features like comprehensive blood gas analysis.
+    -   **Partograma**: Interactive visualization of labor progression with alert/action lines, attention system, and multi-format export.
 
 **System Design Choices:**
-- **Data Structures (PostgreSQL + Drizzle):**
-  - `patients`: Patient details.
-  - `users`: User authentication, roles, and CRM.
-  - `user_settings`: User preferences (documentation style, custom templates, explanatory mode settings).
-  - `consultations`: Detailed consultation records.
-  - `research_analytics`: Optional logging for clinical evidence feature.
-  - `medical_tools_audit`: Audit log for medical tools usage.
-- **localStorage Data Structures:**
-  - `mh_atendimentos`: Array of consultation objects (id, title, messages[], createdAt, updatedAt, mode, patientId, saved).
-  - `mh_current_atendimento_id`: Currently active consultation ID.
-  - `mh_showPatientMgmt`: Boolean toggle for showing/hiding patient management features.
-  - `medicohelp_mode`: Persisted mode preference (clinico/explicativo).
-  - `medicohelp_evidence`: Evidence display preference.
-  - `calc_history`: Calculator results history (last 20 calculations).
-- **Retention Policy:**
-  - Atendimentos with `saved: true` or `patientId` are **never automatically deleted**.
-  - Atendimentos without patient and not marked as saved **expire in 30 days**.
-  - Cleanup runs automatically when listing atendimentos.
-  - Vincular paciente auto-marca como `saved: true`.
+-   **Data Structures (PostgreSQL + Drizzle):** Tables for `patients`, `users`, `user_settings`, `consultations`, `research_analytics`, and `medical_tools_audit`.
+-   **localStorage Data Structures:** Keys for `mh_atendimentos` (consultation array), `mh_current_atendimento_id`, `mh_showPatientMgmt`, `medicohelp_mode`, `medicohelp_evidence`, and `calc_history`.
 
 ## External Dependencies
 
-- **OpenAI API**: For GPT-4o and GPT-5 Vision (AI medical chat, image analysis, scientific summaries).
-- **Neon (PostgreSQL)**: Managed PostgreSQL database service.
-- **Memed**: Digital prescription integration.
-- **PubMed (NIH/NCBI E-utilities)**: For scientific literature search.
-- **Resend / SMTP**: For email delivery.
-- **Twilio**: For SMS delivery.
-- **Google OAuth**: For user authentication.
-- **Apple OAuth**: For user authentication.
-- **Microsoft OAuth**: For user authentication.
-- **GitHub OAuth**: For user authentication.
+-   **OpenAI API**: GPT-4o, GPT-5 Vision.
+-   **Neon**: Managed PostgreSQL database.
+-   **Memed**: Digital prescription integration.
+-   **PubMed (NIH/NCBI E-utilities)**: Scientific literature search.
+-   **Resend / SMTP**: Email delivery.
+-   **Twilio**: SMS delivery.
+-   **Google OAuth**: User authentication.
+-   **Apple OAuth**: User authentication.
+-   **Microsoft OAuth**: User authentication.
+-   **GitHub OAuth**: User authentication.

@@ -123,6 +123,16 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 
 ### Voice Call Integration ✅
 - Integrated real-time voice calls using WebRTC + OpenAI Realtime API
+
+### Dra. Clarice Floating Avatar (October 23, 2025) ✅
+- **Global Component**: ClariceAvatar.tsx displays on all authenticated pages
+- **Position**: Fixed bottom-left corner (24px from edges) with z-index 9999
+- **Design**: Translucent dark background (#041012 95% opacity) with teal border (#00e699)
+- **Avatar**: 48x48px circular photo of Dra. Clarice with 2px teal border
+- **Text**: "Dra. Clarice" in teal (#00e699, 14px bold) + "Assistente Médica IA" subtitle (12px light blue)
+- **Effects**: Smooth hover animation (lifts 2px up, stronger shadow), backdrop blur filter
+- **Location**: Implemented in App.tsx AppLayout - appears for all authenticated users across all pages
+- **Asset**: `/client/public/clarice.png` - 3D illustration of friendly female doctor with white coat and stethoscope
 - VoiceCallButton component added to atendimento-teal page
 - Backend route `/api/voice/session` creates ephemeral tokens for secure WebRTC sessions
 - E2E tested: 9/9 verifications passed

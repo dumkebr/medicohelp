@@ -1,3 +1,3 @@
-// Force reload timestamp - Streaming Ready
+// Force reload timestamp - Branding v1 Applied
 export const BUILD_TIME = Date.now();
-export const VERSION = "STREAMING_READY";
+export const VERSION = "BRANDING_V1";

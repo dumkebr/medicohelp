@@ -1,0 +1,88 @@
+1) Coloque o SEU logo
+
+Salve seu arquivo como: client/public/logo-medicohelp.png
+(se usar outra extensão, ajuste o nome abaixo)
+
+No App.jsx, troque o bloco do logo na <aside> por isso aqui:
+
+<div className="brand" style={{alignItems:'center', gap:12}}>
+  <img
+    src="/logo-medicohelp.png"
+    alt="MédicoHelp"
+    style={{ width: 40, height: 40, objectFit: 'contain' }}
+  />
+  <div style={{display:'flex', flexDirection:'column', lineHeight:1.05}}>
+    <span style={{fontSize:18, fontWeight:800, color:'#ffffff'}}>Médico</span>
+    <span style={{fontSize:18, fontWeight:800, color:'#00e699'}}>Help</span>
+  </div>
+</div>
+
+
+Se quiser com slogan, use seu PNG já com texto e remova o bloco <div> com “Médico/Help”, deixando só o <img>.
+
+2) Uma cor só pra TUDO (sem “miolo” diferente)
+
+No client/src/styles.css, aplique estes ajustes:
+
+/* fundo global uniforme */
+body {
+  margin: 0;
+  background-color: #041012;  /* ESCURO ÚNICO */
+  color: #ffffff;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial;
+}
+.app { background-color: #041012; min-height: 100vh; }
+
+/* sidebar e main no mesmo tom */
+.sidebar {
+  position: fixed; left:0; top:0; bottom:0; width: 280px;
+  background:#041012;                 /* <-- igual ao body */
+  border-right: 1px solid #0b2c33;
+  padding: 16px;
+}
+.main { margin-left: 280px; background:#041012; }
+
+/* topo no mesmo tom e com divisória discreta */
+.header {
+  background:#041012;
+  border-bottom: 1px solid #0b2c33;
+  padding: 12px 24px;
+}
+
+/* cartões/miolo no mesmo esquema escuro */
+.panel {
+  background:#062027;                  /* leve contraste dentro do mesmo tom */
+  border:1px solid #0b2c33;
+  border-radius:16px;
+  padding:16px; min-height:320px;
+}
+
+/* botões e tabs */
+.tab { background:#00e699; color:#041; }
+.tab.secondary { background:#0b2c33; color:#d2f7ff; }
+.btn { background:#00e699; color:#041; }
+.btn.secondary { background:#0a2530; color:#d2f7ff; }
+
+/* campos e mensagens */
+.input { background:#071519; border:1px solid #0b2c33; color:#fff; }
+.msg { background:#0d2a31; border:1px solid #0b2c33; }
+.msg.user { background:#113640; }
+.menuItem { background:#07181c; border:1px solid #0b2c33; }
+.divider { background:#0b2c33; }
+
+3) (Opcional) Favicon e título
+
+Coloque uma versão pequena do seu coração em client/public/favicon.ico.
+
+Em client/index.html, garanta:
+
+<link rel="icon" href="/favicon.ico" />
+<title>MédicoHelp — Dra. Clarice</title>
+
+4) Passo-a-passo no Replit
+
+Envie seu PNG → client/public/logo-medicohelp.png.
+
+Atualize App.jsx e styles.css conforme acima.
+
+Recarregue a aba (ou npm run dev de novo, se precisar).

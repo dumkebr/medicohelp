@@ -1,0 +1,275 @@
+/* 🎨 MédicoHelp - Design Teal Profissional */
+/* Versão: 2025-10-23-TEAL-MARCANTE */
+
+:root {
+  /* 🌊 CORES TEAL BRAND - Identidade MédicoHelp */
+  --brand-900: #004C5E;  /* Teal escuro (títulos, textos importantes) */
+  --brand-800: #006C67;  /* Teal médio-escuro */
+  --brand-500: #00A79D;  /* Teal principal - COR OFICIAL */
+  --brand-400: #1FBFB5;  /* Teal claro */
+  --brand-100: #E9F7F6;  /* Teal super claro (backgrounds sutis) */
+
+  /* 🌓 BACKGROUNDS */
+  --bg: #0F1F22;           /* Background escuro padrão */
+  --bg-soft: #13262B;      /* Background escuro suave */
+  --bg-card: #1A2F35;      /* Background de cards */
+  
+  /* 📝 TEXTOS */
+  --text: #FFFFFF;         /* Texto principal branco */
+  --text-secondary: #B0C4C8;  /* Texto secundário */
+  --muted: #E9F7F6;        /* Texto mutado claro */
+  
+  /* 🎯 BORDERS */
+  --border: #1E3A40;       /* Bordas escuras */
+  --border-light: #2A4A52; /* Bordas mais claras */
+
+  /* 🎨 SHADCN OVERRIDE - Força cores teal */
+  --primary: 176 100% 33%;          /* Teal #00A79D */
+  --primary-foreground: 0 0% 100%;  /* Branco */
+  --ring: 176 100% 33%;             /* Focus ring teal */
+}
+
+/* 🌞 MODO LIGHT */
+.light {
+  --bg: #F5FAF9;            /* Background claro */
+  --bg-soft: #E9F7F6;       /* Background suave teal claro */
+  --bg-card: #FFFFFF;       /* Cards brancos */
+  --text: #0F1F22;          /* Texto escuro */
+  --text-secondary: #4A6266; /* Texto secundário escuro */
+  --border: #D9E3E3;        /* Bordas claras */
+  --border-light: #E9F0F0;  /* Bordas super claras */
+}
+
+/* 📱 BODY - Base Global */
+body {
+  font-family: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.25s ease, color 0.25s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 🎯 HEADER - Topo do App */
+header {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  backdrop-filter: blur(10px);
+}
+
+/* 🏷️ LOGO - Branding MédicoHelp */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo img {
+  height: 32px;
+  width: auto;
+}
+
+.logo-text {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.logo-text-medico {
+  color: var(--text);
+  font-weight: 400;
+}
+
+.logo-text-help {
+  color: var(--brand-500);
+  font-weight: 600;
+}
+
+.logo-subtitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* 📖 HEADINGS */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text);
+  font-weight: 600;
+}
+
+h1 { font-size: 28px; line-height: 1.3; }
+h2 { font-size: 22px; line-height: 1.35; }
+h3 { font-size: 18px; line-height: 1.4; }
+
+/* 🎨 BUTTONS - Botões com Teal */
+button {
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  outline: none;
+}
+
+.btn-primary {
+  background: var(--brand-500);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 167, 157, 0.25);
+}
+
+.btn-primary:hover {
+  background: var(--brand-800);
+  box-shadow: 0 4px 12px rgba(0, 167, 157, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-outline {
+  border: 2px solid var(--brand-500);
+  color: var(--brand-500);
+  background: transparent;
+}
+
+.btn-outline:hover {
+  background: var(--brand-100);
+  border-color: var(--brand-800);
+  color: var(--brand-800);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.btn-ghost:hover {
+  background: var(--bg-soft);
+  color: var(--text);
+}
+
+/* 🦸‍♀️ HERO SECTION - Seção com Dra. Clarice */
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 32px;
+  background: var(--bg-soft);
+  border-radius: 16px;
+  margin: 24px;
+  border: 1px solid var(--border);
+}
+
+.hero-content {
+  flex: 1;
+}
+
+.hero-mascot {
+  flex-shrink: 0;
+}
+
+.hero video,
+.hero img {
+  border-radius: 16px;
+  width: 260px;
+  height: auto;
+  background: var(--bg-card);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.hero h1 {
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.hero p {
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* 💳 CARDS */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+  border-color: var(--brand-500);
+  box-shadow: 0 4px 16px rgba(0, 167, 157, 0.15);
+}
+
+/* 🎯 BADGE TEAL */
+.badge-teal {
+  background: var(--brand-500);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 🌊 UTILITIES */
+.text-teal {
+  color: var(--brand-500) !important;
+}
+
+.bg-teal {
+  background: var(--brand-500) !important;
+}
+
+.border-teal {
+  border-color: var(--brand-500) !important;
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .hero-buttons {
+    justify-content: center;
+  }
+
+  .logo {
+    gap: 8px;
+  }
+
+  .logo img {
+    height: 28px;
+  }
+
+  .logo-text {
+    font-size: 18px;
+  }
+}
+
+/* 🎨 ANIMAÇÕES */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}

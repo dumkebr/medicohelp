@@ -33,6 +33,7 @@ import {
   setSaved,
   type Atendimento 
 } from "@/lib/atendimentos";
+import { SessionAPI } from "@/lib/chatSessions";
 import { ItemRow } from "@/components/ItemRow";
 import heartIcon from "@assets/image_1761162023136.png";
 import logoText from "@assets/image_1761162310190.png";
@@ -102,11 +103,12 @@ export function AppSidebar() {
   }, [location]);
 
   const handleNovoAtendimento = () => {
-    const novo = createAtendimento();
-    setAtendimentos(listAtendimentos());
-    setCurrentIdState(novo.id);
-    setCurrentId(novo.id);
-    setLocation("/");
+    // Usa SessionAPI para auto-save + abertura em nova aba
+    SessionAPI.startNewVisit({
+      mode: "clinico",
+      routeBase: "/atendimento",
+      openInNewTab: true,
+    });
   };
 
   const handleAbrirAtendimento = (id: string) => {

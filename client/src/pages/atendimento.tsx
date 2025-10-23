@@ -16,6 +16,7 @@ import {
   type Atendimento as AtendimentoType,
 } from "@/lib/atendimentos";
 import { SessionAPI } from "@/lib/chatSessions";
+import Mascote from "@/components/Mascote";
 
 interface ChatMessage {
   id: string;
@@ -432,12 +433,19 @@ export default function Atendimento() {
       >
         <div className="mx-auto w-full max-w-3xl py-4">
           {messages.length === 0 && (
-            <div className="rounded-xl border border-dashed border-gray-300 p-6 text-sm text-gray-500">
-              Beleza, Doutor. Vamos direto ao ponto: em que posso ajudar?
-              <br />
-              <span className="text-xs">
-                Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.
-              </span>
+            <div className="flex flex-col items-center gap-6 py-8">
+              <Mascote speaking={isSending} className="mx-auto" />
+              <div className="text-center">
+                <h2 className="mb-2 text-xl font-semibold text-foreground">
+                  Olá, eu sou a Dra. Clarice
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Sua aliada inteligente na decisão clínica
+                </p>
+                <p className="mt-4 text-xs text-muted-foreground">
+                  Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.
+                </p>
+              </div>
             </div>
           )}
           

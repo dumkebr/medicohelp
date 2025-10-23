@@ -506,11 +506,23 @@ export default function Atendimento() {
       });
     }
 
-    // 2) Usa SessionAPI para criar novo e abrir em nova aba
-    SessionAPI.startNewVisit({
-      mode: "clinico",
-      routeBase: "/atendimento",
-      openInNewTab: true,
+    // 2) Criar novo atendimento do zero (na mesma página)
+    const novoAtendimento = createAtendimento();
+    setCurrentAtendimento(novoAtendimento);
+    
+    // 3) Resetar estados para começar limpo
+    setHistory([]);
+    setMessage("");
+    setFiles([]);
+    setSelectedPatientId("");
+    setSavedAttachments([]);
+    setMode('clinico');
+    setStreamingMessage("");
+    setCurrentUserMessage("");
+    
+    toast({
+      title: "Novo atendimento iniciado",
+      description: "Chat anterior salvo com sucesso",
     });
   };
 

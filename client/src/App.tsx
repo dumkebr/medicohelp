@@ -33,7 +33,7 @@ import CalcIG from "@/pages/calc-ig";
 import DemoLandingTeal from "@/pages/demo-landing-teal";
 import DemoChatTeal from "@/pages/demo-chat-teal";
 import AtendimentoTeal from "@/pages/atendimento-teal";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
@@ -79,6 +79,13 @@ function AuthRouter() {
 }
 
 function ProtectedRouter() {
+  const [, setLocation] = useLocation();
+  
+  // Redireciona automaticamente para a versão demo
+  useEffect(() => {
+    setLocation("/demo-atendimento-teal");
+  }, [setLocation]);
+  
   return (
     <ProtectedRoute>
       <Switch>

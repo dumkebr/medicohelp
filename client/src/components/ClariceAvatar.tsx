@@ -3,18 +3,19 @@ export default function ClariceAvatar() {
     <div
       style={{
         position: 'absolute',
-        bottom: '12px',
-        left: '12px',
+        bottom: '20px',
+        left: '20px',
         display: 'flex',
         alignItems: 'center',
         gap: '10px',
-        background: 'rgba(4,16,18,0.85)',
-        border: '1px solid #0b2c33',
+        background: 'rgba(4,16,18,0.95)',
+        border: '1px solid #00e699',
         borderRadius: '20px',
         padding: '8px 12px',
-        boxShadow: '0 0 10px rgba(0,230,153,0.2)',
-        backdropFilter: 'blur(4px)',
-        zIndex: 10,
+        boxShadow: '0 0 15px rgba(0,230,153,0.4)',
+        backdropFilter: 'blur(8px)',
+        zIndex: 100,
+        pointerEvents: 'auto',
       }}
       data-testid="clarice-avatar"
     >
@@ -27,6 +28,10 @@ export default function ClariceAvatar() {
           borderRadius: '50%',
           objectFit: 'cover',
           border: '2px solid #00e699',
+        }}
+        onError={(e) => {
+          console.error('Erro ao carregar imagem da Dra. Clarice');
+          (e.target as HTMLImageElement).style.display = 'none';
         }}
       />
       <div>

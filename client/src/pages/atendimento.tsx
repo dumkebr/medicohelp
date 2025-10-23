@@ -38,6 +38,245 @@ import {
   type Mensagem
 } from "@/lib/atendimentos";
 
+// ========================= CLAIRTON STYLE SYSTEM =========================
+// Sistema de detecção local de cenários clínicos - "Estilo Clairton"
+// Formato estruturado: 🩺 Diagnóstico ⚡ Conduta 🧪 Investigação 💬 Alertas
+
+const SECTION = {
+  DX: "🩺 Diagnóstico provável",
+  CONDUTA: "⚡ Conduta imediata",
+  EXAMES: "🧪 Investigação complementar",
+  ALERTAS: "💬 Observações / alertas",
+} as const;
+
+interface LocalReply {
+  title?: string;
+  body: string;
+}
+
+const norm = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+const hasAny = (text: string, keys: string[]) => keys.some(k => text.includes(k));
+
+function needsVitals(userText: string) {
+  const t = norm(userText);
+  const lacksPA = !/(\bpa\b|pressao|mmhg)/.test(t);
+  const lacksFC = !/(\bfc\b|frequencia cardiaca|batimento)/.test(t);
+  const lacksSat = !/(satur(a|)cao|sat\b|o2|oxigen)/.test(t);
+  const lacksT = !/(\bt\b|temperatura|febre)/.test(t);
+  return { lacksPA, lacksFC, lacksSat, lacksT };
+}
+
+function vitalPrompt(userText: string): string | undefined {
+  const v = needsVitals(userText);
+  const ask: string[] = [];
+  if (v.lacksPA) ask.push("PA (mmHg)");
+  if (v.lacksFC) ask.push("FC (bpm)");
+  if (v.lacksSat) ask.push("Saturação (%)");
+  if (v.lacksT) ask.push("Temperatura (°C)");
+  if (ask.length === 0) return undefined;
+  return `Me passa ${ask.join(", ")} pra eu ajustar dose/conduta com segurança.`;
+}
+
+function baseFrame(dx: string[], conduta: string[], exames: string[], alertas: string[]): string {
+  return [
+    `**${SECTION.DX}:**\n${dx.map((i, idx) => `${idx + 1}. ${i}`).join("\n")}`,
+    `**${SECTION.CONDUTA}:**\n${conduta.map((i, idx) => `${idx + 1}. ${i}`).join("\n")}`,
+    `**${SECTION.EXAMES}:**\n${exames.map((i, idx) => `${idx + 1}. ${i}`).join("\n")}`,
+    alertas.length
+      ? `**${SECTION.ALERTAS}:**\n${alertas.map((i, idx) => `${idx + 1}. ${i}`).join("\n")}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+// ---------- IAM / Dor torácica ----------
+function handleACS(text: string): LocalReply {
+  const t = norm(text);
+  const inferior = hasAny(t, ["d2", "d3", "avf", "parede inferior", "iam inferior"]);
+  const suspeitaVD = inferior;
+  const dx = [
+    inferior
+      ? "IAM com supra de ST em parede inferior (D2, D3, aVF)."
+      : "SCA — avaliar ECG para STEMI/NSTEMI e diagnósticos diferenciais.",
+  ];
+
+  const conduta = [
+    "Monitorização, acesso venoso, analgesia. O₂ se Sat < 94%.",
+    "AAS 300 mg VO mastigado (se não usou antes).",
+    "Segundo antiplaquetário: Clopidogrel 300–600 mg VO ou Ticagrelor 180 mg VO.",
+    "Anticoagulação: Heparina não fracionada 60 U/kg EV (máx 4.000 U) ou Enoxaparina 1 mg/kg SC.",
+    suspeitaVD
+      ? "⚠️ Evita nitrato até excluir infarto de VD (fazer derivações direitas V3R–V4R)."
+      : "Nitrato SL se dor e PA > 100x60, sem sinais de choque/VD.",
+    "Morfina 2–4 mg EV se dor refratária (cautela em hipotensão).",
+    "Atorvastatina 80 mg VO o quanto antes.",
+    "Acionar hemodinâmica para angioplastia primária (ideal < 120 min). Se indisponível, considerar trombólise conforme protocolo local.",
+  ];
+
+  const exames = [
+    "ECG seriado a cada 15–30 min.",
+    "Troponina/CK-MB, hemograma, eletrólitos, função renal, glicemia.",
+    "RX tórax conforme quadro.",
+  ];
+
+  const alertas = [
+    "Se suspeita de VD: evitar nitrato e usar volume (SF 0,9% 300–500 mL) se hipotenso.",
+    "Bradicardia/bloqueio AV em inferior: avaliar atropina se repercussão.",
+  ];
+
+  const ask = vitalPrompt(text);
+  if (ask) alertas.unshift(ask);
+  return { title: "SCA / IAM", body: baseFrame(dx, conduta, exames, alertas) };
+}
+
+// ---------- Crise convulsiva ----------
+function handleSeizure(text: string): LocalReply {
+  const dx = [
+    "Crise convulsiva ativa ou pós-ictal — estabilizar via aérea, ventilação e circulação.",
+  ];
+  const conduta = [
+    "Monitorização, acesso venoso, proteção de vias aéreas.",
+    "Glicemia capilar — se <60 mg/dL: glicose EV conforme protocolo.",
+    "Benzodiazepínico: Diazepam 0,15–0,2 mg/kg EV (máx 10 mg) ou Midazolam 10 mg IM/IN se sem acesso.",
+    "Se persistir >5 min: repetir; considerar Levetiracetam / Valproato / Fenitoína conforme disponibilidade.",
+  ];
+  const exames = [
+    "Eletrolitos, função renal/hepática, hemograma, toxicológico conforme suspeita.",
+    "TC de crânio se primeira crise, déficit focal, trauma, uso de anticoagulante, febre alta, imunossupressão.",
+  ];
+  const alertas = [
+    "Investigar infecção SNC, abstinência, erro de dose, gestação (eclâmpsia).",
+  ];
+  const ask = vitalPrompt(text);
+  if (ask) alertas.unshift(ask);
+  return { title: "Crise convulsiva", body: baseFrame(dx, conduta, exames, alertas) };
+}
+
+// ---------- AVC / Déficit neurológico súbito ----------
+function handleStroke(text: string): LocalReply {
+  const dx = ["AVC isquêmico vs hemorrágico — tempo de início define janela terapêutica."];
+  const conduta = [
+    "Escala NIHSS, glicemia capilar, PA e SatO₂ (O₂ se Sat <94%).",
+    "TC de crânio sem contraste imediata.",
+    "Se janela e critérios: trombólise sistêmica / trombectomia mecânica conforme protocolo.",
+    "PA alvo: não reduzir agressivo antes de definir conduta (salvo emergência hipertensiva).",
+  ];
+  const exames = [
+    "TC/angio-TC, hemograma, coagulograma, eletrólitos, função renal, ECG.",
+  ];
+  const alertas = ["Exclusão de hipoglicemia é prioritária."];
+  const ask = vitalPrompt(text);
+  if (ask) alertas.unshift(ask);
+  return { title: "AVC / Déficit focal", body: baseFrame(dx, conduta, exames, alertas) };
+}
+
+// ---------- Sepse / Choque séptico ----------
+function handleSepsis(text: string): LocalReply {
+  const dx = ["Sepse — infecção suspeita/provada com disfunção orgânica."];
+  const conduta = [
+    "Coletar culturas rapidamente e iniciar antibiótico empírico amplo conforme foco.",
+    "Reposição volêmica 30 mL/kg de cristalóide nas primeiras 3 h se hipotensão/lactato alto.",
+    "Vasopressor (noradrenalina) se refratário a volume para MAP ≥65 mmHg.",
+  ];
+  const exames = [
+    "Lactato, hemograma, função renal/hepática, eletrólitos, gasometria, coagulograma.",
+    "Imagem conforme foco (RX tórax, US, TC).",
+  ];
+  const alertas = ["Reavaliar perfusão, diurese, necessidade de UTI."];
+  const ask = vitalPrompt(text);
+  if (ask) alertas.unshift(ask);
+  return { title: "Sepse", body: baseFrame(dx, conduta, exames, alertas) };
+}
+
+// ---------- Obstetrícia (gestante) ----------
+function handleOb(text: string): LocalReply {
+  const t = norm(text);
+  const preeclampsia = hasAny(t, ["pre eclampsia", "preeclampsia", "ip uterino", "rastr pre eclampsia"]);
+  const dx = [
+    preeclampsia ? "Gestante – suspeita/diagnóstico de pré‑eclâmpsia." : "Gestante – avaliar risco materno‑fetal e queixa principal.",
+  ];
+  const conduta = [
+    "PA seriada, proteinúria, avaliação de sinais de gravidade.",
+    preeclampsia ? "Se grave: sulfatação (MgSO4) e controle pressórico (hidralazina/labetalol conforme protocolo)." : "Conduta conforme quadro (trabalho de parto, infecção urinária, sangramento, etc.).",
+    "Avaliar necessidade de encaminhamento ao alto risco / maternidade de referência.",
+  ];
+  const exames = [
+    "EAS/urocultura se sintomas urinários, beta‑hCG conforme IG, US obstétrico/Doppler quando indicado.",
+  ];
+  const alertas = [
+    "Evitar medicamentos contraindicados na gestação.",
+    "Sempre documentar IG, movimentos fetais, sangramento, dor, atividade uterina.",
+  ];
+  const ask = vitalPrompt(text);
+  if (ask) alertas.unshift(ask);
+  return { title: "Gestante", body: baseFrame(dx, conduta, exames, alertas) };
+}
+
+// ---------- Pediatria – Febre / Quadro infeccioso comum ----------
+function handlePeds(text: string): LocalReply {
+  const dx = ["Pediatria – síndrome febril. Avaliar foco (vias aéreas, urinário, GI, pele)."];
+  const conduta = [
+    "Hidratar, antitérmico conforme peso. Avaliar sinais de alarme (letargia, gemência, má perfusão, tiragem, vômitos incoercíveis).",
+    "Se <3 meses ou toxemia: investigação e possível internação.",
+  ];
+  const exames = [
+    "Urina I/urocultura se sem foco claro, hemograma, RX tórax se sintomas respiratórios importantes.",
+  ];
+  const alertas = ["Reavaliar em 24–48 h ou antes se piora."];
+  const ask = vitalPrompt(text);
+  if (ask) alertas.unshift(ask);
+  return { title: "Pediatria – Febre", body: baseFrame(dx, conduta, exames, alertas) };
+}
+
+// ---------- Fallback – Resposta médica geral ----------
+function handleGeneric(text: string): LocalReply {
+  const dx = ["Quadro clínico informado – vou te guiar de forma prática agora mesmo."];
+  const conduta = [
+    "Primeiro: sinais vitais e exame dirigido ao principal sintoma.",
+    "Alívio de sintomas imediato quando seguro.",
+    "Depois: investigação objetiva e conduta específica conforme achados.",
+  ];
+  const exames = ["Selecionar exames que mudem conduta hoje. Evitar pedir por pedir."];
+  const alertas: string[] = [];
+  const ask = vitalPrompt(text);
+  if (ask) alertas.unshift(ask);
+  return { title: "Atendimento clínico", body: baseFrame(dx, conduta, exames, alertas) };
+}
+
+// Router de cenários - Detecção local
+function routeCase(userText: string): LocalReply {
+  const t = norm(userText);
+
+  if (hasAny(t, ["iam", "stemi", "scai", "dor toracica", "ecg", "d2", "d3", "avf", "v4r", "v3r"])) {
+    return handleACS(userText);
+  }
+  if (hasAny(t, ["convuls", "crise", "epilep"])) {
+    return handleSeizure(userText);
+  }
+  if (hasAny(t, ["avc", "derrame", "hemiparesia", "afasia", "nistagmo", "ataxia"])) {
+    return handleStroke(userText);
+  }
+  if (hasAny(t, ["sepse", "choque septico", "septic", "lactato"])) {
+    return handleSepsis(userText);
+  }
+  if (hasAny(t, ["gestante", "gravida", "obstetr", "ig ", "dpp", "pre eclampsia", "preeclampsia"])) {
+    return handleOb(userText);
+  }
+  if (hasAny(t, ["crianca", "pediatr", "menor", "lactente", "febre"])) {
+    return handlePeds(userText);
+  }
+
+  return handleGeneric(userText);
+}
+
+// ========================= FIM CLAIRTON STYLE SYSTEM =========================
+
 interface ChatHistoryItem {
   user: string;
   assistant: string;
@@ -57,6 +296,7 @@ export default function Atendimento() {
   const [streamingMessage, setStreamingMessage] = useState("");
   const [currentUserMessage, setCurrentUserMessage] = useState("");
   const [showSavePanel, setShowSavePanel] = useState(false);
+  const [useLocalFallback, setUseLocalFallback] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const threadRef = useRef<HTMLDivElement>(null);
@@ -93,7 +333,6 @@ export default function Atendimento() {
     let curId = getCurrentId();
     
     if (!curId) {
-      // Criar novo atendimento se não existir
       const novo = createAtendimento();
       curId = novo.id;
     }
@@ -104,7 +343,6 @@ export default function Atendimento() {
       setMode(atendimento.mode || 'clinico');
       setSelectedPatientId(atendimento.patientId || "");
       
-      // Carregar histórico de mensagens
       const chatHistory: ChatHistoryItem[] = [];
       for (let i = 0; i < atendimento.messages.length; i += 2) {
         if (i + 1 < atendimento.messages.length) {
@@ -118,7 +356,6 @@ export default function Atendimento() {
     }
   }, []);
 
-  // Salvar modo quando alterado  
   const handleModeChange = (newMode: 'clinico' | 'explicativo') => {
     setMode(newMode);
     if (currentAtendimento) {
@@ -138,6 +375,7 @@ export default function Atendimento() {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
   }, [history.length, streamingMessage]);
 
+  // SISTEMA HÍBRIDO: Local + IA
   const handleChatStream = async (userMessage: string, chatHistory: any[], enableEvidence: boolean) => {
     if (streamAbortController.current) {
       streamAbortController.current.abort();
@@ -152,10 +390,18 @@ export default function Atendimento() {
     let fullResponse = "";
     let references: ScientificReference[] | undefined;
 
+    // 1️⃣ EXECUTAR DETECÇÃO LOCAL PRIMEIRO
+    const localReply = routeCase(userMessage);
+    
     try {
+      // 2️⃣ TENTAR ENRIQUECER COM IA (mantendo estilo Clairton)
       const timeoutId = setTimeout(() => {
         abortController.abort();
       }, 60000);
+
+      const enrichmentPrompt = mode === "clinico"
+        ? `${localReply.body}\n\n[INSTRUÇÃO PARA IA]: Enriqueça a resposta acima mantendo EXATAMENTE o formato (🩺⚡🧪💬) e o estilo direto do Dr. Clairton Dumke. Adicione doses específicas, ajustes conforme dados clínicos, e detalhes práticos. Linguagem médica direta, sem floreios.`
+        : `${localReply.body}\n\n[INSTRUÇÃO PARA IA]: Enriqueça a resposta acima mantendo o formato (🩺⚡🧪💬), mas adicione explicações fisiopatológicas e cite diretrizes (SBC/ILAS/ANE) quando relevante. Tom humano e técnico, não robotizado.`;
 
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -164,9 +410,10 @@ export default function Atendimento() {
           "X-User-Id": "demo-doctor",
         },
         body: JSON.stringify({
-          message: userMessage,
+          message: enrichmentPrompt,
           history: chatHistory,
           mode: mode,
+          isEnrichment: true, // Flag para backend saber que é enriquecimento
         }),
         signal: abortController.signal,
       });
@@ -174,7 +421,7 @@ export default function Atendimento() {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error("Erro ao conectar com o servidor");
+        throw new Error("API offline - usando resposta local");
       }
 
       const reader = response.body?.getReader();
@@ -215,7 +462,7 @@ export default function Atendimento() {
                 fullResponse += data.content;
                 setStreamingMessage(fullResponse);
               } else if (currentEvent === "complete") {
-                console.log(`Chat completed: ${data.tokens} tokens in ${data.duration}ms`);
+                console.log(`✅ IA enrichment: ${data.tokens} tokens em ${data.duration}ms`);
               } else if (currentEvent === "error") {
                 throw new Error(data.message);
               }
@@ -230,6 +477,7 @@ export default function Atendimento() {
 
       setIsStreaming(false);
       
+      // 3️⃣ BUSCAR EVIDÊNCIAS SE HABILITADO
       if (enableEvidence && fullResponse) {
         try {
           const researchData = await researchMutation.mutateAsync(userMessage);
@@ -258,16 +506,34 @@ export default function Atendimento() {
       setCurrentUserMessage("");
       
     } catch (error: any) {
-      console.error("Erro no chat stream:", error);
-      setStreamingMessage("");
-      setCurrentUserMessage("");
+      console.warn("⚠️ IA offline, usando resposta local:", error.message);
+      
+      // 4️⃣ FALLBACK: USAR APENAS RESPOSTA LOCAL
       setIsStreaming(false);
+      setStreamingMessage("");
       
       if (error.name !== "AbortError") {
+        const fallbackResponse = localReply.body;
+        
+        // Salvar resposta local
+        if (currentAtendimento) {
+          const now = new Date().toISOString();
+          addMensagem(currentAtendimento.id, { role: "user", content: userMessage, ts: now });
+          addMensagem(currentAtendimento.id, { role: "assistant", content: fallbackResponse, ts: now });
+        }
+
+        setHistory(prev => [...prev, {
+          user: userMessage,
+          assistant: fallbackResponse,
+        }]);
+
+        setMessage("");
+        setFiles([]);
+        setCurrentUserMessage("");
+        
         toast({
-          variant: "destructive",
-          title: "Erro ao processar mensagem",
-          description: error.message || "⚠️ Conexão lenta. Tente novamente ou verifique sua chave API.",
+          title: "Modo Offline Ativo",
+          description: "Resposta gerada localmente (IA indisponível).",
         });
       }
     }
@@ -358,10 +624,9 @@ export default function Atendimento() {
     if (currentAtendimento && message.trim() && files.length === 0) {
       const texto = message.toLowerCase().trim();
 
-      // SALVAR COMO "<nome>"
       const m1 = texto.match(/^salvar como (.+)$/i);
       if (m1) {
-        const novoNome = message.trim().substring(12).trim(); // Preserva maiúsculas
+        const novoNome = message.trim().substring(12).trim();
         setSaved(currentAtendimento.id, true);
         renameAtendimento(currentAtendimento.id, novoNome);
         const updated = getAtendimento(currentAtendimento.id);
@@ -374,11 +639,10 @@ export default function Atendimento() {
         return;
       }
 
-      // RENOMEAR PARA "<nome>" ou RENOMEAR "<nome>"
       const m2 = texto.match(/^renomear (?:para )?(.+)$/i);
       if (m2) {
         const idx = texto.startsWith("renomear para ") ? 14 : 9;
-        const novoNome = message.trim().substring(idx).trim(); // Preserva maiúsculas
+        const novoNome = message.trim().substring(idx).trim();
         renameAtendimento(currentAtendimento.id, novoNome);
         const updated = getAtendimento(currentAtendimento.id);
         if (updated) setCurrentAtendimento(updated);
@@ -425,7 +689,6 @@ export default function Atendimento() {
       {/* HEADER FIXO */}
       <header className="sticky top-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800">
         <div className="max-w-5xl mx-auto px-4 py-1.5">
-          {/* TOPCONTROLS - Interface limpa com abas */}
           <TopControls
             initialTab="clinico"
             onTabChange={(tab) => {
@@ -438,7 +701,6 @@ export default function Atendimento() {
             }}
           />
 
-          {/* PAINEL DE SALVAR CONSULTA (COLAPSÁVEL) */}
           {showPatientMgmt && showSavePanel && history.length > 0 && (
             <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-800">
               <div className="flex items-center gap-3">
@@ -487,36 +749,33 @@ export default function Atendimento() {
         </div>
       </header>
 
-      {/* THREAD - SÓ A CONVERSA */}
+      {/* THREAD */}
       <main
         ref={threadRef}
         className="flex-1 overflow-y-auto max-w-3xl w-full mx-auto px-4 py-6"
       >
         {history.length === 0 && !isStreaming ? (
           <div className="text-neutral-500 dark:text-neutral-400 text-sm mt-12 text-center space-y-2">
-            <p className="text-base font-medium">Chat Médico com IA</p>
-            <p>Digite sua pergunta clínica ou envie exames para análise</p>
-            <p className="text-xs">Os controles ficam fixos no topo. A conversa aqui é contínua.</p>
+            <p className="text-base font-medium">💚 MédicoHelp - Sistema Híbrido IA + Clairton</p>
+            <p>Respostas estruturadas (🩺⚡🧪💬) enriquecidas com IA</p>
+            <p className="text-xs">Funciona online (IA) e offline (local)</p>
           </div>
         ) : (
           <div className="space-y-6" data-testid="card-chat-history">
             {history.map((item, index) => (
               <div key={index} className="space-y-4">
-                {/* USER BUBBLE */}
                 <div className="flex justify-end">
                   <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-[#3cb371] text-white">
                     <p className="text-sm leading-relaxed whitespace-pre-wrap">{item.user}</p>
                   </div>
                 </div>
 
-                {/* ASSISTANT BUBBLE */}
                 <div className="flex justify-start">
                   <div className="max-w-[85%] space-y-3">
                     <div className="rounded-2xl px-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100">
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">{item.assistant}</p>
                     </div>
 
-                    {/* REFERÊNCIAS CIENTÍFICAS */}
                     {item.references && item.references.length > 0 && (
                       <div className="bg-neutral-100 dark:bg-neutral-800/50 rounded-xl p-3 border border-neutral-200 dark:border-neutral-700">
                         <div className="flex items-center gap-2 mb-2">
@@ -556,7 +815,6 @@ export default function Atendimento() {
               </div>
             ))}
 
-            {/* STREAMING MESSAGE */}
             {isStreaming && currentUserMessage && (
               <div className="space-y-4 opacity-90">
                 <div className="flex justify-end">
@@ -583,10 +841,9 @@ export default function Atendimento() {
         )}
       </main>
 
-      {/* COMPOSER FIXO EMBAIXO */}
+      {/* COMPOSER FIXO */}
       <footer className="sticky bottom-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800">
         <div className="max-w-3xl mx-auto px-4 py-4" data-testid="card-chat-input">
-          {/* FILES PREVIEW */}
           {files.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3 pb-3 border-b border-neutral-200 dark:border-neutral-700">
               {files.map((file, index) => (
@@ -607,7 +864,6 @@ export default function Atendimento() {
             </div>
           )}
 
-          {/* CHAT COMPOSER */}
           <ChatComposer
             onSend={async (text) => {
               if (!text.trim() && files.length === 0) return;
@@ -646,9 +902,8 @@ export default function Atendimento() {
             disabled={isLoading}
           />
 
-          {/* DISCLAIMER */}
           <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 text-center">
-            Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.
+            Sistema híbrido: IA online (enriquecida) + Local offline (Clairton style). Validação: médico usuário.
           </p>
         </div>
       </footer>

@@ -184,184 +184,182 @@ export default function AtendimentoTeal() {
   }
 
   return (
-    <div>
-      <header className="header">
-        <div className="container navbar">
-          <div className="logo-row">
-            <img 
-              src="/logo-medicohelp-full.png?v=2025-10-23" 
-              height={80} 
-              alt="MédicoHelp - Sua aliada inteligente na decisão clínica" 
-              style={{ objectFit: "contain" }}
-            />
-          </div>
-        </div>
-      </header>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: "var(--bg)", padding: "16px" }}>
+      {/* Tabs com design teal */}
+      <div className="tabs card" style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        <button 
+          className={"btn " + (tab === "clinico" ? "btn-primary" : "btn-outline")} 
+          onClick={() => setTab("clinico")}
+          data-testid="tab-clinico"
+        >
+          Modo Clínico
+        </button>
+        <button 
+          className={"btn " + (tab === "evidencias" ? "btn-primary" : "btn-outline")} 
+          onClick={() => setTab("evidencias")}
+          data-testid="tab-evidencias"
+        >
+          Fundamentação Teórica
+        </button>
+        
+        <button 
+          className="btn btn-outline"
+          onClick={downloadChat}
+          style={{ marginLeft: "auto" }}
+          data-testid="button-download"
+        >
+          <Download size={16} style={{ marginRight: 4 }} />
+          Baixar
+        </button>
+      </div>
 
-      <div className="container">
-        <div className="tabs card" style={{ display: "flex", gap: 12, marginTop: 16 }}>
-          <button 
-            className={"btn " + (tab === "clinico" ? "btn-primary" : "btn-outline")} 
-            onClick={() => setTab("clinico")}
-            data-testid="tab-clinico"
-          >
-            Modo Clínico
-          </button>
-          <button 
-            className={"btn " + (tab === "evidencias" ? "btn-primary" : "btn-outline")} 
-            onClick={() => setTab("evidencias")}
-            data-testid="tab-evidencias"
-          >
-            Fundamentação Teórica
-          </button>
-          
-          <button 
-            className="btn btn-outline"
-            onClick={downloadChat}
-            style={{ marginLeft: "auto" }}
-            data-testid="button-download"
-          >
-            <Download size={16} style={{ marginRight: 4 }} />
-            Baixar
-          </button>
-        </div>
-
-        <div className="grid">
-          <aside className="sidebar card">
-            <h3 style={{ marginTop: 0 }}>Dra. Clarice</h3>
-            <div className="small">Médica veterana, direta e acolhedora.</div>
-            <div style={{ marginTop: 12 }}>
-              <Mascote speaking={loading || !!streamingText} />
-            </div>
-          </aside>
-
-          <section className="chat card">
-            <div className="msgs" ref={chatRef}>
-              {messages.map((m) => (
-                <div 
-                  key={m.id} 
-                  className={"bubble " + (m.who === "user" ? "user" : "ai")}
-                  data-testid={`message-${m.who}-${m.id}`}
-                >
-                  {m.text}
-                  {loading && m.text === streamingText && streamingText && (
-                    <span style={{ marginLeft: 4, animation: "pulse 1.5s infinite" }}>▍</span>
-                  )}
-                </div>
-              ))}
-            </div>
-            
-            {files.length > 0 && (
+      {/* Chat área - ocupa todo espaço disponível */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+        <section className="chat card" style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+          <div className="msgs" ref={chatRef} style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
+            {messages.length === 1 && (
               <div style={{ 
-                padding: "8px 12px", 
-                borderTop: "1px solid var(--border)",
-                display: "flex",
-                gap: 8,
-                flexWrap: "wrap"
+                display: "flex", 
+                flexDirection: "column", 
+                alignItems: "center", 
+                justifyContent: "center",
+                height: "100%",
+                gap: 16
               }}>
-                {files.map((file, i) => (
-                  <div 
-                    key={i}
-                    style={{
-                      background: "var(--bg-soft)",
-                      border: "1px solid var(--border)",
-                      borderRadius: 8,
-                      padding: "4px 8px",
-                      fontSize: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6
-                    }}
-                  >
-                    <span>{file.name} ({Math.round(file.size / 1024)}KB)</span>
-                    <X 
-                      size={14} 
-                      style={{ cursor: "pointer" }}
-                      onClick={() => removeFile(i)}
-                    />
-                  </div>
-                ))}
+                <div style={{ maxWidth: 200 }}>
+                  <Mascote speaking={false} />
+                </div>
+                <div style={{ textAlign: "center", color: "var(--text-secondary)" }}>
+                  <h3 style={{ margin: "0 0 8px 0" }}>Dra. Clarice</h3>
+                  <p className="small" style={{ margin: 0 }}>Médica veterana, direta e acolhedora.</p>
+                </div>
               </div>
             )}
             
-            <div className="inputbar">
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                multiple
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={onFileSelect}
-              />
-              <input
-                type="file"
-                ref={photoInputRef}
-                style={{ display: "none" }}
-                accept="image/*"
-                capture="environment"
-                onChange={onFileSelect}
-              />
-              
-              <button
-                className="btn btn-outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={loading}
-                title="Anexar arquivo"
-                data-testid="button-attach"
-                style={{ padding: "10px" }}
+            {messages.map((m) => (
+              <div 
+                key={m.id} 
+                className={"bubble " + (m.who === "user" ? "user" : "ai")}
+                data-testid={`message-${m.who}-${m.id}`}
               >
-                <Paperclip size={18} />
-              </button>
-              
-              <button
-                className="btn btn-outline"
-                onClick={() => photoInputRef.current?.click()}
-                disabled={loading}
-                title="Capturar foto"
-                data-testid="button-photo"
-                style={{ padding: "10px" }}
-              >
-                <ImageIcon size={18} />
-              </button>
-              
-              <button
-                className={"btn " + (isListening ? "btn-primary" : "btn-outline")}
-                onClick={toggleVoice}
-                disabled={loading}
-                title={isListening ? "Parar gravação" : "Gravar voz"}
-                data-testid="button-voice"
-                style={{ padding: "10px" }}
-              >
-                {isListening ? <MicOff size={18} /> : <Mic size={18} />}
-              </button>
-              
-              <VoiceCallButton />
-              
-              <input
-                placeholder={
-                  tab === "clinico" 
-                    ? "Descreva o caso clínico..." 
-                    : "Pergunte sobre evidências..."
-                }
-                value={text}
-                onChange={e => setText(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && !e.shiftKey && onSend()}
-                disabled={loading}
-                data-testid="input-chat"
-                style={{ flex: 1 }}
-              />
-              
-              <button 
-                className="btn btn-primary" 
-                onClick={onSend}
-                disabled={loading || !text.trim()}
-                data-testid="button-send"
-              >
-                {loading ? "..." : "Enviar"}
-              </button>
+                {m.text}
+                {loading && m.text === streamingText && streamingText && (
+                  <span style={{ marginLeft: 4, animation: "pulse 1.5s infinite" }}>▍</span>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          {files.length > 0 && (
+            <div style={{ 
+              padding: "8px 12px", 
+              borderTop: "1px solid var(--border)",
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap"
+            }}>
+              {files.map((file, i) => (
+                <div 
+                  key={i}
+                  style={{
+                    background: "var(--bg-soft)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                    padding: "4px 8px",
+                    fontSize: 12,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6
+                  }}
+                >
+                  <span>{file.name} ({Math.round(file.size / 1024)}KB)</span>
+                  <X 
+                    size={14} 
+                    style={{ cursor: "pointer" }}
+                    onClick={() => removeFile(i)}
+                  />
+                </div>
+              ))}
             </div>
-          </section>
-        </div>
+          )}
+          
+          <div className="inputbar">
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              multiple
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              onChange={onFileSelect}
+            />
+            <input
+              type="file"
+              ref={photoInputRef}
+              style={{ display: "none" }}
+              accept="image/*"
+              capture="environment"
+              onChange={onFileSelect}
+            />
+            
+            <button
+              className="btn btn-outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={loading}
+              title="Anexar arquivo"
+              data-testid="button-attach"
+              style={{ padding: "10px" }}
+            >
+              <Paperclip size={18} />
+            </button>
+            
+            <button
+              className="btn btn-outline"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={loading}
+              title="Capturar foto"
+              data-testid="button-photo"
+              style={{ padding: "10px" }}
+            >
+              <ImageIcon size={18} />
+            </button>
+            
+            <button
+              className={"btn " + (isListening ? "btn-primary" : "btn-outline")}
+              onClick={toggleVoice}
+              disabled={loading}
+              title={isListening ? "Parar gravação" : "Gravar voz"}
+              data-testid="button-voice"
+              style={{ padding: "10px" }}
+            >
+              {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+            </button>
+            
+            <VoiceCallButton />
+            
+            <input
+              placeholder={
+                tab === "clinico" 
+                  ? "Descreva o caso clínico..." 
+                  : "Pergunte sobre evidências..."
+              }
+              value={text}
+              onChange={e => setText(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && !e.shiftKey && onSend()}
+              disabled={loading}
+              data-testid="input-chat"
+              style={{ flex: 1 }}
+            />
+            
+            <button 
+              className="btn btn-primary" 
+              onClick={onSend}
+              disabled={loading || !text.trim()}
+              data-testid="button-send"
+            >
+              {loading ? "..." : "Enviar"}
+            </button>
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -1,0 +1,90 @@
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+/*
+  APP – ROTAS INTEGRADAS MÉDICOHELP
+  ---------------------------------
+  O que este arquivo faz:
+  - Mantém "/" como a tela principal do Chat (ChatMedico)
+  - Adiciona "/avancado" (hub com Calculadoras, PosologiaCerta em breve, Ferramentas PRO)
+  - Liga as rotas das calculadoras: /calc, /calc/wells, /calc/gasometria, /calc/ig
+
+  Requisitos:
+  - Ter os arquivos abaixo no mesmo nível de src/:
+      - ChatMedico.jsx (ou seu componente atual do chat)
+      - AdvancedHub.jsx (o hub Avançado)  ← se ainda não criou, use o código que te passei
+      - Calculators.jsx (já está no canvas) – exporta default e { WellsCalc, GasometriaCalc, IGCalc }
+
+  Dica:
+  - No botão/aba "Calculadoras" do topo, use navigate("/calc") para abrir a galeria.
+  - No menu lateral, crie um item "Avançado" com navigate("/avancado").
+*/
+
+// IMPORTS – ajuste os caminhos conforme seu projeto
+import ChatMedico from "./ChatMedico"; // seu componente principal do chat
+import AdvancedHub from "./AdvancedHub"; // hub Avançado (calculadoras, posologia, pro)
+import Calculators, { WellsCalc, GasometriaCalc, IGCalc } from "./Calculators"; // arquivo do canvas
+
+function NotFoundRedirect() {
+  return <Navigate to="/" replace />;
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Principal */}
+        <Route path="/" element={<ChatMedico />} />
+
+        {/* Avançado (tela própria) */}
+        <Route path="/avancado" element={<AdvancedHub />} />
+
+        {/* Calculadoras */}
+        <Route path="/calc" element={<Calculators />} />
+        <Route path="/calc/wells" element={<WellsCalc />} />
+        <Route path="/calc/gasometria" element={<GasometriaCalc />} />
+        <Route path="/calc/ig" element={<IGCalc />} />
+
+        {/* Fallback */}
+        <Route path="*" element={<NotFoundRedirect />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+/* ---------------------- EXTRAS OPCIONAIS ----------------------
+
+1) COMO LIGAR A ABA DO TOPO "CALCULADORAS" PARA ABRIR /calc
+
+import { useNavigate } from "react-router-dom";
+function TopTabs() {
+  const nav = useNavigate();
+  return (
+    <div className="flex gap-2">
+      <button className="px-3 py-2 rounded-xl border text-sm">Clínico</button>
+      <button className="px-3 py-2 rounded-xl border text-sm">Explicação + Evidências</button>
+      <button onClick={() => nav("/calc")} className="px-3 py-2 rounded-xl border text-sm">Calculadoras</button>
+    </div>
+  );
+}
+
+2) COMO ADICIONAR O ITEM "AVANÇADO" NA LATERAL
+
+import { useNavigate } from "react-router-dom";
+function MenuLateral() {
+  const nav = useNavigate();
+  return (
+    <aside className="p-3">
+      {/* ...seus itens existentes... */}
+      <button onClick={() => nav("/avancado")} className="w-full text-left px-3 py-2 rounded-xl hover:bg-gray-50">
+        Avançado
+      </button>
+    </aside>
+  );
+}
+
+3) SOBRE O ADVANCEDHUB.JSX
+- Se ainda não criou, copie o código do "AdvancedHub.jsx" que te enviei e salve em src/AdvancedHub.jsx
+- Ele já inclui os cards que apontam para /calc/wells, /calc/gasometria, /calc/ig e links PRO
+
+*/

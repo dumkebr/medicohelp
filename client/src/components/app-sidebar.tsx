@@ -228,7 +228,7 @@ export function AppSidebar() {
               }`}
               data-testid="link-medprime"
             >
-              <img src={medprimeHeartIcon} alt="" className="h-10 w-10" aria-hidden="true" />
+              <img src={medprimeHeartIcon} alt="" className="h-14 w-14" aria-hidden="true" />
               <div className="flex-1 min-w-0">
                 <div className="font-semibold truncate">MedPrime</div>
                 <div className="text-[10px] opacity-75 truncate">Ferramentas Avançadas</div>

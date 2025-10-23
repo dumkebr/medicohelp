@@ -146,7 +146,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="px-3 py-4 border-b bg-[#0a3d3d]">
+      <SidebarHeader className="px-3 py-4 border-b bg-[#052828]">
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <img 
             src="/heart-icon.png" 

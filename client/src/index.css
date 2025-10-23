@@ -13,10 +13,10 @@ html,
   color: #e8f4f8 !important;
 }
 
-/* Sidebar e Header no tom verde petróleo escuro */
+/* Sidebar e Header no tom verde petróleo bem escuro */
 [data-sidebar],
 header {
-  background-color: #0a3d3d !important;
+  background-color: #052828 !important;
 }
 
 /* Texto CLARO no sidebar verde escuro */

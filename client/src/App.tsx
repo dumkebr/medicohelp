@@ -72,6 +72,7 @@ function AuthRouter() {
       <Route path="/demo-top-controls" component={DemoTopControls} />
       <Route path="/demo-landing-teal" component={DemoLandingTeal} />
       <Route path="/demo-chat-teal" component={DemoChatTeal} />
+      <Route path="/demo-atendimento-teal" component={AtendimentoTeal} />
       <Route component={NotFound} />
     </Switch>
   );

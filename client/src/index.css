@@ -1,9 +1,24 @@
-/* 🔥 FORCE RELOAD: v20251023-DARK-UNICO - Novo logo + esquema escuro único aplicado */
+/* 🔥 FORCE RELOAD: v20251023-DARK-UNICO-v2 - Tudo no mesmo tom escuro */
 @import './styles/theme.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 🎨 FORÇAR FUNDO ESCURO ÚNICO EM TUDO */
+body,
+html,
+#root {
+  background-color: #041012 !important;
+  color: #f0f0f0 !important;
+}
+
+/* Sidebar e Header no mesmo tom */
+[data-sidebar],
+header,
+.sidebar-header {
+  background-color: #041012 !important;
+}
 
 /* LIGHT MODE */
 :root {

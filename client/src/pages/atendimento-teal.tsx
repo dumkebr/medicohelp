@@ -188,12 +188,12 @@ export default function AtendimentoTeal() {
         <div className="container navbar">
           <div className="logo-row">
             <img 
-              src="/logo-medicohelp-horizontal.svg?v=2025-10-23-10" 
-              height={40} 
-              alt="MédicoHelp" 
+              src="/logo-medicohelp-full.png?v=2025-10-23" 
+              height={80} 
+              alt="MédicoHelp - Sua aliada inteligente na decisão clínica" 
+              style={{ objectFit: "contain" }}
             />
           </div>
-          <div className="small">Sua aliada inteligente na decisão clínica</div>
         </div>
       </header>
 
@@ -230,7 +230,7 @@ export default function AtendimentoTeal() {
             <h3 style={{ marginTop: 0 }}>Dra. Clarice</h3>
             <div className="small">Médica veterana, direta e acolhedora.</div>
             <div style={{ marginTop: 12 }}>
-              <Mascote speaking={loading} />
+              <Mascote speaking={loading || !!streamingText} />
             </div>
           </aside>
 

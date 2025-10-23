@@ -5,7 +5,7 @@ import "./styles/theme.css?v=2025-10-23-TEAL"; // Theme teal marcante
 import "./styles/branding.css?v=2025-10-23-BRANDING"; // Branding pack v1
 import { BUILD_TIME, VERSION } from "./force-reload";
 
-const __BUILD_VERSION__ = "BRANDING-V1";
+const __BUILD_VERSION__ = "HQ-ASSETS-V1";
 
 // 🔥 FORÇAR RELOAD TOTAL - Deletar TUDO
 localStorage.clear();

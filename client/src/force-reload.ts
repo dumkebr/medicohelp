@@ -1,3 +1,3 @@
-// Force reload timestamp - Branding v1 Applied
+// Force reload timestamp - High Quality Assets
 export const BUILD_TIME = Date.now();
-export const VERSION = "BRANDING_V1";
+export const VERSION = "HQ_ASSETS";

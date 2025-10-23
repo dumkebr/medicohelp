@@ -32,6 +32,27 @@
   }
 }
 
+@keyframes mascote-pulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.15);
+  }
+}
+
+.mascote-speaking {
+  animation: mascote-pulse 1.5s ease-in-out infinite !important;
+}
+
+.mascote-idle {
+  animation: none !important;
+  transform: scale(1);
+  filter: brightness(1);
+}
+
 .light {
   --bg: #F5FAF9;
   --bg-soft: #E9F7F6;

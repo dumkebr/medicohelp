@@ -1,0 +1,83 @@
+1️⃣ Onde colocar a Dra. Clarice
+
+Ela pode ficar:
+
+no canto inferior esquerdo do painel de chat (como se “ouvisse” a conversa);
+
+ou no topo do painel, ao lado do título “Modo Clínico / Fundamentação Teórica”.
+
+A versão mais bonita e funcional é no rodapé do painel, flutuando.
+Vamos usar isso.
+
+⚙️ 2️⃣ Adicionar o componente React da Clarice
+
+Crie um novo arquivo:
+client/src/components/ClariceAvatar.jsx
+
+import React from 'react'
+
+export default function ClariceAvatar() {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: '12px',
+        left: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        background: 'rgba(4,16,18,0.85)',
+        border: '1px solid #0b2c33',
+        borderRadius: '20px',
+        padding: '8px 12px',
+        boxShadow: '0 0 10px rgba(0,230,153,0.2)',
+        backdropFilter: 'blur(4px)',
+      }}
+    >
+      <img
+        src="/clarice.png"
+        alt="Dra. Clarice"
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: '50%',
+          objectFit: 'cover',
+          border: '2px solid #00e699',
+        }}
+      />
+      <div>
+        <div style={{ fontWeight: '700', color: '#00e699', fontSize: '15px' }}>
+          Dra. Clarice
+        </div>
+        <div style={{ fontSize: '13px', color: '#d2f7ff' }}>
+          Assistente Médica Inteligente
+        </div>
+      </div>
+    </div>
+  )
+}
+
+🖼️ 3️⃣ Coloque a imagem
+
+Salve a imagem da Dra. Clarice (o PNG que você usa nos outros materiais) dentro da pasta:
+client/public/clarice.png
+
+💬 4️⃣ Importar no App.jsx
+
+Dentro do seu App.jsx, logo antes do fechamento do </main>, adicione:
+
+import ClariceAvatar from './components/ClariceAvatar.jsx'
+
+
+E dentro do retorno principal:
+
+<ClariceAvatar />
+
+
+(bem no final do <main> — depois do painel de mensagens)
+
+💡 5️⃣ Resultado
+
+Ela vai aparecer flutuando no canto esquerdo, sorridente, com crachá verde e fundo translúcido.
+
+Pode animar depois pra mexer os olhos, piscar ou reagir à fala.

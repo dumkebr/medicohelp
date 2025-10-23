@@ -1,0 +1,365 @@
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { v4 as uuid } from "uuid";
+
+/**
+ * ===== MedicoHelp – Sessões de Atendimento =====
+ *
+ * Objetivo:
+ * - Ao clicar em "Novo Atendimento":
+ *   1) Salva automaticamente a sessão aberta com um NOME GERADO pelo chat.
+ *   2) Abre uma nova janela/aba com uma sessão em branco.
+ *
+ * Implementação:
+ * - Armazena localmente (localStorage) por simplicidade.
+ * - Pode ser adaptado para backend trocando os métodos save/load.
+ * - Gera título a partir da ÚLTIMA mensagem do MÉDICO (usuário) ou fallback de data/hora.
+ */
+
+// ====== Tipos ======
+export type Role = "user" | "assistant";
+export type ChatMessage = {
+  id: string;
+  role: Role;
+  content: string;
+  createdAt: number; // epoch
+};
+
+export type ChatSession = {
+  id: string;
+  title: string; // vazio até nomear/gerar
+  messages: ChatMessage[];
+  createdAt: number;
+  updatedAt: number;
+  mode: "clinico" | "avancado"; // para abrir já no modo correto
+};
+
+// ====== Storage simples (localStorage) ======
+const SESSIONS_KEY = "mh.sessions.v1";
+const CURRENT_ID_KEY = "mh.currentSessionId.v1";
+
+function loadSessions(): Record<string, ChatSession> {
+  try {
+    const raw = localStorage.getItem(SESSIONS_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as Record<string, ChatSession>;
+  } catch {
+    return {};
+  }
+}
+
+function persistSessions(map: Record<string, ChatSession>) {
+  localStorage.setItem(SESSIONS_KEY, JSON.stringify(map));
+}
+
+function setCurrentId(id: string) {
+  localStorage.setItem(CURRENT_ID_KEY, id);
+}
+
+function getCurrentId(): string | null {
+  return localStorage.getItem(CURRENT_ID_KEY);
+}
+
+// ====== Utilitários ======
+function pad2(n: number) {
+  return n.toString().padStart(2, "0");
+}
+
+function tsToStamp(ts: number) {
+  const d = new Date(ts);
+  const yyyy = d.getFullYear();
+  const mm = pad2(d.getMonth() + 1);
+  const dd = pad2(d.getDate());
+  const hh = pad2(d.getHours());
+  const mi = pad2(d.getMinutes());
+  return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+}
+
+function sanitize(s: string) {
+  return s
+    .replace(/\s+/g, " ")
+    .replace(/[\n\t]/g, " ")
+    .replace(/[<>#{}\[\]|^~`]/g, "")
+    .trim();
+}
+
+function keywordsFrom(text: string, maxWords = 6) {
+  const clean = sanitize(text)
+    .toLowerCase()
+    .replace(/[,.;:!?()]/g, "");
+  const stop = new Set([
+    "o",
+    "a",
+    "os",
+    "as",
+    "de",
+    "da",
+    "do",
+    "das",
+    "dos",
+    "um",
+    "uma",
+    "e",
+    "em",
+    "no",
+    "na",
+    "nos",
+    "nas",
+    "com",
+    "por",
+    "para",
+    "que",
+    "ao",
+    "à",
+    "às",
+    "aos",
+  ]);
+  const words = clean.split(" ").filter((w) => w && !stop.has(w));
+  return words.slice(0, maxWords).join(" ");
+}
+
+function autoTitleFromMessages(msgs: ChatMessage[], nowTs: number): string {
+  // Pega a última mensagem do MÉDICO
+  const lastUser = [...msgs].reverse().find((m) => m.role === "user");
+  if (lastUser && lastUser.content.trim().length > 0) {
+    const k = keywordsFrom(lastUser.content, 6);
+    if (k.length > 0) return `Atendimento – ${k}`;
+  }
+  return `Atendimento – ${tsToStamp(nowTs)}`;
+}
+
+// ====== Hook principal ======
+export function useChatSessions() {
+  const [sessionsMap, setSessionsMap] = useState<Record<string, ChatSession>>({});
+  const [currentId, setCurrentIdState] = useState<string | null>(null);
+
+  // Carrega do storage uma vez
+  useEffect(() => {
+    const initial = loadSessions();
+    setSessionsMap(initial);
+    setCurrentIdState(getCurrentId());
+  }, []);
+
+  const currentSession = useMemo<ChatSession | null>(() => {
+    if (!currentId) return null;
+    return sessionsMap[currentId] ?? null;
+  }, [currentId, sessionsMap]);
+
+  // Persistência
+  useEffect(() => {
+    persistSessions(sessionsMap);
+  }, [sessionsMap]);
+
+  // API
+  function setCurrent(id: string) {
+    setCurrentIdState(id);
+    setCurrentId(id);
+  }
+
+  function createEmptySession(mode: ChatSession["mode"] = "clinico"): ChatSession {
+    const id = uuid();
+    const now = Date.now();
+    return {
+      id,
+      title: "",
+      messages: [],
+      createdAt: now,
+      updatedAt: now,
+      mode,
+    };
+  }
+
+  function upsertSession(s: ChatSession) {
+    setSessionsMap((prev) => ({ ...prev, [s.id]: s }));
+  }
+
+  function appendMessage(sessionId: string, msg: Omit<ChatMessage, "id" | "createdAt">) {
+    setSessionsMap((prev) => {
+      const s = prev[sessionId];
+      if (!s) return prev;
+      const m: ChatMessage = { id: uuid(), createdAt: Date.now(), ...msg };
+      const updated: ChatSession = {
+        ...s,
+        messages: [...s.messages, m],
+        updatedAt: Date.now(),
+      };
+      return { ...prev, [sessionId]: updated };
+    });
+  }
+
+  function renameSession(sessionId: string, title: string) {
+    setSessionsMap((prev) => {
+      const s = prev[sessionId];
+      if (!s) return prev;
+      const updated: ChatSession = { ...s, title: sanitize(title), updatedAt: Date.now() };
+      return { ...prev, [sessionId]: updated };
+    });
+  }
+
+  /**
+   * Lógica principal do botão "Novo Atendimento".
+   * - Se a sessão atual tiver mensagens, garante salvar com título (auto se vazio).
+   * - Cria nova sessão e abre em nova aba/janela.
+   */
+  function startNewSession({
+    openInNewTab = true,
+    mode = "clinico",
+    routeBase = "/atendimento",
+  }: {
+    openInNewTab?: boolean;
+    mode?: ChatSession["mode"];
+    routeBase?: string;
+  }) {
+    const now = Date.now();
+    const curr = currentSession;
+
+    // 1) Salva a atual com título, se houver algo
+    if (curr && curr.messages.length > 0) {
+      let title = curr.title?.trim();
+      if (!title) title = autoTitleFromMessages(curr.messages, now);
+      const saved: ChatSession = { ...curr, title, updatedAt: now };
+      upsertSession(saved);
+    }
+
+    // 2) Cria nova sessão vazia
+    const fresh = createEmptySession(mode);
+    upsertSession(fresh);
+    setCurrent(fresh.id);
+
+    // 3) Abre rota/aba para a nova sessão
+    const url = `${routeBase}?sid=${fresh.id}`;
+    if (openInNewTab) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    } else {
+      window.location.href = url;
+    }
+  }
+
+  // Lista de sessões ordenadas por atualização (p/ sidebar)
+  const sessionsList = useMemo(() => {
+    return Object.values(sessionsMap).sort((a, b) => b.updatedAt - a.updatedAt);
+  }, [sessionsMap]);
+
+  return {
+    sessionsMap,
+    sessionsList,
+    currentId,
+    currentSession,
+    setCurrent,
+    createEmptySession,
+    appendMessage,
+    renameSession,
+    startNewSession,
+  };
+}
+
+// ====== Botão pronto: "Novo Atendimento" ======
+export function NewVisitButton({
+  label = "Novo Atendimento",
+  openInNewTab = true,
+  mode = "clinico",
+  className = "",
+}: {
+  label?: string;
+  openInNewTab?: boolean;
+  mode?: ChatSession["mode"];
+  className?: string;
+}) {
+  const { startNewSession } = useChatSessions();
+  const onClick = () => startNewSession({ openInNewTab, mode });
+
+  return (
+    <Button onClick={onClick} className={`flex items-center gap-2 bg-[#3cb371] text-white hover:bg-[#2f9e62] ${className}`} data-testid="button-new-visit">
+      <Plus className="h-4 w-4" />
+      {label}
+    </Button>
+  );
+}
+
+// ====== API imperativa (não mexe no layout; pluga nos botões já existentes) ======
+// Use quando você NÃO quer alterar a UI/JSX atual, só quer que os botões passem a funcionar.
+export const SessionAPI = {
+  /** Lê ?sid=... da URL e define como sessão atual (use no bootstrap da rota do chat). */
+  hydrateFromURL(routeBase = "/atendimento") {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const sid = params.get("sid");
+      if (sid) {
+        setCurrentId(sid);
+      } else {
+        // Se não houver sid, garante uma sessão atual válida
+        const map = loadSessions();
+        const curr = getCurrentId();
+        if (!curr || !map[curr]) {
+          const freshId = uuid();
+          const now = Date.now();
+          const fresh: ChatSession = {
+            id: freshId,
+            title: "",
+            messages: [],
+            createdAt: now,
+            updatedAt: now,
+            mode: "clinico",
+          };
+          map[freshId] = fresh;
+          persistSessions(map);
+          setCurrentId(freshId);
+        }
+      }
+    } catch {}
+  },
+
+  /** Salva a sessão atual com título automático (se estiver vazia, ignora). */
+  saveCurrentWithAutoTitle() {
+    const map = loadSessions();
+    const currId = getCurrentId();
+    if (!currId) return;
+    const curr = map[currId];
+    if (!curr) return;
+    if (!curr.messages || curr.messages.length === 0) return;
+    const now = Date.now();
+    let title = (curr.title || "").trim();
+    if (!title) title = autoTitleFromMessages(curr.messages, now);
+    map[currId] = { ...curr, title, updatedAt: now };
+    persistSessions(map);
+  },
+
+  /** Cria nova sessão, define como atual e abre rota (nova aba por padrão). */
+  startNewVisit({
+    mode = "clinico",
+    routeBase = "/atendimento",
+    openInNewTab = true,
+  }: {
+    mode?: ChatSession["mode"];
+    routeBase?: string;
+    openInNewTab?: boolean;
+  } = {}) {
+    // 1) Salva sessão atual (se tiver conteúdo) com título automático
+    this.saveCurrentWithAutoTitle();
+
+    // 2) Cria e persiste nova sessão
+    const map = loadSessions();
+    const now = Date.now();
+    const freshId = uuid();
+    const fresh: ChatSession = {
+      id: freshId,
+      title: "",
+      messages: [],
+      createdAt: now,
+      updatedAt: now,
+      mode,
+    };
+    map[freshId] = fresh;
+    persistSessions(map);
+    setCurrentId(freshId);
+
+    // 3) Abre rota
+    const url = `${routeBase}?sid=${fresh.id}`;
+    if (openInNewTab) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    } else {
+      window.location.href = url;
+    }
+  },
+};

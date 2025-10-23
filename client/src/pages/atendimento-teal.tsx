@@ -1,6 +1,7 @@
 import "../styles/theme.css";
 import "../styles/responsive.css";
 import Mascote from "../components/Mascote";
+import VoiceCallButton from "../components/VoiceCallButton";
 import { useState, useRef, useEffect } from "react";
 import { sendChatStream } from "../services/chat-stream";
 import { Paperclip, Image as ImageIcon, Mic, MicOff, Download, X } from "lucide-react";
@@ -333,6 +334,8 @@ export default function AtendimentoTeal() {
               >
                 {isListening ? <MicOff size={18} /> : <Mic size={18} />}
               </button>
+              
+              <VoiceCallButton />
               
               <input
                 placeholder={

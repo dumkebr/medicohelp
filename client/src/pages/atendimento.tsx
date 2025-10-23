@@ -12,7 +12,7 @@ type Msg = {
   text: string;
 };
 
-export default function AtendimentoTeal() {
+export default function Atendimento() {
   const [tab, setTab] = useState<"clinico" | "evidencias">("clinico");
   const [messages, setMessages] = useState<Msg[]>([
     { 
@@ -364,3 +364,4 @@ export default function AtendimentoTeal() {
     </div>
   );
 }
+// Force reload 1761246082

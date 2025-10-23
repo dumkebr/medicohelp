@@ -12,7 +12,7 @@ type Msg = {
   text: string;
 };
 
-export default function AtendimentoTeal() {
+export default function Home() {
   const [tab, setTab] = useState<"clinico" | "evidencias">("clinico");
   const [messages, setMessages] = useState<Msg[]>([
     { 

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="MédicoHelp ícone">
+  <defs>
+    <style>
+      .stroke{fill:none;stroke:#00A79D;stroke-width:10;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#00A79D}
+    </style>
+  </defs>
+  <path class="stroke" d="M128 214L62 148a44 44 0 1162-62 44 44 0 1162 62z"/>
+  <line class="stroke" x1="58" y1="105" x2="98" y2="105"/>
+  <circle class="fill" cx="58" cy="105" r="6"/>
+  <line class="stroke" x1="58" y1="128" x2="98" y2="128"/>
+  <circle class="fill" cx="58" cy="128" r="6"/>
+  <line class="stroke" x1="58" y1="151" x2="98" y2="151"/>
+  <circle class="fill" cx="58" cy="151" r="6"/>
+  <rect class="fill" x="156" y="90" width="24" height="56" rx="4"/>
+  <rect class="fill" x="136" y="110" width="64" height="16" rx="4"/>
+  <path class="stroke" d="M96 138h18l6-12 8 28 6-12h30"/>
+</svg>

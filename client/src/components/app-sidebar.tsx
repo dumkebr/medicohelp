@@ -147,7 +147,6 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="px-3 py-3 border-b bg-background">
-        <div className="text-xs text-red-500 mb-2">VERSÃO NOVA CARREGADA ✓</div>
         <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
           <img 
             src="/logo-medicohelp-icon.svg"
@@ -156,8 +155,8 @@ export function AppSidebar() {
           />
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-[2px] leading-none">
-              <span className="font-serif text-[24px] text-foreground">Médico</span>
-              <span className="font-serif text-[24px] text-primary font-medium">Help</span>
+              <span className="font-serif text-[24px]" style={{ color: 'hsl(160, 10%, 15%)' }}>Médico</span>
+              <span className="font-serif text-[24px] font-medium" style={{ color: '#00A79D' }}>Help</span>
             </div>
             <span className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
               A plataforma médica inteligente

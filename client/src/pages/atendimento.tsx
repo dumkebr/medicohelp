@@ -387,7 +387,8 @@ export default function Atendimento() {
       onClick={() => handleModeChange(m)}
       variant={mode === m ? "default" : "outline"}
       size="sm"
-      className={mode === m ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+      className={mode === m ? "" : ""}
+      style={mode === m ? { backgroundColor: '#00A79D', borderColor: '#00A79D' } : {}}
       data-testid={`button-mode-${m}`}
     >
       {label}

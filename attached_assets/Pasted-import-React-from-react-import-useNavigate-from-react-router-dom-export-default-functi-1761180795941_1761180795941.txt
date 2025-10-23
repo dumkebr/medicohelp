@@ -1,0 +1,106 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
+
+export default function AdvancedHub() {
+  const nav = useNavigate();
+
+  const calculators = [
+    { key: "wells", title: "Escore de Wells (TEV)", desc: "Probabilidade de TEP/TVP", path: "/calc/wells" },
+    { key: "gasometria", title: "Gasometria (A/V)", desc: "pH, PaCO₂, HCO₃⁻, ânion gap", path: "/calc/gasometria" },
+    { key: "iga", title: "Idade Gestacional (DUM / DPP / USG)", desc: "Datas e conversões", path: "/calc/ig" },
+    { key: "childpugh", title: "Child-Pugh", desc: "Gravidade da cirrose", path: "/calc/child-pugh" },
+    { key: "grace", title: "GRACE", desc: "Risco em SCA", path: "/calc/grace" },
+    { key: "cha2ds2vasc", title: "CHA₂DS₂-VASc", desc: "FA: risco tromboembólico", path: "/calc/cha2ds2vasc" },
+  ];
+
+  const proTools = [
+    { title: "Gestão de Pacientes PRO", desc: "Exportar/Importar, relatórios e modelos", href: "/pro/pacientes" },
+    { title: "Protocolos do PS", desc: "Dor torácica, dispneia, febre, dor abd., AVC etc.", href: "/pro/protocolos" },
+    { title: "Modelos (Atestado/Encam./Receita)", desc: "Padronizados, CAIXA ALTA, prontos p/ imprimir", href: "/pro/modelos" },
+  ];
+
+  return (
+    <div className="w-full h-full p-4 md:p-6">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <header className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">Avançado</h1>
+            <p className="text-sm text-gray-500">Calculadoras, PosologiaCerta e ferramentas PRO.</p>
+          </div>
+          <button
+            onClick={() => nav("/")}
+            className="px-3 py-2 rounded-xl border text-sm hover:bg-gray-50"
+            aria-label="Voltar"
+          >
+            ← Voltar ao Chat
+          </button>
+        </header>
+
+        {/* Calculadoras */}
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Calculadoras</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {calculators.map((c) => (
+              <button
+                key={c.key}
+                onClick={() => nav(c.path)}
+                className="text-left p-4 rounded-2xl border hover:shadow-sm transition"
+                aria-label={`Abrir ${c.title}`}
+              >
+                <div className="font-medium">{c.title}</div>
+                <div className="text-sm text-gray-500">{c.desc}</div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* PosologiaCerta */}
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">PosologiaCerta</h2>
+          <div className="rounded-2xl border p-4 flex items-start justify-between">
+            <div>
+              <div className="font-medium">PosologiaCerta (em breve)</div>
+              <p className="text-sm text-gray-500">
+                Cálculo mg/kg/dose e mg/kg/dia, conversão para mL/comprimidos/gotas, máximos por dose/dia,
+                flags pediatria/gestante/renal/hepático e saída no padrão MédicoHelp.
+              </p>
+            </div>
+            <span className="text-xs px-2 py-1 rounded-lg border">EM BREVE</span>
+          </div>
+        </section>
+
+        {/* Ferramentas PRO */}
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Ferramentas Médico PRO</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {proTools.map((t, i) => (
+              <a
+                key={i}
+                href={t.href}
+                className="block p-4 rounded-2xl border hover:shadow-sm transition"
+              >
+                <div className="font-medium">{t.title}</div>
+                <div className="text-sm text-gray-500">{t.desc}</div>
+              </a>
+            ))}
+          </div>
+        </section>
+
+        {/* Uploads */}
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Uploads</h2>
+          <div className="rounded-2xl border p-4">
+            <p className="text-sm text-gray-600">
+              Envie **exames, fotos e áudios** aqui (igual Whats): o sistema transcreve e anexa ao atendimento.
+            </p>
+            <div className="mt-3 flex gap-2 flex-wrap">
+              <button className="px-3 py-2 rounded-xl border text-sm">📎 Arquivo</button>
+              <button className="px-3 py-2 rounded-xl border text-sm">📷 Foto/Câmera</button>
+              <button className="px-3 py-2 rounded-xl border text-sm">🎤 Áudio → Texto</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}

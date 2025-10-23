@@ -24,6 +24,8 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import ForgotPassword from "@/pages/forgot-password";
 import VerifyCode from "@/pages/verify-code";
+import AdvancedHub from "@/pages/advanced-hub";
+import CalcPlaceholder from "@/pages/calc-placeholder";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -83,6 +85,30 @@ function ProtectedRouter() {
         <Route path="/gestante" component={EmBreve} />
         <Route path="/emergencia" component={EmBreve} />
         <Route path="/demo-top-controls" component={DemoTopControls} />
+        
+        {/* ADVANCED HUB */}
+        <Route path="/avancado" component={AdvancedHub} />
+        
+        {/* CALCULADORAS */}
+        <Route path="/calc/wells">
+          {() => <CalcPlaceholder title="Escore de Wells (TEV)" description="Probabilidade de TEP/TVP" />}
+        </Route>
+        <Route path="/calc/gasometria">
+          {() => <CalcPlaceholder title="Gasometria Arterial/Venosa" description="Análise de pH, PaCO₂, HCO₃⁻ e ânion gap" />}
+        </Route>
+        <Route path="/calc/ig">
+          {() => <CalcPlaceholder title="Idade Gestacional" description="Cálculo por DUM, DPP ou USG" />}
+        </Route>
+        <Route path="/calc/child-pugh">
+          {() => <CalcPlaceholder title="Child-Pugh" description="Classificação de gravidade da cirrose hepática" />}
+        </Route>
+        <Route path="/calc/grace">
+          {() => <CalcPlaceholder title="GRACE Score" description="Estratificação de risco em Síndrome Coronariana Aguda" />}
+        </Route>
+        <Route path="/calc/cha2ds2vasc">
+          {() => <CalcPlaceholder title="CHA₂DS₂-VASc" description="Risco tromboembólico em Fibrilação Atrial" />}
+        </Route>
+        
         <Route component={NotFound} />
       </Switch>
     </ProtectedRoute>

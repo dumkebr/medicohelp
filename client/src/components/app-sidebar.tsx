@@ -1,4 +1,4 @@
-import { Activity, Users, Plus, FileText, Sparkles, Image, Home, Baby, Heart, AlertCircle, Search, ChevronDown, ChevronRight } from "lucide-react";
+import { Activity, Users, Plus, FileText, Sparkles, Image, Home, Baby, Heart, AlertCircle, Search, ChevronDown, ChevronRight, Calculator } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import {
@@ -42,6 +42,11 @@ const menuItems = [
     title: "Atendimento médico",
     url: "/",
     icon: Activity,
+  },
+  {
+    title: "Ferramentas Avançadas",
+    url: "/avancado",
+    icon: Calculator,
   },
   {
     title: "Sobre",

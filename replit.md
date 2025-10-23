@@ -27,9 +27,9 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
     -   **Primary Model**: GPT-5 with refined medical prompts (temperature 0.4, max 900 tokens for objective responses)
     -   **New API Integration**: Uses `client.responses.create()` and `client.responses.stream()` (latest OpenAI SDK)
     -   **Automatic Fallback Chain**: GPT-5 → GPT-4o (new API) → GPT-4o (legacy API) for maximum reliability
-    -   **Medical Scope Detection**: Automatic validation that queries are medical-related
+    -   **NO Topic Restrictions**: Removed all medical-only filters - system maintains medical tone but responds to any subject
     -   **Refined Prompts**: Specialist system prompts (`server/medicohelp-gpt5.ts`) that respect medical terminology (CAIXA ALTA, abbreviations like BEG, LOTE, MV+)
-    -   **Structured Responses**: Mode-specific formatting (Clínico: 🩺⚡🧪💬📇, Explicativo: 👉📚⚡💡)
+    -   **Structured Responses**: Mode-specific formatting (Clínico: 👉⚡🔎📇, Explicativo: 👉📚⚡💡)
     -   **Real-time Streaming**: Server-Sent Events (SSE) with chunk-by-chunk delivery via `event.type === 'response.output_text.delta'`
 -   **AI Tone**: Hybrid communication style combining informal personalized greeting with formal technical content. Starts with casual greeting using physician's first name (e.g., "Beleza, João. Vamos direto ao ponto:"), followed by formal technical communication with precise medical terminology (CID-10/11, SNOMED-CT, MeSH), evidence-based medicine (SBC, ESC, AHA, ACC, AMB, CFM), and professional language compatible with specialist-to-specialist communication.
 -   **Configuration System**: JSON-based configuration (`config/medicohelp.clinico.v1.json`) defines AI clinical response structure with 5 mandatory sections and guardrails to prevent AI from inventing data and to ensure it requests missing critical information. It enforces 5 "Leis do MédicoHelp" for response quality.
@@ -43,13 +43,13 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 
 **Feature Specifications:**
 -   **AI Medical Chat with Dual-Mode System (GPT-5 Powered)**:
-    -   **Modo Clínico (DEFAULT)**: Direct clinical decision support with structured format (🩺 Diagnóstico provável, ⚡ Conduta imediata with doses, 🧪 Investigação complementar, 💬 Sinais de alarme, 📇 CID). Temperature 0.4 for stable responses. Requests missing vital signs instead of inventing data.
+    -   **Modo Clínico (DEFAULT)**: Direct clinical decision support with structured format (👉 Impressão/Contexto, ⚡ Conduta/Resposta direta, 🔎 Alertas/Observações, 📇 CID quando aplicável). Temperature 0.4 for stable responses. Requests missing vital signs instead of inventing data.
     -   **Modo Avançado (Explicativo + Evidências)**: Didactic explanations with evidence-based references (👉 Conceito/Fisiopatologia, 📚 Evidências clínicas citing AHA/ACC/IDSA/OMS/SBC/AMB/CFM, ⚡ Aplicação prática, 💡 Pontos-chave). Integrates PubMed search results when available.
-    -   **Medical Scope Validation**: Automatically detects and rejects non-medical queries ("O MédicoHelp responde apenas sobre medicina").
+    -   **No Topic Filters**: System responds to ANY subject while maintaining medical tone - removed all "medical-only" validation. Frontend sends clean text without templates.
     -   **Term Preservation**: Respects physician's original terminology (maintains CAIXA ALTA, abbreviations like BEG/LOTE/MV+, colloquial terms like "GRIPE" without converting to "síndrome gripal").
     -   **Personalized Greeting System**: Every AI response starts with informal greeting using physician's first name (e.g., "Beleza, João. Vamos direto ao ponto:"), followed by formal technical content. Name automatically extracted from authenticated user data.
     -   **Hybrid Model System**: GPT-5 as primary engine with automatic fallback to GPT-4o if unavailable. Model used is logged for transparency.
-    -   **Session Management**: Auto-save with intelligent titles generated from last physician message, opens new consultations in separate tabs with URL params (`?sid=xxx`).
+    -   **Session Management**: Auto-save with intelligent titles generated from last physician message, opens new consultations in same page (not separate tabs).
     -   Automatic mode switching based on user input, with user-controlled toggles.
 -   **MedPrime - Ferramentas Médicas Avançadas**:
     -   Professional visual card with emerald gradient design highlighting advanced medical tools.

@@ -10,18 +10,15 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 /** ======= PROMPTS REFINADOS ======= */
 
-// Prompt-base (identidade + regras + tom)
+// Prompt-base (identidade + tom + estilo - SEM RESTRIÇÃO DE ASSUNTO)
 const SYSTEM_PROMPT_BASE = `
-Você é o **MédicoHelp**, um assistente clínico médico destinado EXCLUSIVAMENTE a medicina.
-Fale como um médico experiente de pronto-socorro: direto, objetivo, humano, sem floreios.
+Você é o **MédicoHelp**, um assistente com tom direto, tradicional e linguagem de plantão médico.
+Fale como um médico experiente: objetivo, humano, sem floreios.
 Valorize o jeito tradicional de registrar: quando o usuário usar CAIXA ALTA, mantenha; quando ele usar abreviações (BEG, LOTE, MV+), respeite.
 Nunca troque o termo do médico por outro mais "protocolar". Se ele disser "GRIPE", não mude para "síndrome gripal". 
 Se precisar adicionar precisão, faça após o termo do médico, entre parênteses (ex.: GRIPE — provável etiologia viral).
 
-**Escopo:** só responda sobre medicina (clínica, protocolos, condutas, interpretação de exames, posologia, triagem, encaminhamentos, documentação assistencial).
-Se vier tema fora da medicina, responda: "O MédicoHelp responde apenas sobre medicina."
-
-**Conduta e segurança:**
+**Conduta e segurança (quando aplicável):**
 - Não invente sinais vitais nem dados do exame físico. Se forem necessários para conduzir, peça: "Doutor, me informe PA/FC/FR/Sat/T."
 - Sempre destaque sinais de alarme, condutas imediatas e quando reavaliar/encaminhar.
 - Use doses pediátricas por kg quando aplicável e máximos por dose/dia (quando forem críticos).
@@ -29,12 +26,11 @@ Se vier tema fora da medicina, responda: "O MédicoHelp responde apenas sobre me
 
 **Estilo fixo:**
 - Comece com "Beleza, {{NOME_MEDICO}}. Vamos direto ao ponto:" quando houver nome disponível.
-- Estruture, quando fizer sentido:
-  🩺 Diagnóstico provável / Impressão clínica  
-  ⚡ Conduta imediata  
-  🧪 Investigação complementar  
-  💬 Observações / Sinais de alarme  
-  📇 CID sugerido (quando aplicável)
+- Quando fizer sentido, estruture:
+  👉 Impressão / Contexto
+  ⚡ Conduta / Resposta direta
+  🔎 Alertas / Observações
+  📇 CID sugerido (quando aplicável em casos clínicos)
 - Em pedidos de "HISTÓRIA CLÍNICA", produza em CAIXA ALTA no formato que o médico já iniciou, sem enfeitar.
 `;
 
@@ -66,14 +62,9 @@ Mantenha estrutura didática:
 `;
 
 /**
- * Função auxiliar: verifica se texto é sobre medicina
+ * REMOVIDO: Filtro de "só medicina" - agora responde qualquer assunto
+ * Mantém apenas o tom médico tradicional
  */
-function isMedicalContent(text: string): boolean {
-  const textoLower = text.toLowerCase();
-  return /paciente|dor|febre|press[aã]o|exame|conduta|diagn[oó]stico|cid|posologia|dose|s[aã]t|sintoma|crise|gestante|trauma|asma|iam|avc|uti|antibi[oó]tico|antit[eé]tico|pronto|ecg|raio.?x|hemograma|gasometria|bpm|mmhg/i.test(
-    textoLower
-  );
-}
 
 /**
  * Extrai primeiro nome do médico
@@ -123,7 +114,7 @@ export async function askMedicoHelpStreaming(
   options: MedicoHelpOptions,
   onChunk: StreamCallback
 ): Promise<{ fullText: string; model: string; tokens: number }> {
-  const isMedical = isMedicalContent(userText);
+  const medicalOk = true; // LIBERADO GERAL - sem filtro de assunto
   const firstName = extractFirstName(options.nomeMedico);
   
   // Montar system prompt
@@ -144,20 +135,11 @@ export async function askMedicoHelpStreaming(
   // Montar mensagens usando novo formato "input"
   const inputMessages: any[] = [
     { role: "system", content: systemPrompt },
+    {
+      role: "user",
+      content: "Responda abaixo mantendo EXATAMENTE o estilo e os termos do usuário."
+    },
   ];
-
-  // Se não for médico, adicionar aviso
-  if (!isMedical) {
-    inputMessages.push({
-      role: "user",
-      content: "Lembre-se: responda apenas sobre medicina. Se o texto a seguir não for médico, diga isso em UMA linha."
-    });
-  } else {
-    inputMessages.push({
-      role: "user",
-      content: "Responda abaixo mantendo o MESMO estilo e termos do usuário (não troque os termos clínicos que ele usou)."
-    });
-  }
 
   inputMessages.push({ role: "user", content: userText });
 
@@ -272,7 +254,7 @@ export async function askMedicoHelpNonStreaming(
   userText: string,
   options: MedicoHelpOptions
 ): Promise<{ fullText: string; model: string; tokens: number }> {
-  const isMedical = isMedicalContent(userText);
+  const medicalOk = true; // LIBERADO GERAL - sem filtro de assunto
   const firstName = extractFirstName(options.nomeMedico);
   
   // Montar system prompt
@@ -290,19 +272,11 @@ export async function askMedicoHelpNonStreaming(
 
   const inputMessages: any[] = [
     { role: "system", content: systemPrompt },
+    {
+      role: "user",
+      content: "Responda abaixo mantendo EXATAMENTE o estilo e os termos do usuário."
+    },
   ];
-
-  if (!isMedical) {
-    inputMessages.push({
-      role: "user",
-      content: "Lembre-se: responda apenas sobre medicina. Se o texto a seguir não for médico, diga isso em UMA linha."
-    });
-  } else {
-    inputMessages.push({
-      role: "user",
-      content: "Responda abaixo mantendo o MESMO estilo e termos do usuário (não troque os termos clínicos que ele usou)."
-    });
-  }
 
   inputMessages.push({ role: "user", content: userText });
 

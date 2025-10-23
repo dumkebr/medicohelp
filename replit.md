@@ -19,7 +19,12 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 -   **Theming**: Dark/light mode support with teal color palette throughout application.
 -   **Chat Interface**: Modern layout inspired by popular chat applications, featuring multimodal input (file upload, camera, gallery, microphone with transcription). Dra. Clarice mascot appears when conversation is empty.
 -   **Medical Tools Modal**: Refined layout with tabs and fade-in animations for a seamless user experience.
--   **Sidebar Organization**: Intuitive navigation with main menu items, expandable search, and collapsible sections for patient management and history. Features "MédicoHelp" branding with teal "Help" text.
+-   **Sidebar Organization**: Intuitive navigation with main menu items, expandable search, and collapsible sections for patient management and history. Features "MédicoHelp" branding with bright teal "Help" text (#1affb8). Custom medical heart icon (PNG) used consistently across sidebar and MedPrime sections.
+    -   **Visual Hierarchy**: 
+        - Logo: h-10 w-10, text-xl font-bold
+        - Section Titles: text-xs font-semibold uppercase (Shadcn default)
+        - Menu Items: text-sm font-medium with h-5 w-5 icons
+        - MedPrime: h-10 w-10 icon, text-base font-bold title, text-xs subtitle
 -   **TopControls Component**: Reusable tabbed interface for the medical consultation workflow, offering "Clínico" (clinical mode), "Explicação + Evidências" (explanatory mode), and navigation to advanced tools.
 -   **AdvancedHub**: Central hub (`/avancado`) for clinical calculators and advanced features, presented in a responsive grid layout.
 -   **Medical Calculators**: Interactive forms for various clinical assessments (e.g., Wells Score, Arterial/Venous Blood Gas Analysis, Gestational Age), providing real-time calculations, interpretations, and copy/clear functions.
@@ -66,7 +71,7 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 -   **MedPrime - Ferramentas Médicas Avançadas**:
     -   Professional visual card with emerald gradient design highlighting advanced medical tools.
     -   Dedicated page at `/medprime` with direct access to medical calculators.
-    -   Highlighted green link in sidebar with HeartPulse icon.
+    -   Highlighted green link in sidebar with custom medical heart icon (PNG: heart with cross, ECG, circuits).
     -   Features: Clinical calculators, validated scores (Wells, CURB-65, CHA₂DS₂-VASc), standardized protocols, integrated AI diagnostic support.
     -   Smooth scroll-to-section navigation within page.
 -   **Histórico de Atendimentos**: Manages multiple medical consultations, saved in localStorage, with sidebar navigation, search functionality, smart titling, and optional patient association. Includes a retention policy for consultations.
@@ -95,6 +100,16 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 -   **GitHub OAuth**: User authentication.
 
 ## Recent Updates (October 2025)
+
+### Visual Standardization & Branding Refinement (October 23, 2025) ✅
+- **Custom MedPrime Icon**: Replaced generic icon with custom medical heart PNG (heart with cross, ECG, circuits)
+- **Brand Color Update**: "Help" text now uses bright teal (#1affb8) for better visibility and brand consistency
+- **Typography Hierarchy Standardized**:
+  - Logo MédicoHelp: text-xl font-bold, h-10 w-10 icon
+  - MedPrime sidebar: text-base font-bold title, text-xs subtitle, h-10 w-10 icon
+  - MedPrime card: h-14 w-14 icon (proportionally larger for home page)
+  - Menu items: Consistent text-sm font-medium with h-5 w-5 icons
+- **Visual Consistency**: All icons and text sizes follow clear hierarchy for professional appearance
 
 ### Dra. Clarice LIBERADA - Zero Restrictions (October 23, 2025) ✅
 - **System prompts simplified**: Removed all complex structures, made EXPLICIT that Dra. Clarice responds to ANY subject

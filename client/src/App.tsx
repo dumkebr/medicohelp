@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { AuthProvider } from "@/lib/auth";
 import { UserMenu } from "@/components/user-menu";
 import NotFound from "@/pages/not-found";
-import Atendimento from "@/pages/atendimento-teal";
+import Home from "@/pages/home";
 import NovoPaciente from "@/pages/novo-paciente";
 import EditarPaciente from "@/pages/editar-paciente";
 import Pacientes from "@/pages/pacientes";
@@ -82,8 +82,8 @@ function ProtectedRouter() {
   return (
     <ProtectedRoute>
       <Switch>
-        <Route path="/" component={Atendimento} />
-        <Route path="/atendimento" component={Atendimento} />
+        <Route path="/" component={Home} />
+        <Route path="/atendimento" component={Home} />
         <Route path="/atendimento-teal" component={AtendimentoTeal} />
         <Route path="/novo-paciente" component={NovoPaciente} />
         <Route path="/pacientes/:id/historico" component={HistoricoPaciente} />

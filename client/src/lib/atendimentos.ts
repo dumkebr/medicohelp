@@ -19,6 +19,20 @@ const KEY = "mh_atendimentos";
 const CUR = "mh_current_atendimento_id";
 const RETENTION_DAYS = 30; // política: expira em 30 dias se não salvo e sem paciente
 
+// 🔥 MIGRATION: Limpar conversas antigas quando versão muda
+const VERSION_KEY = "mh_app_version";
+const CURRENT_VERSION = "2.0.0-natural"; // Nova versão natural amigável
+function checkVersion() {
+  const saved = localStorage.getItem(VERSION_KEY);
+  if (saved !== CURRENT_VERSION) {
+    console.log("🔄 Nova versão - limpando conversas antigas com disclaimers");
+    localStorage.removeItem(KEY);
+    localStorage.removeItem(CUR);
+    localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
+  }
+}
+checkVersion(); // Executar imediatamente ao carregar módulo
+
 function loadAllRaw(): Atendimento[] {
   try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; }
 }

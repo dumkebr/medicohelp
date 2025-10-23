@@ -1,0 +1,130 @@
+INSTRUÇÕES PARA AJUSTAR O MÉDICOHELP
+
+Contexto do projeto
+
+Diretório: /home/runner/workspace
+
+Manter layout atual (botões Clínico/Avançado iguais).
+
+Backend já deve usar GPT-5.
+
+1) Remover qualquer template engessado no front
+
+Procure e APAGUE qualquer bloco que injete mensagem pronta antes da resposta da IA.
+
+Buscar (Ctrl+Shift+F) e deletar strings/variáveis/funções:
+
+Diagnóstico provável
+
+Conduta imediata
+
+Desculpe, preciso dos dados clínicos
+
+Beleza, Médic(o)a. Vamos direto ao ponto
+
+prePrompt
+
+composePrompt
+
+initialAiMessage
+
+buildClinicalResponse
+
+openai.chat.completions.create
+
+Arquivos prováveis:
+components/Chat.tsx, components/ChatInput.tsx, hooks/useChat.ts, helpers/prompt.ts, utils/prompt.ts, pages/index.tsx (ou equivalente em app/).
+
+Regra: o front-end não deve montar prompt nenhum. Quem define o tom é o backend.
+
+2) Garantir que o envio pro backend é “texto cru”
+
+No componente do chat, a chamada fetch deve ser exatamente assim (sem concatenar templates):
+
+await fetch("/api/medicohelp", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ text, mode, name: doctorName, stream: true }),
+});
+
+
+Se existir qualquer system, prePrompt, role: "system" ou concatenação de texto no front, remova.
+
+3) Usar apenas o endpoint novo com GPT-5
+
+Substitua endpoints antigos (/api/ai, /api/clinical, etc.).
+O endpoint oficial é /api/medicohelp.
+
+No handler (arquivo api/medicohelp.ts), deve importar:
+
+import { askMedicoHelp, streamMedicoHelp } from "../lib/medicohelpAI";
+
+
+E usar client.responses.create() (SDK novo), nunca chat.completions.
+
+4) Não criar mensagem inicial no histórico
+
+Remover qualquer setHistory([{ role: "ai", text: "..." }]) ao carregar a tela.
+Histórico começa vazio. Quem “fala” primeiro é o médico.
+O tom “Beleza, Doutor…” vem do backend.
+
+5) “Novo atendimento” sem abrir nova aba
+
+Na Sidebar/Menu, trocar <a href> por botão que dispara:
+
+window.dispatchEvent(new Event("mh:new-session"));
+
+
+No components/Chat.tsx, ouvir esse evento e:
+
+Salvar a sessão atual (título curto por IA; fallback heurístico).
+
+Limpar o chat e iniciar nova sessão na mesma página.
+
+Se não existir utilitário de sessão, crie lib/sessions.ts com:
+
+loadSessions(), saveSessions(list), pushSession(session), genId()
+
+heuristicTitle(history) (usa último texto do usuário + data)
+
+E no Chat.tsx:
+
+Função aiSuggestTitle(history) chamando /api/medicohelp pedindo apenas um título curto.
+
+Função salvarAtendimentoAtual() que usa aiSuggestTitle() e pushSession().
+
+Listener:
+
+useEffect(() => {
+  const l = () => { salvarAtendimentoAtual().then(() => { setHistory([]); setInput(""); setLoading(false); }); };
+  window.addEventListener("mh:new-session", l as any);
+  return () => window.removeEventListener("mh:new-session", l as any);
+}, [history]);
+
+6) System prompt único no backend
+
+No arquivo lib/medicohelpAI.ts, manter o SYSTEM_PROMPT com:
+
+Tom direto e tradicional (“Beleza, Doutor {{NOME_MEDICO}}. Vamos direto ao ponto:”).
+
+Espelhar CAIXA ALTA/abreviações do usuário.
+
+Não trocar termos do médico (ex.: manter “GRIPE”, não substituir por “síndrome gripal”).
+
+Modo Clínico e Explicativo.
+
+Bloqueio de assuntos fora da medicina.
+
+temperature: 0.4, max_output_tokens: 900.
+
+7) Checklist de validação
+
+Perguntar: “oi help, tudo bem?” → resposta vem com meu tom, sem blocos fixos.
+
+Caso clínico em CAIXA ALTA → mantém os termos do usuário e pede vitais em uma linha só se necessário.
+
+Novo atendimento → salva sessão + abre conversa limpa sem abrir aba nova.
+
+Console/log confirma uso do client.responses.create() (não chat.completions).
+
+Faça as mudanças acima, confirme que nenhum template permanece no front e que o endpoint ativo é /api/medicohelp usando GPT-5 com streaming. Depois rode o build e faça hard reload no navegador.

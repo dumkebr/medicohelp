@@ -22,11 +22,9 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { FileAttachment, Patient, ScientificReference } from "@shared/schema";
 import TopControls from "@/components/TopControls";
+import ChatComposer from "@/components/ChatComposer";
 import { useAuth } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import ChatComposer from "@/components/ChatComposer";
-import MedPrimeCard from "@/components/MedPrimeCard";
-import { useLocation } from "wouter";
 import {
   getCurrentId,
   getAtendimento,
@@ -330,7 +328,6 @@ export default function Atendimento() {
   // ===== PERSONALIZAÇÃO =====
   const medico = useMemo<MedicoInfo>(() => getMedicoFromStorage(), []);
   const saudacao = useMemo(() => buildSaudacao(medico), [medico]);
-  const [, navigate] = useLocation();
 
   // ===== ESTADO =====
   const [message, setMessage] = useState("");
@@ -346,7 +343,6 @@ export default function Atendimento() {
   const [currentUserMessage, setCurrentUserMessage] = useState("");
   const [showSavePanel, setShowSavePanel] = useState(false);
   const [useLocalFallback, setUseLocalFallback] = useState(false);
-  const [showMedPrimeCard, setShowMedPrimeCard] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
   const threadRef = useRef<HTMLDivElement>(null);
@@ -750,7 +746,8 @@ export default function Atendimento() {
             onTabChange={(tab) => {
               if (tab === "clinico") {
                 setMode("clinico");
-              } else if (tab === "evidencias") {
+                setEvidenceEnabled(false);
+              } else if (tab === "avancado") {
                 setMode("explicativo");
                 setEvidenceEnabled(true);
               }
@@ -811,19 +808,10 @@ export default function Atendimento() {
         className="flex-1 overflow-y-auto max-w-3xl w-full mx-auto px-4 py-6"
       >
         {history.length === 0 && !isStreaming ? (
-          <div className="space-y-6">
-            {showMedPrimeCard && (
-              <MedPrimeCard
-                onAccess={() => navigate("/avancado")}
-                className="mt-4"
-                restricted={true}
-              />
-            )}
-            <div className="text-neutral-500 dark:text-neutral-400 text-sm mt-8 text-center space-y-2">
-              <p className="text-base font-medium">💚 MédicoHelp - Sistema Híbrido IA + Clairton</p>
-              <p>Respostas estruturadas (🩺⚡🧪💬) enriquecidas com IA</p>
-              <p className="text-xs">Funciona online (IA) e offline (local)</p>
-            </div>
+          <div className="text-neutral-500 dark:text-neutral-400 text-sm mt-12 text-center space-y-2">
+            <p className="text-base font-medium">💚 MédicoHelp - Sistema Híbrido IA + Clairton</p>
+            <p>Respostas estruturadas (🩺⚡🧪💬) enriquecidas com IA</p>
+            <p className="text-xs">Funciona online (IA) e offline (local)</p>
           </div>
         ) : (
           <div className="space-y-6" data-testid="card-chat-history">

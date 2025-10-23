@@ -79,13 +79,6 @@ function AuthRouter() {
 }
 
 function ProtectedRouter() {
-  const [, setLocation] = useLocation();
-  
-  // Redireciona automaticamente para a versão demo
-  useEffect(() => {
-    setLocation("/demo-atendimento-teal");
-  }, [setLocation]);
-  
   return (
     <ProtectedRoute>
       <Switch>
@@ -152,10 +145,6 @@ function AppLayout() {
   
   const authRoutes = ["/login", "/register", "/forgot-password", "/verify-code"];
   const isAuthRoute = authRoutes.some(route => location.startsWith(route));
-  
-  // Rotas que não usam sidebar (interface standalone)
-  const noSidebarRoutes = ["/", "/atendimento-teal"];
-  const isNoSidebarRoute = noSidebarRoutes.includes(location);
 
   const style = {
     "--sidebar-width": "20rem",
@@ -163,16 +152,6 @@ function AppLayout() {
   };
 
   if (!isAuthenticated || isAuthRoute) {
-    return (
-      <>
-        <Router />
-        <Toaster />
-      </>
-    );
-  }
-
-  // Interface standalone sem sidebar para rota principal
-  if (isNoSidebarRoute) {
     return (
       <>
         <Router />

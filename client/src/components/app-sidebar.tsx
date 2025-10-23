@@ -1,3 +1,4 @@
+// FORCE REBUILD 1761254231 - SVG inline heart icon
 import { Activity, Users, Plus, FileText, Sparkles, Image, Home, Baby, Heart, AlertCircle, Search, ChevronDown, ChevronRight, Calculator } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";

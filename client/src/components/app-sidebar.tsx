@@ -151,7 +151,7 @@ export function AppSidebar() {
           <img 
             src="/heart-icon.png" 
             alt="MédicoHelp" 
-            className="h-12 w-12 object-contain flex-shrink-0"
+            className="h-14 w-14 object-contain flex-shrink-0"
           />
           <div className="flex items-baseline gap-0.5">
             <span className="text-[28px] font-black tracking-tight text-white">Médico</span>
@@ -226,8 +226,8 @@ export function AppSidebar() {
               }`}
               data-testid="link-medprime"
             >
-              <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-700 text-white ring-1 ring-emerald-600/20">
-                <HeartPulse className="h-4 w-4" aria-hidden="true" />
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-700 ring-1 ring-emerald-600/20">
+                <img src="/heart-icon.png" alt="MedPrime" className="h-5 w-5 object-contain" />
               </span>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold truncate">MedPrime</div>

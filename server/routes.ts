@@ -35,6 +35,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { retryWithBackoff } from "./utils/retry";
 import { loadClinicoConfig, buildClinicoSystemPrompt } from "./config-loader";
 import { detectClinicalScore, generateScoreResponse } from "./clinical-detector";
+import { askMedicoHelpStreaming, askMedicoHelpNonStreaming, type MedicoHelpOptions } from "./medicohelp-gpt5";
 
 // Referência ao blueprint javascript_openai para integração OpenAI
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
@@ -1059,35 +1060,34 @@ Use este contexto para fundamentar sua explicação e inclua na seção "📚 Ev
 
       let fullAnswer = "";
       let tokenCount = 0;
+      let modelUsed = "gpt-4o";
 
       let streamingFailed = false;
       
       try {
-        // Try streaming with retry logic (using GPT-4o for better compatibility)
-        await retryWithBackoff(async () => {
-          const stream = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages,
-            max_tokens: 4096,
-            stream: true,
-          });
+        // 🚀 SISTEMA HÍBRIDO: GPT-5 com fallback para GPT-4o
+        // Usar nova função com prompts médicos refinados
+        const medicoOptions: MedicoHelpOptions = {
+          mode: activeMode === 'explicativo' ? 'explicativo' : 'clinico',
+          nomeMedico: userName,
+          evidenceContext: evidenceContext || undefined,
+        };
 
-          // Process stream chunks
-          for await (const chunk of stream) {
-            const content = chunk.choices[0]?.delta?.content;
-            
-            if (content) {
-              fullAnswer += content;
-              tokenCount++;
-
-              // Send chunk to client
-              sendEvent("chunk", { content });
-            }
+        const result = await askMedicoHelpStreaming(
+          message,
+          medicoOptions,
+          (chunk: string) => {
+            // Callback para cada chunk recebido
+            sendEvent("chunk", { content: chunk });
           }
+        );
 
-          // Stream completed successfully
-          return fullAnswer;
-        }, 3, 2000, 45000); // 3 attempts, 2s base delay, 45s timeout
+        fullAnswer = result.fullText;
+        tokenCount = result.tokens;
+        modelUsed = result.model;
+
+        console.log(`✅ ${modelUsed} streaming: ${tokenCount} tokens`);
+        
       } catch (streamError: any) {
         // Check if it's an organization verification error
         if (streamError.message?.includes("organization must be verified") || 
@@ -1101,18 +1101,19 @@ Use este contexto para fundamentar sua explicação e inclua na seção "📚 Ev
 
       // Fallback to non-streaming mode if streaming failed
       if (streamingFailed) {
-        console.log("Using fallback: GPT-4o non-streaming mode");
-        const completion = await retryWithBackoff(async () => {
-          return await openai.chat.completions.create({
-            model: "gpt-4o", // Use GPT-4o for fallback (better streaming support)
-            messages,
-            max_tokens: 4096,
-            stream: false,
-          });
-        }, 2, 1000, 20000); // Reduced: 2 attempts, 1s base delay, 20s timeout
+        console.log("Using fallback: non-streaming mode");
+        
+        const medicoOptions: MedicoHelpOptions = {
+          mode: activeMode === 'explicativo' ? 'explicativo' : 'clinico',
+          nomeMedico: userName,
+          evidenceContext: evidenceContext || undefined,
+        };
 
-        fullAnswer = completion.choices[0]?.message?.content || "Desculpe, não foi possível processar sua pergunta.";
-        tokenCount = fullAnswer.length;
+        const result = await askMedicoHelpNonStreaming(message, medicoOptions);
+        
+        fullAnswer = result.fullText;
+        tokenCount = result.tokens;
+        modelUsed = result.model;
 
         // Send the complete response as one chunk
         sendEvent("chunk", { content: fullAnswer });

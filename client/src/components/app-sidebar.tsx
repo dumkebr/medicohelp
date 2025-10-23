@@ -228,11 +228,7 @@ export function AppSidebar() {
               data-testid="link-medprime"
             >
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-700 ring-1 ring-emerald-600/20">
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M7 11h4M15 11h4M12 8v6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                  <path d="M7 14h3M14 14h3" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
+                <Sparkles className="h-5 w-5 text-white" aria-hidden="true" />
               </span>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold truncate">MedPrime</div>

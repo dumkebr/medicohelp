@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calculator, ListChecks, FileText, Bot, ShieldCheck } from "lucide-react";
+import { Calculator, ListChecks, FileText, Bot, ShieldCheck, Sparkles } from "lucide-react";
 
 export type MedPrimeCardProps = {
   onAccess?: () => void;
@@ -29,11 +29,7 @@ export default function MedPrimeCard({ onAccess, className = "", restricted = tr
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3">
           <div className="grid h-12 w-12 place-items-center rounded-xl bg-white/10 ring-1 ring-white/20">
-            <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M7 11h4M15 11h4M12 8v6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M7 14h3M14 14h3" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
+            <Sparkles className="h-7 w-7 text-white" aria-hidden="true" />
           </div>
           <div className="min-w-0">
             <CardTitle className="text-2xl font-bold tracking-tight">MedPrime</CardTitle>

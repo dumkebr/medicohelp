@@ -31,14 +31,26 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
 - **Color Palette**: Professional medical green (#3cb371).
 - **Design Guidelines**: Professional medical design with Inter typography, consistent spacing, subtle shadows, and visual feedback.
 - **Chat Interface**: Modern clean layout with fixed header (controls), scrollable thread (bubble messages), and fixed composer (similar to ChatGPT/Claude).
+- **ChatComposer**: WhatsApp/ChatGPT-style multimodal input bar with 4 integrated methods:
+  - 📎 **File Upload**: Images, PDFs, audio, video
+  - 📷 **Camera**: Direct camera access (mobile native camera)
+  - 🖼️ **Gallery**: Select existing photos
+  - 🎤 **Microphone**: Dual-function (tap = real-time dictation via Web Speech API, hold = record and auto-transcribe via Whisper)
+  - **Features**: Enter to send, Shift+Enter for new line, auto-transcription, file preview
 - **Medical Tools Modal**: Refined layout with compact header, tab bar (#f8f9f9 background), 3px green underline on active tab, minimal gap (8px) between tabs and content, no scroll overflow issues, smooth fade-in animations (200ms) between tab switches, and full dark mode support.
-- **Sidebar Organization**: Menu Principal with 4 items (Atendimento médico, Sobre, Novo atendimento, Buscar), expandable search field, collapsible sections (Gestão de Pacientes, Atendimentos Salvos, Histórico).
+- **Sidebar Organization**: Menu Principal with 5 items (Atendimento médico, Ferramentas Avançadas, Sobre, Novo atendimento, Buscar), expandable search field, collapsible sections (Gestão de Pacientes, Atendimentos Salvos, Histórico).
 - **TopControls Component**: Reusable tabbed interface for atendimento workflow with three modes:
   - **Clínico Tab**: Default view for AI medical chat
   - **Explicação + Evidências Tab**: Shows evidence panel with educational information
   - **Calculadoras Tab**: Quick access to 13 clinical calculators (CURB-65, Wells, CHA₂DS₂-VASc, etc.)
   - Includes save button, title display, and responsive tab layout
   - Demo available at `/demo-top-controls` (publicly accessible)
+- **AdvancedHub** (`/avancado`): Central hub for advanced tools and calculators:
+  - **Calculadoras Clínicas**: 6 calculator cards (Wells, Gasometria, IG, Child-Pugh, GRACE, CHA₂DS₂-VASc) linking to `/calc/*` routes
+  - **PosologiaCerta**: Placeholder card marked "Em breve"
+  - **Ferramentas PRO**: 3 cards for advanced features (Gestão de Pacientes, Protocolos PS, Modelos)
+  - **Upload Section**: Links back to chat for multimodal input
+  - Clean grid layout, responsive design, shadcn Card components
 
 **Technical Implementations:**
 - **Frontend:**

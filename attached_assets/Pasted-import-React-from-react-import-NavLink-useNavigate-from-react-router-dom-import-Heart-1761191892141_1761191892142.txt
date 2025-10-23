@@ -1,0 +1,169 @@
+import React from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { HeartPulse, ChevronRight } from "lucide-react";
+import MedPrimeCard from "./MedPrimeCard"; // já criado no canvas anterior
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
+/*
+ * Integração MedPrime – Atalho na barra lateral + página /medprime
+ *
+ * O que este arquivo entrega:
+ * 1) <SidebarMedPrimeLink/>  → coloca um atalho VERDE “MedPrime” na barra lateral
+ * 2) <TopBarChatSwitch/>     → deixa APENAS os dois modos de chat: Clínico e Avançado
+ * 3) <MedPrimePage/>         → página do MedPrime com o card e as calculadoras já exibidas
+ *
+ * Como usar (exemplo App.tsx):
+ *
+ * <Sidebar>
+ *   ...outros links
+ *   <SidebarMedPrimeLink />
+ * </Sidebar>
+ *
+ * <TopBar>
+ *   <TopBarChatSwitch onChange={(mode) => setChatMode(mode)} />
+ * </TopBar>
+ *
+ * <Routes>
+ *   <Route path="/medprime" element={<MedPrimePage />} />
+ *   <Route path="/chat/clinico" element={<ChatClinico />} />
+ *   <Route path="/chat/avancado" element={<ChatAvancado />} />
+ * </Routes>
+ */
+
+// 1) ATALHO LATERAL – MedPrime (apenas um link estilizado)
+export function SidebarMedPrimeLink() {
+  return (
+    <NavLink
+      to="/medprime"
+      className={({ isActive }) =>
+        `group mt-2 flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all ${
+          isActive
+            ? "bg-emerald-700 text-white shadow"
+            : "text-emerald-800 hover:bg-emerald-100 hover:text-emerald-900"
+        }`
+      }
+      aria-label="Abrir MedPrime"
+    >
+      <span className="grid h-6 w-6 place-items-center rounded-md bg-emerald-700 text-white">
+        <HeartPulse className="h-4 w-4" aria-hidden="true" />
+      </span>
+      <span className="truncate">MedPrime</span>
+      <ChevronRight className="ml-auto h-4 w-4 opacity-70" aria-hidden="true" />
+    </NavLink>
+  );
+}
+
+// 2) TOPO – Somente dois modos de chat (Clínico | Avançado)
+export function TopBarChatSwitch({
+  value = "clinico",
+  onChange,
+}: {
+  value?: "clinico" | "avancado";
+  onChange?: (mode: "clinico" | "avancado") => void;
+}) {
+  const navigate = useNavigate();
+
+  const go = (mode: "clinico" | "avancado") => {
+    onChange?.(mode);
+    navigate(`/chat/${mode}`);
+  };
+
+  const base =
+    "inline-flex h-9 items-center justify-center rounded-lg px-3 text-sm font-semibold transition-all";
+  const active = "bg-emerald-700 text-white shadow";
+  const idle = "text-emerald-800 hover:bg-emerald-100 hover:text-emerald-900";
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        type="button"
+        className={`${base} ${value === "clinico" ? active : idle}`}
+        onClick={() => go("clinico")}
+      >
+        Clínico
+      </Button>
+      <Button
+        type="button"
+        className={`${base} ${value === "avancado" ? active : idle}`}
+        onClick={() => go("avancado")}
+      >
+        Avançado
+      </Button>
+    </div>
+  );
+}
+
+// 3) PÁGINA MedPrime – Card + Calculadoras disponíveis
+export function MedPrimePage() {
+  return (
+    <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-6">
+      {/* Card de apresentação */}
+      <MedPrimeCard onAccess={() => { /* já estamos na página; pode focar scroll nas calculadoras */
+        const el = document.getElementById("medprime-calculadoras");
+        el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }} />
+
+      {/* Calculadoras imediatamente visíveis */}
+      <section id="medprime-calculadoras" className="space-y-3">
+        <h2 className="text-xl font-bold text-emerald-900">Calculadoras</h2>
+        <p className="text-sm text-emerald-900/80">
+          Acesso rápido às ferramentas essenciais. Mais itens podem ser adicionados depois sem mudar o layout.
+        </p>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <CalcItem title="Gasometria Arterial" desc="Interpretação ABG e parâmetros principais.">
+            {/* Substitua pelo seu componente real */}
+            <CalculatorPlaceholder name="Gasometria Arterial" />
+          </CalcItem>
+
+          <CalcItem title="Gasometria Venosa" desc="Equivalências práticas e alertas.">
+            <CalculatorPlaceholder name="Gasometria Venosa" />
+          </CalcItem>
+
+          <CalcItem title="Wells (TEV)" desc="Probabilidade pré-teste para TEP/TVP.">
+            <CalculatorPlaceholder name="Wells (TEV)" />
+          </CalcItem>
+
+          <CalcItem title="CURB-65" desc="Gravidade de pneumonia comunitária.">
+            <CalculatorPlaceholder name="CURB-65" />
+          </CalcItem>
+
+          <CalcItem title="CHA₂DS₂-VASc" desc="Risco tromboembólico na FA.">
+            <CalculatorPlaceholder name="CHA₂DS₂-VASc" />
+          </CalcItem>
+
+          <CalcItem title="Dose pediátrica" desc="mg/kg/dose e mg/kg/dia com limites.">
+            <CalculatorPlaceholder name="Dose Pediátrica" />
+          </CalcItem>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// ---- Auxiliares visuais simples (pode trocar pelos seus reais) ----
+function CalcItem({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) {
+  return (
+    <Card className="rounded-2xl border-emerald-100">
+      <CardContent className="p-4">
+        <div className="mb-2">
+          <h3 className="text-base font-semibold text-emerald-900">{title}</h3>
+          <p className="text-xs text-emerald-900/70">{desc}</p>
+        </div>
+        {children}
+      </CardContent>
+    </Card>
+  );
+}
+
+function CalculatorPlaceholder({ name }: { name: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-dashed border-emerald-200 p-3 text-sm text-emerald-800">
+      <span>{name}</span>
+      <Button variant="secondary" size="sm" className="bg-emerald-600 text-white hover:bg-emerald-700">
+        Abrir
+      </Button>
+    </div>
+  );
+}

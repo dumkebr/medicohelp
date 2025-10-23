@@ -1,4 +1,4 @@
-import { Activity, Users, Plus, FileText, Sparkles, Image, Home, Baby, Heart, AlertCircle, Search, ChevronDown, ChevronRight, Calculator } from "lucide-react";
+import { Activity, Users, Plus, FileText, Sparkles, Image, Home, Baby, Heart, AlertCircle, Search, ChevronDown, ChevronRight, Calculator, HeartPulse } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import {
@@ -42,11 +42,6 @@ const menuItems = [
     title: "Atendimento médico",
     url: "/",
     icon: Activity,
-  },
-  {
-    title: "Ferramentas Avançadas",
-    url: "/avancado",
-    icon: Calculator,
   },
   {
     title: "Sobre",
@@ -228,6 +223,32 @@ export function AppSidebar() {
                 </div>
               </form>
             )}
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator className="my-2" />
+
+        {/* MedPrime - Link Destacado */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <Link
+              href="/medprime"
+              className={`group mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+                location === "/medprime"
+                  ? "bg-emerald-700 text-white shadow-md"
+                  : "text-emerald-800 dark:text-emerald-200 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-900 dark:hover:text-emerald-100"
+              }`}
+              data-testid="link-medprime"
+            >
+              <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-700 text-white ring-1 ring-emerald-600/20">
+                <HeartPulse className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold truncate">MedPrime</div>
+                <div className="text-[10px] opacity-75 truncate">Ferramentas Avançadas</div>
+              </div>
+              <ChevronRight className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
+            </Link>
           </SidebarGroupContent>
         </SidebarGroup>
 

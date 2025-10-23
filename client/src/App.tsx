@@ -25,6 +25,7 @@ import Register from "@/pages/register";
 import ForgotPassword from "@/pages/forgot-password";
 import VerifyCode from "@/pages/verify-code";
 import AdvancedHub from "@/pages/advanced-hub";
+import MedPrime from "@/pages/medprime";
 import CalcPlaceholder from "@/pages/calc-placeholder";
 import CalcWells from "@/pages/calc-wells";
 import CalcGasometria from "@/pages/calc-gasometria";
@@ -89,7 +90,8 @@ function ProtectedRouter() {
         <Route path="/emergencia" component={EmBreve} />
         <Route path="/demo-top-controls" component={DemoTopControls} />
         
-        {/* ADVANCED HUB */}
+        {/* MEDPRIME & ADVANCED HUB */}
+        <Route path="/medprime" component={MedPrime} />
         <Route path="/avancado" component={AdvancedHub} />
         
         {/* CALCULADORAS */}

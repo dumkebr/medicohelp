@@ -41,6 +41,12 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
     -   **Modo Explicativo + Evidências**: Educational explanations with mandatory bibliographic references (📚 Evidências clínicas), integrating PubMed evidence.
     -   **Personalized Greeting System**: Every AI response starts with an informal greeting using the physician's first name (e.g., "Beleza, João. Vamos direto ao ponto:"), followed by formal technical content. Name is automatically extracted from authenticated user data and stored in localStorage.
     -   Automatic mode switching based on user input, with user-controlled toggles.
+-   **MedPrime - Ferramentas Médicas Avançadas**:
+    -   Professional visual card with emerald gradient design highlighting advanced medical tools.
+    -   Dedicated page at `/medprime` with direct access to medical calculators.
+    -   Highlighted green link in sidebar with HeartPulse icon.
+    -   Features: Clinical calculators, validated scores (Wells, CURB-65, CHA₂DS₂-VASc), standardized protocols, integrated AI diagnostic support.
+    -   Smooth scroll-to-section navigation within page.
 -   **Histórico de Atendimentos**: Manages multiple medical consultations, saved in localStorage, with sidebar navigation, search functionality, smart titling, and optional patient association. Includes a retention policy for consultations.
 -   **Exam Analysis**: Multi-file upload for automatic analysis and contextual medical interpretation.
 -   **Patient Management**: CRUD operations for patient data, integrated with Memed.

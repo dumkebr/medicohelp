@@ -1,86 +1,291 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Activity, FileText, Users, Shield } from "lucide-react";
-import logoImage from "@assets/logo_medicohelp.png";
+import { useState } from "react";
+import { useLocation } from "wouter";
 
 export default function Landing() {
+  const [, setLocation] = useLocation();
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [callStatus, setCallStatus] = useState("Ligando para Dra. Clarice…");
+
+  const handleMicClick = () => {
+    alert("Microfone: gravar e transcrever (placeholder).");
+  };
+
+  const handlePhoneClick = () => {
+    setShowCallModal(true);
+    setCallStatus("Ligando para Dra. Clarice…");
+    setTimeout(() => {
+      setCallStatus("Conectado com Dra. Clarice (simulação)");
+    }, 1200);
+  };
+
+  const handleCloseCall = () => {
+    setShowCallModal(false);
+    setCallStatus("Ligando para Dra. Clarice…");
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-b from-primary/10 to-background py-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="flex justify-center mb-8">
-            <img src={logoImage} alt="MédicoHelp - A plataforma médica inteligente" className="h-24 w-auto object-contain" />
+    <div style={{ 
+      fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif',
+      color: '#f3f7f6',
+      background: '#043c37',
+      minHeight: '100vh'
+    }}>
+      <style>{`
+        :root {
+          --bg: #043c37;
+          --bg-2: #0b2f2b;
+          --teal: #1fb7a6;
+          --teal-2: #15a192;
+          --text: #f3f7f6;
+          --muted: #c9d7d4;
+          --shadow: 0 10px 30px rgba(0,0,0,.25);
+          --radius: 18px;
+        }
+        .landing-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .landing-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
+        .landing-brand { display: flex; align-items: center; gap: 14px; }
+        .landing-brand img { height: 44px; width: auto; border-radius: 8px; box-shadow: var(--shadow); }
+        .landing-brand .title { font-weight: 700; font-size: 26px; letter-spacing: 0.2px; }
+        .landing-brand .subtitle { font-size: 14px; color: var(--muted); margin-top: -6px; }
+        .landing-nav { display: flex; gap: 12px; }
+        .landing-nav a, .landing-btn { background: transparent; border: 1px solid rgba(255,255,255,.15); padding: 10px 14px; border-radius: 12px; color: var(--text); cursor: pointer; text-decoration: none; display: inline-block; }
+        .landing-btn-primary { background: var(--teal); border: none; color: #042c28; font-weight: 700; }
+        .landing-btn-primary:hover { background: var(--teal-2); }
+        .landing-hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: center; padding: 20px 0 10px; }
+        .landing-hero-card { background: var(--bg-2); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; }
+        .landing-hero h1 { font-size: 40px; line-height: 1.1; margin: 0 0 12px; }
+        .landing-hero p { color: var(--muted); font-size: 18px; }
+        .landing-cta { margin-top: 16px; display: flex; gap: 12px; }
+        .landing-chatbox { margin-top: 14px; background: #0c2b27; border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 12px; display: flex; gap: 10px; align-items: center; }
+        .landing-chatbox input { flex: 1; background: transparent; border: none; color: var(--text); font-size: 16px; outline: none; }
+        .landing-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: #0b2522; border: 1px solid rgba(255,255,255,.12); cursor: pointer; }
+        .landing-icon-btn:hover { background: #103330; }
+        .landing-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .landing-card { background: var(--bg-2); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
+        .landing-card h3 { margin: 0 0 8px; }
+        .landing-bullets { line-height: 1.7; color: var(--muted); }
+        .landing-section { padding: 40px 0; }
+        .landing-kicker { color: var(--teal); text-transform: uppercase; font-size: 12px; letter-spacing: 0.18em; }
+        .landing-section h2 { margin: 6px 0 8px; font-size: 28px; }
+        .landing-footer { padding: 26px 0; color: var(--muted); font-size: 14px; border-top: 1px solid rgba(255,255,255,.1); margin-top: 30px; }
+        .landing-hero-mini { display: flex; gap: 22px; align-items: center; }
+        .landing-hero-mini img { height: 220px; border-radius: 16px; box-shadow: var(--shadow); }
+        .landing-bubble { background: #0f2f2b; padding: 16px 18px; border-radius: 16px; max-width: 520px; box-shadow: var(--shadow); }
+        .landing-badge { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #0f2f2b; border: 1px solid rgba(255,255,255,.12); color: var(--muted); font-size: 12px; margin-right: 6px; }
+        .landing-list { margin: 0; padding-left: 18px; color: var(--muted); }
+        .landing-notice { background: #0e2623; border-left: 4px solid var(--teal); padding: 12px 14px; border-radius: 8px; color: var(--muted); }
+        @media (max-width: 900px) {
+          .landing-hero { grid-template-columns: 1fr; }
+          .landing-grid-3 { grid-template-columns: 1fr; }
+          .landing-hero-mini img { height: 160px; }
+        }
+      `}</style>
+
+      {/* Header */}
+      <header className="landing-container landing-header">
+        <div className="landing-brand">
+          <img src="/assets/logo_main.png" alt="MédicoHelp logo" />
+          <div>
+            <div className="title">MédicoHelp</div>
+            <div className="subtitle">Sua aliada inteligente na decisão clínica</div>
           </div>
-          <p className="text-xl text-muted-foreground mb-8">
-            Assistência médica inteligente com IA para profissionais de saúde
-          </p>
-          <Button
-            size="lg"
-            onClick={() => window.location.href = '/api/login'}
-            data-testid="button-login"
+        </div>
+        <nav className="landing-nav">
+          <a href="#recursos">Recursos</a>
+          <a href="/termo-confidencialidade">Confidencialidade</a>
+          <button 
+            className="landing-btn landing-btn-primary" 
+            onClick={() => setLocation("/register")}
+            data-testid="button-cadastro"
           >
-            Entrar com sua conta
-          </Button>
-        </div>
-      </div>
+            Entrar
+          </button>
+        </nav>
+      </header>
 
-      {/* Features Section */}
-      <div className="py-16 px-6">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Recursos Principais
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <Activity className="w-12 h-12 text-primary mb-4" />
-                <h3 className="font-semibold mb-2">Chat Médico com IA</h3>
-                <p className="text-sm text-muted-foreground">
-                  Consultas clínicas inteligentes com GPT-5
-                </p>
-              </CardContent>
-            </Card>
+      {/* Main Content */}
+      <main className="landing-container">
+        {/* Hero Section */}
+        <section className="landing-hero">
+          <div className="landing-hero-card">
+            <span className="landing-kicker">Apresentamos a Dra. Clarice</span>
+            <h1>Decisão clínica rápida, do jeito tradicional — com segurança e evidência.</h1>
+            <p>A Dra. Clarice apoia sua conduta com respostas objetivas (Modo Clínico), explicações embasadas (Evidências) e ferramentas práticas (MedPrime: calculadoras e posologia).</p>
+            <div className="landing-cta">
+              <button 
+                className="landing-btn landing-btn-primary" 
+                onClick={() => setLocation("/register")}
+                data-testid="button-comecar"
+              >
+                Começar agora
+              </button>
+              <a className="landing-btn" href="#como-funciona">Como funciona</a>
+            </div>
+            <div className="landing-chatbox" style={{ marginTop: '18px' }}>
+              <input placeholder="Digite sua mensagem…" data-testid="input-demo-message" />
+              <button 
+                className="landing-icon-btn" 
+                onClick={handleMicClick}
+                title="Falar com a Dra. Clarice (transcrever)"
+                data-testid="button-mic"
+              >
+                🎙️
+              </button>
+              <button 
+                className="landing-icon-btn" 
+                onClick={handlePhoneClick}
+                title="Ligar para a Dra. Clarice (modo voz)"
+                data-testid="button-phone"
+              >
+                📞
+              </button>
+            </div>
+            <div className="landing-notice" style={{ marginTop: '10px' }}>
+              Dica: Modo voz mostra um painel de ligação para a Dra. Clarice (simulação). Integração real pode ser acoplada depois.
+            </div>
+          </div>
+          <div className="landing-hero-mini">
+            <img src="/assets/clarice_png.png" alt="Dra. Clarice" />
+            <div className="landing-bubble">
+              <strong>Olá, eu sou a Dra. Clarice!</strong><br />
+              Bem-vindo ao MédicoHelp. Como posso ajudar você hoje?
+              <div style={{ marginTop: '10px' }}>
+                <span className="landing-badge">Modo Clínico</span>
+                <span className="landing-badge">Evidências Clínicas</span>
+                <span className="landing-badge">MedPrime</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
-            <Card>
-              <CardContent className="p-6">
-                <FileText className="w-12 h-12 text-primary mb-4" />
-                <h3 className="font-semibold mb-2">Análise de Exames</h3>
-                <p className="text-sm text-muted-foreground">
-                  Upload e análise de imagens médicas
-                </p>
-              </CardContent>
-            </Card>
+        {/* Como Funciona */}
+        <section id="como-funciona" className="landing-section">
+          <span className="landing-kicker">O que é</span>
+          <h2>Plataforma médica inteligente — direta, confiável e pronta para o plantão</h2>
+          <div className="landing-grid-3">
+            <div className="landing-card">
+              <h3>🩺 Modo Clínico</h3>
+              <p className="landing-bullets">
+                Respostas objetivas, passo a passo, linguagem médica tradicional. Protocolos de pronto-socorro (dor torácica, dispneia, febre etc.).
+              </p>
+            </div>
+            <div className="landing-card">
+              <h3>📚 Evidências Clínicas</h3>
+              <p className="landing-bullets">
+                Explicações com base científica, racional terapêutico e referências. Bom para discutir caso e registrar fundamentação.
+              </p>
+            </div>
+            <div className="landing-card">
+              <h3>⚕️ MedPrime (Calculadoras)</h3>
+              <p className="landing-bullets">
+                Dose mg/kg, ajustes renal/gestante, conversão para mL/comprimidos, máximos por dose/dia. Tudo rápido e auditável.
+              </p>
+            </div>
+          </div>
+        </section>
 
-            <Card>
-              <CardContent className="p-6">
-                <Users className="w-12 h-12 text-primary mb-4" />
-                <h3 className="font-semibold mb-2">Gestão de Pacientes</h3>
-                <p className="text-sm text-muted-foreground">
-                  Sistema completo de prontuários
-                </p>
-              </CardContent>
-            </Card>
+        {/* Recursos */}
+        <section id="recursos" className="landing-section">
+          <span className="landing-kicker">Recursos</span>
+          <h2>Ferramentas que resolvem na prática</h2>
+          <div className="landing-grid-3">
+            <div className="landing-card">
+              <h3>📎 Anexos: foto, áudio e PDF</h3>
+              <p className="landing-bullets">Envie imagem do exame, áudio do relato ou PDF do laudo para contextualizar o atendimento.</p>
+            </div>
+            <div className="landing-card">
+              <h3>🎙️ Modo Voz "Ligar para a Dra. Clarice"</h3>
+              <p className="landing-bullets">Ícone de telefone inicia a chamada simulada; integração real pode usar WebRTC/SDK conforme necessidade.</p>
+            </div>
+            <div className="landing-card">
+              <h3>🛡️ Segurança e LGPD</h3>
+              <p className="landing-bullets">Cadastro controlado (CRM/UF ou Aluno 6º ano com universidade), termo de confidencialidade e verificação por e-mail/WhatsApp.</p>
+            </div>
+          </div>
+        </section>
 
-            <Card>
-              <CardContent className="p-6">
-                <Shield className="w-12 h-12 text-primary mb-4" />
-                <h3 className="font-semibold mb-2">Seguro e Confiável</h3>
-                <p className="text-sm text-muted-foreground">
-                  Dados protegidos e privacidade garantida
-                </p>
-              </CardContent>
-            </Card>
+        {/* Para Quem É */}
+        <section className="landing-section">
+          <span className="landing-kicker">Para quem é</span>
+          <h2>Médicos e alunos do 6º ano</h2>
+          <ul className="landing-list">
+            <li>Médicos: CRM e UF obrigatórios.</li>
+            <li>Alunos 6º ano: informar universidade e aceitar termo.</li>
+            <li>Login por e-mail; aprovação administrativa para ativação completa.</li>
+          </ul>
+          <div className="landing-cta" style={{ marginTop: '14px' }}>
+            <button 
+              className="landing-btn landing-btn-primary" 
+              onClick={() => setLocation("/register")}
+              data-testid="button-cadastro-footer"
+            >
+              Fazer cadastro
+            </button>
+            <a className="landing-btn" href="/termo-confidencialidade">Ler termo</a>
+          </div>
+        </section>
+
+        {/* Contato */}
+        <section className="landing-section">
+          <span className="landing-kicker">Contato</span>
+          <h2>Fale com a equipe</h2>
+          <p className="landing-bullets">
+            WhatsApp: <strong>+55 44 9106-5757</strong> · E-mail: <strong>sic@medicohelp.com.br</strong>
+          </p>
+        </section>
+      </main>
+
+      {/* Call Modal */}
+      {showCallModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,.55)',
+            backdropFilter: 'blur(2px)',
+            zIndex: 10000
+          }}
+          onClick={handleCloseCall}
+        >
+          <div 
+            style={{
+              maxWidth: '520px',
+              margin: '8% auto',
+              background: '#0c2b27',
+              borderRadius: '16px',
+              boxShadow: 'var(--shadow)',
+              padding: '18px'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <img 
+                src="/assets/clarice_png.png" 
+                alt="Dra. Clarice" 
+                style={{ height: '96px', borderRadius: '12px' }} 
+              />
+              <div>
+                <div style={{ fontWeight: '700' }}>Ligando para Dra. Clarice…</div>
+                <div className="landing-bullets">{callStatus}</div>
+              </div>
+            </div>
+            <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button 
+                className="landing-btn" 
+                onClick={handleCloseCall}
+                data-testid="button-close-call"
+              >
+                Encerrar
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Footer */}
-      <div className="mt-auto py-8 px-6 border-t">
-        <p className="text-center text-sm text-muted-foreground">
-          MédicoHelp - Sistema Beta Gratuito para Profissionais de Saúde
-        </p>
-      </div>
+      <footer className="landing-container landing-footer">
+        © 2025 MédicoHelp · Desenvolvido por Dr. Clairton Luis Dumke (CRM PR 53866) · <a href="/privacidade">Privacidade</a>
+      </footer>
     </div>
   );
 }

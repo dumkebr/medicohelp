@@ -768,7 +768,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Carregar configuração do modo clínico
   const clinicoConfig = loadClinicoConfig();
 
-  function buildClinicalPrompt(style: string, customTemplate?: string): string {
+  function buildClinicalPrompt(style: string, customTemplate?: string, userName?: string): string {
+    // Extrair primeiro nome do usuário para personalização
+    const firstName = userName 
+      ? userName.replace(/^Dr\.?\s*/i, "").trim().split(" ")[0] 
+      : null;
+    
     // SYSTEM: Prompt geral do MédicoHelp
     const systemPrompt = `Você é o assistente do MédicoHelp, desenvolvido para oferecer suporte técnico-científico a profissionais da saúde. DIRETRIZES OPERACIONAIS:
 
@@ -778,7 +783,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 - Reconhecimento de escalas e ferramentas: Priorize identificação de scores validados (Alvarado, Glasgow, CURB-65, CHA₂DS₂-VASc, APGAR, Wells, SOFA, Ranson, SIRS, qSOFA, GRACE, TIMI, etc.) mesmo diante de variações ortográficas.
 - Solicitação de dados clínicos: Quando parâmetros essenciais estiverem ausentes (sinais vitais, exames laboratoriais, dados demográficos), solicite-os de forma estruturada e objetiva.
 - Abstenha-se de inventar dados: Jamais presuma valores de pressão arterial, frequência cardíaca, saturação, resultados laboratoriais, idade ou peso sem informação explícita.
-- Tom profissional: Mantenha linguagem técnica, imparcial e científica, compatível com a comunicação entre especialistas.`;
+- Tom profissional: Mantenha linguagem técnica, imparcial e científica, compatível com a comunicação entre especialistas.${firstName ? `\n- Personalização: Inicie a resposta com uma saudação informal ao colega "${firstName}" (ex: "Beleza, ${firstName}. Vamos direto ao ponto:") seguida do conteúdo técnico estruturado.` : ""}`;
 
     // ASSISTANT: Orquestrador para Modo Clínico
     const clinicalOrchestrator = `MODO CLÍNICO — Entrega prática (checklist, cálculo, conduta).
@@ -823,7 +828,12 @@ ${customTemplate}`;
   }
 
   // Construir prompt de Modo Explicativo
-  function buildExplanatoryPrompt(evidenceContext?: string): string {
+  function buildExplanatoryPrompt(evidenceContext?: string, userName?: string): string {
+    // Extrair primeiro nome do usuário para personalização
+    const firstName = userName 
+      ? userName.replace(/^Dr\.?\s*/i, "").trim().split(" ")[0] 
+      : null;
+    
     // SYSTEM: Prompt geral do MédicoHelp (mesmo do Clínico)
     const systemPrompt = `Você é o assistente do MédicoHelp, desenvolvido para oferecer suporte técnico-científico a profissionais da saúde. DIRETRIZES OPERACIONAIS:
 
@@ -833,7 +843,7 @@ ${customTemplate}`;
 - Reconhecimento de escalas e ferramentas: Priorize identificação de scores validados (Alvarado, Glasgow, CURB-65, CHA₂DS₂-VASc, APGAR, Wells, SOFA, Ranson, SIRS, qSOFA, GRACE, TIMI, etc.) mesmo diante de variações ortográficas.
 - Solicitação de dados clínicos: Quando parâmetros essenciais estiverem ausentes (sinais vitais, exames laboratoriais, dados demográficos), solicite-os de forma estruturada e objetiva.
 - Abstenha-se de inventar dados: Jamais presuma valores de pressão arterial, frequência cardíaca, saturação, resultados laboratoriais, idade ou peso sem informação explícita.
-- Tom profissional: Mantenha linguagem técnica, imparcial e científica, compatível com a comunicação entre especialistas.`;
+- Tom profissional: Mantenha linguagem técnica, imparcial e científica, compatível com a comunicação entre especialistas.${firstName ? `\n- Personalização: Inicie a resposta com uma saudação informal ao colega "${firstName}" (ex: "Beleza, ${firstName}. Vamos direto ao ponto:") seguida do conteúdo técnico estruturado.` : ""}`;
 
     // ASSISTANT: Orquestrador para Modo Explicação + Evidências
     const explanatoryOrchestrator = `MODO EXPLICAÇÃO + EVIDÊNCIAS — Estrutura:
@@ -1005,15 +1015,24 @@ Use este contexto para fundamentar sua explicação e inclua na seção "📚 Ev
         }
       }
 
+      // Buscar dados do usuário para personalização
+      let userName: string | undefined;
+      try {
+        const user = await storage.getUserById(userId);
+        userName = user?.name;
+      } catch (error) {
+        console.log("Could not fetch user name for personalization");
+      }
+
       // Construir system prompt baseado no modo
       let systemPrompt: string;
       
       if (userRole === "doctor") {
         if (activeMode === 'explicativo') {
-          systemPrompt = buildExplanatoryPrompt(evidenceContext || undefined);
+          systemPrompt = buildExplanatoryPrompt(evidenceContext || undefined, userName);
         } else {
           // Modo clínico (padrão)
-          systemPrompt = buildClinicalPrompt(style, template || undefined);
+          systemPrompt = buildClinicalPrompt(style, template || undefined, userName);
         }
       } else {
         // Paciente (modo básico)

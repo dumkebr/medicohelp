@@ -1,0 +1,95 @@
+Puxar o médico e gerar a saudação no componente
+
+Logo após export default function Atendimento() { adicione:
+
+const medico = useMemo<MedicoInfo>(() => getMedicoFromStorage(), []);
+const saudacao = useMemo(() => buildSaudacao(medico), [medico]);
+
+
+Fica assim no topo do componente:
+
+export default function Atendimento() {
+  const medico = useMemo<MedicoInfo>(() => getMedicoFromStorage(), []);
+  const saudacao = useMemo(() => buildSaudacao(medico), [medico]);
+
+  const [mode, setMode] = useState<Mode>("clinico");
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
+  const [onlineAI, setOnlineAI] = useState<boolean>(true);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+
+3) Garantir que TODA resposta comece com a saudação
+
+Substitui tua handleSend pela versão abaixo (mantém IA quando online; se cair, responde local — sempre com a saudação):
+
+const handleSend = useCallback(async () => {
+  const text = input.trim();
+  if (!text) return;
+
+  const userMsg = { role: "user" as const, content: text };
+  setMessages(prev => [...prev, userMsg]);
+  setInput("");
+
+  // 1) Resposta local no estilo clínico
+  const localCore = mode === "clinico" ? routeCase(text) : (() => {
+    const core = routeCase(text);
+    return {
+      title: core.title,
+      body:
+        core.body +
+        "\n\n— Explicação rápida: estou priorizando condutas que mudam desfecho imediato. Se quiser, eu detalho a fisiopatologia e trago referências pontuais (Diretrizes SBC/ILAS/ANE etc.) de forma enxuta, sem texto de guideline engessado.",
+    } as Reply;
+  })();
+
+  const localReplyWithGreeting = `**${saudacao}**\n\n${localCore.body}`;
+
+  // 2) IA online → reescreve mantendo saudação, formato e tom
+  if (onlineAI) {
+    try {
+      const prompt = [
+        `Médico logado: ${medico.nome}.`,
+        `${saudacao}`,
+        localCore.body,
+        "",
+        "REGRAS:",
+        "- Mantenha EXATAMENTE a abertura de saudação acima.",
+        "- Use o formato com as quatro seções (👉 Diagnóstico/⚡ Conduta/🧪 Investigação/💬 Observações).",
+        "- Linguagem direta de colega médico brasileiro, tom clínico, sem floreio e sem copiar guideline.",
+        "- Nunca invente sinais vitais; se faltarem dados essenciais, peça de forma objetiva.",
+        "- Evite redundância; foque no que muda conduta."
+      ].join("\n");
+
+      const aiOut = await callAIClairtonStyle(prompt);
+
+      const out =
+        aiOut.startsWith("Beleza,") || aiOut.includes(saudacao)
+          ? aiOut
+          : `**${saudacao}**\n\n${aiOut}`;
+
+      setMessages(prev => [...prev, { role: "assistant", content: out }]);
+      inputRef.current?.focus();
+      return;
+    } catch (e) {
+      // fallback silencioso: resposta local
+      setMessages(prev => [...prev, { role: "assistant", content: localReplyWithGreeting }]);
+      inputRef.current?.focus();
+      return;
+    }
+  }
+
+  // 3) Offline: resposta local com saudação
+  setMessages(prev => [...prev, { role: "assistant", content: localReplyWithGreeting }]);
+  inputRef.current?.focus();
+}, [input, mode, onlineAI, medico, saudacao]);
+
+4) Placeholder com o nome do médico
+
+Ajusta o placeholder do <textarea>:
+
+placeholder={`Fala comigo como no plantão, ${firstName(medico.nome)} (ex.: ‘IAM inferior com supra em D2, D3 e aVF, PA 90x60, FC 50’).`}
+
+5) (Opcional) Setar o médico no login
+
+Quando fizer login/cadastro, salva no navegador:
+
+localStorage.setItem("medicohelp_user", JSON.stringify({ nome: "Dr. Clairton" }));

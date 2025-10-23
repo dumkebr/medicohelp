@@ -12,10 +12,14 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 
 **UI/UX Decisions:**
 -   **Frameworks**: React with Wouter for routing, Shadcn/ui and Tailwind CSS for design.
--   **Theming**: Dark/light mode support, professional medical green color palette.
--   **Chat Interface**: Modern layout inspired by popular chat applications, featuring multimodal input (file upload, camera, gallery, microphone with transcription).
+-   **Branding & Identity (Updated October 2024)**:
+    -   **Color Scheme**: Professional teal (`#00A79D` / HSL 176° 100% 33%) replacing previous green palette.
+    -   **Logo**: New SVG logos (`logo-medicohelp-icon.svg`, `logo-medicohelp-horizontal.svg`) featuring teal branding.
+    -   **Mascot**: "Dra. Clarice" - AI medical assistant mascot with idle/talking animation states (video with PNG fallback).
+-   **Theming**: Dark/light mode support with teal color palette throughout application.
+-   **Chat Interface**: Modern layout inspired by popular chat applications, featuring multimodal input (file upload, camera, gallery, microphone with transcription). Dra. Clarice mascot appears when conversation is empty.
 -   **Medical Tools Modal**: Refined layout with tabs and fade-in animations for a seamless user experience.
--   **Sidebar Organization**: Intuitive navigation with main menu items, expandable search, and collapsible sections for patient management and history.
+-   **Sidebar Organization**: Intuitive navigation with main menu items, expandable search, and collapsible sections for patient management and history. Features "MédicoHelp" branding with teal "Help" text.
 -   **TopControls Component**: Reusable tabbed interface for the medical consultation workflow, offering "Clínico" (clinical mode), "Explicação + Evidências" (explanatory mode), and navigation to advanced tools.
 -   **AdvancedHub**: Central hub (`/avancado`) for clinical calculators and advanced features, presented in a responsive grid layout.
 -   **Medical Calculators**: Interactive forms for various clinical assessments (e.g., Wells Score, Arterial/Venous Blood Gas Analysis, Gestational Age), providing real-time calculations, interpretations, and copy/clear functions.

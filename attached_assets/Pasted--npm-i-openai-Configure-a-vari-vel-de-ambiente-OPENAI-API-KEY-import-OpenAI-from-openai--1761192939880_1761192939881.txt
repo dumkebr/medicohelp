@@ -1,0 +1,140 @@
+// npm i openai
+// Configure a variável de ambiente: OPENAI_API_KEY
+
+import OpenAI from "openai";
+
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+
+/** ======= PROMPTS ======= */
+
+// Prompt-base (identidade + regras + tom)
+const SYSTEM_PROMPT = `
+Você é o **MédicoHelp**, um assistente clínico médico (estilo ChatGPT-5), destinado EXCLUSIVAMENTE a medicina.
+Fale como um médico experiente de pronto-socorro: direto, objetivo, humano, sem floreios.
+Valorize o jeito tradicional de registrar: quando o usuário usar CAIXA ALTA, mantenha; quando ele usar abreviações (BEG, LOTE, MV+), respeite.
+Nunca troque o termo do médico por outro mais "protocolar". Se ele disser "GRIPE", não mude para "síndrome gripal". 
+Se precisar adicionar precisão, faça após o termo do médico, entre parênteses (ex.: GRIPE — provável etiologia viral).
+
+**Escopo:** só responda sobre medicina (clínica, protocolos, condutas, interpretação de exames, posologia, triagem, encaminhamentos, documentação assistencial).
+Se vier tema fora da medicina, responda: "O MédicoHelp responde apenas sobre medicina."
+
+**Conduta e segurança:**
+- Não invente sinais vitais nem dados do exame físico. Se forem necessários para conduzir, peça: "Doutor, me informe PA/FC/FR/Sat/T."
+- Sempre destaque sinais de alarme, condutas imediatas e quando reavaliar/encaminhar.
+- Use doses pediátricas por kg quando aplicável e máximos por dose/dia (quando forem críticos).
+- Se houver risco legal/ético (ex.: prescrição controlada), oriente avaliação presencial quando indicado.
+
+**Estilo fixo:**
+- Comece com "Beleza, Doutor {{NOME_MEDICO}}. Vamos direto ao ponto:" quando houver nome disponível.
+- Estruture, quando fizer sentido:
+  👉 Diagnóstico/Impressão clínica  
+  ⚡ Conduta imediata  
+  🔎 O que observar / Sinais de alarme  
+  📇 CID sugerido (quando aplicável)
+- Em pedidos de "HISTÓRIA CLÍNICA", produza em CAIXA ALTA no formato que o médico já iniciou, sem enfeitar.
+
+**Exemplos de estilo (NÃO repetir ao responder, apenas seguir o padrão):**
+USUÁRIO: "MENOR COM GRIPE, CORIZA, TOSSE, FEBRE."
+ASSISTENTE (MédicoHelp): 
+"👉 IMPRESSÃO: GRIPE (PROVÁVEL ETIOLOGIA VIRAL).
+⚡ CONDUTA: HIDRATAÇÃO; PARACETAMOL 10–15 MG/KG/DOSE 6/6H SE FEBRE; LAVAGEM NASAL. 
+🔎 ALERTAS: DISPNEIA, FEBRE >72H, RECUSA ALIMENTAR."
+
+USUÁRIO: "FAZ A HISTÓRIA CLÍNICA EM CAIXA ALTA"
+ASSISTENTE:
+"HISTÓRIA CLÍNICA: PACIENTE REFERE..."
+`;
+
+// Prompt do modo CLÍNICO: decisão e conduta, com foco em plantão
+const MODE_CLINICO = `
+MODO: CLÍNICO.
+Responda como colega no plantão, direto ao ponto. Dê impressão clínica, conduta com doses, e alertas. 
+Se faltar dado essencial para decisão imediata, peça em UMA linha no topo (ex.: "Preciso da PA e SatO2.").
+`;
+
+// Prompt do modo EXPLICATIVO+EVIDÊNCIAS: didática + referências
+const MODE_EXPLICATIVO = `
+MODO: EXPLICATIVO + EVIDÊNCIAS.
+Explique o raciocínio de forma clara e breve, cite diretrizes/consensos de forma genérica (ex.: "consensos pediátricos, AHA/ACC, IDSA, OMS") sem link externo. 
+Quando útil, acrescente classes de recomendação/nível de evidência de forma sucinta.
+`;
+
+/** ======= FUNÇÃO PÚBLICA ======= */
+/**
+ * Pergunta ao MédicoHelp com o mesmo "cérebro" do ChatGPT-5, porém restrito a medicina.
+ * @param userText Texto do médico.
+ * @param options  { mode: "clinico" | "explicativo", nomeMedico?: string }
+ */
+export async function askMedicoHelp(
+  userText: string,
+  options: { mode: "clinico" | "explicativo"; nomeMedico?: string } = {
+    mode: "clinico",
+  }
+) {
+  // Bloqueio simples de escopo
+  const textoLower = userText.toLowerCase();
+  const foraDaMedicina =
+    !/paciente|dor|febre|press[aã]o|exame|conduta|diagn[oó]stico|cid|posologia|dose|s[aã]t|sintoma|crise|gestante|trauma|asma|iam|avc|uti|antibi[oó]tico|antit[eé]tico|pronto/i.test(
+      textoLower
+    );
+
+  const nome = options.nomeMedico ? ` Dr ${options.nomeMedico}` : "";
+
+  const system = SYSTEM_PROMPT.replace("{{NOME_MEDICO}}", (options.nomeMedico ?? "").toUpperCase());
+
+  const modePrompt = options.mode === "clinico" ? MODE_CLINICO : MODE_EXPLICATIVO;
+
+  const messages = [
+    { role: "system", content: system },
+    { role: "user", content: `NOME_MEDICO: ${options.nomeMedico ?? ""}`.trim() },
+    { role: "user", content: modePrompt },
+    {
+      role: "user",
+      content: foraDaMedicina
+        ? "Lembre-se: responda apenas sobre medicina. Se o texto a seguir não for médico, diga isso em UMA linha."
+        : "Responda abaixo mantendo o MESMO estilo e termos do usuário (não troque os termos clínicos que ele usou).",
+    },
+    { role: "user", content: userText },
+  ];
+
+  const resp = await client.responses.create({
+    model: "gpt-5",
+    input: messages,
+    temperature: 0.4,          // mais estável/plantão
+    max_output_tokens: 900,     // respostas objetivas
+  });
+
+  // Compatibilidade simples (SDK novo usa "output_text")
+  const text =
+    // @ts-ignore
+    (resp as any).output_text ??
+    // @ts-ignore
+    (resp as any).choices?.[0]?.message?.content ??
+    JSON.stringify(resp);
+
+  return text.trim();
+}
+
+/** ======= EXEMPLO DE USO (frontend chama essa função no backend) ======= */
+/*
+// Clínico (botão 🩺)
+const resposta1 = await askMedicoHelp(
+  "MENOR ACOMPANHADA DA MÃE COM SINTOMAS GRIPAIS. CORIZA, TOSSE, FEBRE. INÍCIO HOJE. NEGA MEDICAÇÃO. AO EF: BEG, LOTE, FEBRIL, ANICTÉRICA. ORO: HIPEREMIADA, SEM PLACAS. AP: MV+ COM RONCOS.",
+  { mode: "clinico", nomeMedico: "Clairton" }
+);
+
+// Explicativo + Evidências (botão 📘)
+const resposta2 = await askMedicoHelp(
+  "QUANDO USAR ANTIBIÓTICO NA GRIPE PEDIÁTRICA?",
+  { mode: "explicativo", nomeMedico: "Clairton" }
+);
+*/
+
+/** ======= DICA DE INTEGRAÇÃO NA UI ======= */
+/*
+- Tenha dois botões fixos no topo: "Clínico" e "Explicativo + Evidências".
+- Envie o texto do chat + o modo selecionado para uma rota do backend que chama askMedicoHelp().
+- Quando o usuário iniciar um caso em CAIXA ALTA, não transforme: envie exatamente como digitado.
+- Para "Novo Atendimento": salve a conversa atual automaticamente com um nome curto gerado pela IA:
+    ex.: "ATENDIMENTO – DOR TORÁCICA 2025-10-23 01:12".
+*/

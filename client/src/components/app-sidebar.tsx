@@ -1,5 +1,6 @@
-// FORCE REBUILD 1761254231 - SVG inline heart icon
+// FORCE REBUILD 1761254708 - PNG heart medical icon
 import { Activity, Users, Plus, FileText, Sparkles, Image, Home, Baby, Heart, AlertCircle, Search, ChevronDown, ChevronRight, Calculator } from "lucide-react";
+import medprimeHeartIcon from "@assets/medprime-heart-icon.png";
 import { Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import {
@@ -227,7 +228,7 @@ export function AppSidebar() {
               }`}
               data-testid="link-medprime"
             >
-              <Heart className="h-6 w-6 text-emerald-600 fill-emerald-600" aria-hidden="true" />
+              <img src={medprimeHeartIcon} alt="" className="h-6 w-6" aria-hidden="true" />
               <div className="flex-1 min-w-0">
                 <div className="font-semibold truncate">MedPrime</div>
                 <div className="text-[10px] opacity-75 truncate">Ferramentas Avançadas</div>

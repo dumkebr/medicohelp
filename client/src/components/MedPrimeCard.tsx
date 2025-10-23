@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calculator, ListChecks, FileText, Bot, ShieldCheck, Heart } from "lucide-react";
+import medprimeHeartIcon from "@assets/medprime-heart-icon.png";
 
 export type MedPrimeCardProps = {
   onAccess?: () => void;
@@ -28,7 +29,7 @@ export default function MedPrimeCard({ onAccess, className = "", restricted = tr
 
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3">
-          <Heart className="h-10 w-10 text-white fill-white" aria-hidden="true" />
+          <img src={medprimeHeartIcon} alt="" className="h-10 w-10" aria-hidden="true" />
           <div className="min-w-0">
             <CardTitle className="text-2xl font-bold tracking-tight">MedPrime</CardTitle>
             <CardDescription className="text-emerald-100/90">

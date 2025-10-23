@@ -1,0 +1,138 @@
+Troca a área do chat (central)
+
+Garanta largura limitada e centralizada (igual ChatGPT):
+
+{/* Área do chat */}
+<div ref={chatRef} className="flex-1 overflow-y-auto px-4" style={{ scrollBehavior: "smooth" }}>
+  <div className="mx-auto w-full max-w-3xl py-4">
+    {messages.length === 0 && (
+      <div className="rounded-xl border border-dashed border-gray-300 p-6 text-sm text-gray-500">
+        Beleza, Doutor. Vamos direto ao ponto: em que posso ajudar?
+        <br />
+        <span className="text-xs">Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.</span>
+      </div>
+    )}
+    {messages.map((m) => (
+      <ChatBubble key={m.id} role={m.role} text={m.content} />
+    ))}
+    {streamingText && <ChatBubble role="assistant" text={streamingText} streaming />}
+  </div>
+</div>
+
+2) Substitui a barra de digitação inteira por esta
+
+Sem rodapé extra, idêntico ao ChatGPT: container arredondado, ícones à esquerda, textarea que cresce, botão enviar à direita.
+
+{/* Barra de entrada (idêntica ao ChatGPT) */}
+<div className="sticky bottom-0 z-10 border-t bg-white/80 backdrop-blur">
+  <div className="mx-auto w-full max-w-3xl px-4 py-3">
+    <div className="relative flex items-end gap-2 rounded-2xl border border-gray-300 bg-white px-3 py-2 shadow-sm">
+      {/* Ícones à esquerda */}
+      <div className="flex items-center gap-2 self-center">
+        <button
+          onClick={toggleVoice}
+          className={`rounded-lg px-2 py-2 ${isListening ? "text-green-600" : "text-gray-600 hover:bg-gray-50"}`}
+          title={isListening ? "Parar voz" : "Falar"}
+        >
+          {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+        </button>
+
+        <button onClick={onAttachClick} className="rounded-lg px-2 py-2 text-gray-600 hover:bg-gray-50" title="Anexar arquivo">
+          <Paperclip className="h-5 w-5" />
+        </button>
+        <input ref={fileRef} type="file" multiple className="hidden" onChange={onFilesSelected} />
+
+        <button onClick={onPhotoClick} className="rounded-lg px-2 py-2 text-gray-600 hover:bg-gray-50" title="Foto/Câmera">
+          <ImageIcon className="h-5 w-5" />
+        </button>
+        <input ref={photoRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onFilesSelected} />
+      </div>
+
+      {/* Textarea central (auto-height) */}
+      <textarea
+        value={input}
+        onChange={(e) => {
+          setInput(e.target.value);
+          e.target.style.height = "auto";
+          e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px"; // trava em ~6 linhas
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+          }
+        }}
+        rows={1}
+        placeholder={mode === "clinico"
+          ? "Descreva o caso clínico..."
+          : "Faça sua pergunta. O Dr. Help responde com fundamentação teórica."}
+        className="max-h-40 w-full resize-none overflow-hidden bg-transparent px-2 py-2 text-sm focus:outline-none"
+        style={{ lineHeight: "1.5" }}
+      />
+
+      {/* Ações à direita */}
+      <div className="flex items-center gap-2 self-center">
+        <button
+          onClick={newEncounter}
+          className="hidden sm:inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm text-gray-700 hover:bg-gray-50"
+          title="Novo atendimento"
+        >
+          <Plus className="h-4 w-4" /> Novo
+        </button>
+
+        <button
+          onClick={downloadChat}
+          className="hidden sm:inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm text-gray-700 hover:bg-gray-50"
+          title="Baixar conversa"
+        >
+          <Download className="h-4 w-4" /> Baixar
+        </button>
+
+        <button
+          onClick={handleSend}
+          disabled={isSending || !input.trim()}
+          className="inline-flex items-center justify-center rounded-xl bg-green-600 px-3 py-2 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+          title="Enviar"
+        >
+          <Send className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+3) Ajusta a bolha das mensagens (fica elegante, sem “tijolo”)
+function ChatBubble({ role, text, streaming }) {
+  const isUser = role === "user";
+  return (
+    <div className={`mb-3 flex ${isUser ? "justify-end" : "justify-start"}`}>
+      <div
+        className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm shadow
+        ${isUser ? "bg-green-600 text-white" : "bg-gray-100 text-gray-900"}`}
+        style={{ borderRadius: "18px" }}
+      >
+        {text}
+        {streaming && <span className="ml-1 animate-pulse">▍</span>}
+      </div>
+    </div>
+  );
+}
+
+4) Detalhes que destravam o “engessado”
+
+Envolva chat + input dentro de um contêiner com max-w-3xl (já fiz acima).
+
+Remova qualquer “rodapé textual” extra embaixo do input.
+
+Garanta que o wrapper principal do app tenha className="flex h-screen w-full flex-col bg-white" (ou h-[100vh]).
+
+Para mobile, o container do input já usa px-4 py-3 e o botão “Novo/Baixar” some em telas pequenas (hidden sm:inline-flex).
+
+5) CSS opcional (só se quiser scroll mais bonito)
+
+No seu index.css:
+
+html, body, #root { height: 100%; }
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-thumb { border-radius: 8px; background: #d1d5db; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }

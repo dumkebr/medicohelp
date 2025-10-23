@@ -424,110 +424,113 @@ export default function Atendimento() {
         </div>
       </div>
 
-      {/* Área de chat */}
+      {/* Área de chat - estilo ChatGPT */}
       <div
         ref={chatRef}
-        className="flex-1 overflow-y-auto px-4 py-4"
+        className="flex-1 overflow-y-auto px-4"
         data-testid="chat-container"
       >
-        {messages.length === 0 && (
-          <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
-            Beleza, Doutor. Vamos direto ao ponto: em que posso ajudar?
-            <br />
-            <span className="text-xs mt-2 block">
-              Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.
-            </span>
-          </div>
-        )}
-        
-        {messages.map((m) => (
-          <ChatBubble key={m.id} role={m.role} text={m.content} />
-        ))}
-        
-        {streamingText && <ChatBubble role="assistant" text={streamingText} streaming />}
+        <div className="mx-auto w-full max-w-3xl py-4">
+          {messages.length === 0 && (
+            <div className="rounded-xl border border-dashed border-gray-300 p-6 text-sm text-gray-500">
+              Beleza, Doutor. Vamos direto ao ponto: em que posso ajudar?
+              <br />
+              <span className="text-xs">
+                Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.
+              </span>
+            </div>
+          )}
+          
+          {messages.map((m) => (
+            <ChatBubble key={m.id} role={m.role} text={m.content} />
+          ))}
+          
+          {streamingText && <ChatBubble role="assistant" text={streamingText} streaming />}
+        </div>
       </div>
 
-      {/* Área de input */}
-      <div className="sticky bottom-0 z-10 border-t bg-background/80 px-4 py-3 backdrop-blur">
-        {/* Preview de arquivos */}
-        {files.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-2">
-            {files.map((file, i) => (
-              <Badge
-                key={i}
-                variant="secondary"
-                className="flex items-center gap-1"
-                data-testid={`file-badge-${i}`}
-              >
-                {file.name}
-                <button
-                  onClick={() => removeFile(i)}
-                  className="ml-1 hover:text-destructive"
-                  data-testid={`button-remove-file-${i}`}
+      {/* Barra de entrada - estilo ChatGPT */}
+      <div className="sticky bottom-0 z-10 border-t bg-white/80 backdrop-blur dark:bg-background/80">
+        <div className="mx-auto w-full max-w-3xl px-4 py-3">
+          {/* Preview de arquivos */}
+          {files.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {files.map((file, i) => (
+                <Badge
+                  key={i}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                  data-testid={`file-badge-${i}`}
                 >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
-        )}
+                  {file.name}
+                  <button
+                    onClick={() => removeFile(i)}
+                    className="ml-1 hover:text-destructive"
+                    data-testid={`button-remove-file-${i}`}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
 
-        <div className="mx-auto flex max-w-3xl items-end gap-2">
-          {/* Botões de ação */}
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={toggleVoice}
-              variant="outline"
-              size="icon"
-              className={isListening ? "border-emerald-600 text-emerald-600" : ""}
-              data-testid="button-voice"
-            >
-              {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-            </Button>
-            
-            <Button
-              onClick={onAttachClick}
-              variant="outline"
-              size="icon"
-              data-testid="button-attach"
-            >
-              <Paperclip className="h-5 w-5" />
-            </Button>
-            <input
-              ref={fileRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={onFilesSelected}
-            />
-            
-            <Button
-              onClick={onPhotoClick}
-              variant="outline"
-              size="icon"
-              data-testid="button-photo"
-            >
-              <ImageIcon className="h-5 w-5" />
-            </Button>
-            <input
-              ref={photoRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={onFilesSelected}
-            />
-          </div>
+          <div className="relative flex items-end gap-2 rounded-2xl border border-gray-300 bg-white px-3 py-2 shadow-sm dark:border-border dark:bg-card">
+            {/* Ícones à esquerda */}
+            <div className="flex items-center gap-2 self-center">
+              <button
+                onClick={toggleVoice}
+                className={`rounded-lg px-2 py-2 ${
+                  isListening ? "text-green-600" : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
+                }`}
+                title={isListening ? "Parar voz" : "Falar"}
+                data-testid="button-voice"
+              >
+                {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+              </button>
 
-          {/* Textarea com botão de envio */}
-          <div className="relative flex-1">
+              <button
+                onClick={onAttachClick}
+                className="rounded-lg px-2 py-2 text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
+                title="Anexar arquivo"
+                data-testid="button-attach"
+              >
+                <Paperclip className="h-5 w-5" />
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={onFilesSelected}
+              />
+
+              <button
+                onClick={onPhotoClick}
+                className="rounded-lg px-2 py-2 text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
+                title="Foto/Câmera"
+                data-testid="button-photo"
+              >
+                <ImageIcon className="h-5 w-5" />
+              </button>
+              <input
+                ref={photoRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={onFilesSelected}
+              />
+            </div>
+
+            {/* Textarea central (auto-height) */}
             <textarea
               ref={textareaRef}
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
                 e.target.style.height = "auto";
-                e.target.style.height = e.target.scrollHeight + "px";
+                e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px";
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
@@ -538,26 +541,46 @@ export default function Atendimento() {
               rows={1}
               placeholder={
                 mode === "clinico"
-                  ? "Descreva o caso clínico (ex.: 'IAM inferior com supra em D2, D3 e aVF, PA 90×60, FC 50')"
+                  ? "Descreva o caso clínico..."
                   : "Faça sua pergunta. O Dr. Help responde com fundamentação teórica."
               }
-              className="max-h-40 w-full resize-none overflow-hidden rounded-xl border bg-background p-3 pr-12 text-sm shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
+              className="max-h-40 w-full resize-none overflow-hidden bg-transparent px-2 py-2 text-sm focus:outline-none"
+              style={{ lineHeight: "1.5" }}
               data-testid="input-message"
               disabled={isSending}
             />
-            <Button
-              onClick={handleSend}
-              disabled={isSending || !input.trim()}
-              size="icon"
-              className="absolute bottom-2 right-2 h-8 w-8 bg-emerald-600 hover:bg-emerald-700"
-              data-testid="button-send"
-            >
-              {isSending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </Button>
+
+            {/* Ações à direita */}
+            <div className="flex items-center gap-2 self-center">
+              <button
+                onClick={handleNovoAtendimento}
+                className="hidden sm:inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm text-gray-700 hover:bg-gray-50 dark:border-border dark:bg-card dark:text-gray-300 dark:hover:bg-gray-800"
+                title="Novo atendimento"
+                data-testid="button-novo-atendimento"
+              >
+                <Plus className="h-4 w-4" /> Novo
+              </button>
+
+              <button
+                onClick={downloadChat}
+                disabled={messages.length === 0}
+                className="hidden sm:inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-border dark:bg-card dark:text-gray-300 dark:hover:bg-gray-800"
+                title="Baixar conversa"
+                data-testid="button-download-chat"
+              >
+                <Download className="h-4 w-4" /> Baixar
+              </button>
+
+              <button
+                onClick={handleSend}
+                disabled={isSending || !input.trim()}
+                className="inline-flex items-center justify-center rounded-xl bg-green-600 px-3 py-2 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Enviar"
+                data-testid="button-send"
+              >
+                {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -581,11 +604,10 @@ function ChatBubble({
       data-testid={`chat-bubble-${role}`}
     >
       <div
-        className={`${
-          isUser
-            ? "bg-emerald-600 text-white"
-            : "bg-muted text-foreground"
-        } max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2 text-sm shadow-sm`}
+        className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm shadow ${
+          isUser ? "bg-green-600 text-white" : "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+        }`}
+        style={{ borderRadius: "18px" }}
       >
         {text}
         {streaming && <span className="ml-1 animate-pulse">▍</span>}

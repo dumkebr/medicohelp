@@ -1,14 +1,9 @@
-interface MascoteProps {
-  speaking?: boolean;
-  className?: string;
-}
 
-export default function Mascote({ speaking = false, className = "" }: MascoteProps) {
+export default function Mascote({ speaking = false }) {
   const src = speaking ? "/clarice-talking.webm" : "/clarice-idle.webm";
   const fallback = speaking ? "/clarice-talking-fallback.png" : "/clarice-idle-fallback.png";
-  
   return (
-    <div className={className} style={{ width: 260 }}>
+    <div style={{ width: 260 }}>
       <video
         src={src}
         autoPlay

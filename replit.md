@@ -55,6 +55,13 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
     -   **Hybrid Model System**: GPT-5 as primary engine with automatic fallback to GPT-4o if unavailable. Model used is logged for transparency.
     -   **Session Management**: Auto-save with intelligent titles generated from last physician message, opens new consultations in same page (not separate tabs).
     -   Automatic mode switching based on user input, with user-controlled toggles.
+-   **Real-Time Voice Calls with Dra. Clarice (NEW - October 2025)**:
+    -   **WebRTC + OpenAI Realtime API**: Full-duplex voice communication directly with the AI medical assistant.
+    -   **Voice Features**: Feminine "aria" voice, barge-in support (interrupt AI while speaking), natural conversation flow.
+    -   **Security**: Ephemeral token system - API keys never exposed to frontend. Backend generates temporary session tokens via `/api/voice/session`.
+    -   **Component**: VoiceCallButton.tsx - Phone icon button integrated in chat interface (click "Ligar" to start, "Encerrar" to hang up).
+    -   **Technical**: Uses `gpt-4o-realtime-preview` model, WebRTC PeerConnection for audio streaming, automatic microphone capture with user permission.
+    -   **Instructions**: AI receives same medical personality as text chat - professional, direct, and knowledgeable Dra. Clarice in Portuguese.
 -   **MedPrime - Ferramentas Médicas Avançadas**:
     -   Professional visual card with emerald gradient design highlighting advanced medical tools.
     -   Dedicated page at `/medprime` with direct access to medical calculators.
@@ -75,7 +82,7 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 
 ## External Dependencies
 
--   **OpenAI API**: GPT-4o, GPT-5 Vision.
+-   **OpenAI API**: GPT-4o, GPT-5 Vision, Realtime API (voice calls).
 -   **Neon**: Managed PostgreSQL database.
 -   **Memed**: Digital prescription integration.
 -   **PubMed (NIH/NCBI E-utilities)**: Scientific literature search.
@@ -85,3 +92,12 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 -   **Apple OAuth**: User authentication.
 -   **Microsoft OAuth**: User authentication.
 -   **GitHub OAuth**: User authentication.
+
+## Recent Updates (October 2025)
+
+### Voice Call Integration ✅
+- Integrated real-time voice calls using WebRTC + OpenAI Realtime API
+- VoiceCallButton component added to atendimento-teal page
+- Backend route `/api/voice/session` creates ephemeral tokens for secure WebRTC sessions
+- E2E tested: 9/9 verifications passed
+- Voice: Feminine "aria" voice, Portuguese instructions, medical personality consistent with text chat

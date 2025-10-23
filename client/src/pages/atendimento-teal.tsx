@@ -2,7 +2,7 @@ import "../styles/theme.css";
 import "../styles/responsive.css";
 import Mascote from "../components/Mascote";
 import VoiceCallButton from "../components/VoiceCallButton";
-import ClariceAvatarDebug from "../components/ClariceAvatarDebug";
+import ClariceAvatar from "../components/ClariceAvatar";
 import { useState, useRef, useEffect } from "react";
 import { sendChatStream } from "../services/chat-stream";
 import { Paperclip, Image as ImageIcon, Mic, MicOff, Download, X } from "lucide-react";
@@ -361,7 +361,7 @@ export default function AtendimentoTeal() {
             </button>
           </div>
           
-          <ClariceAvatarDebug />
+          <ClariceAvatar />
         </section>
       </div>
     </div>

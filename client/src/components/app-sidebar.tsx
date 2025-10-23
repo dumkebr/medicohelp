@@ -146,7 +146,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="px-3 py-4 border-b bg-[#00e699]">
+      <SidebarHeader className="px-3 py-4 border-b bg-[#0a3d3d]">
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <img 
             src="/heart-icon.png" 
@@ -154,8 +154,8 @@ export function AppSidebar() {
             className="h-12 w-12 object-contain flex-shrink-0"
           />
           <div className="flex items-baseline gap-0.5">
-            <span className="text-[28px] font-black tracking-tight text-[#041012]">Médico</span>
-            <span className="text-[28px] font-black tracking-tight text-[#041012]">Help</span>
+            <span className="text-[28px] font-black tracking-tight text-white">Médico</span>
+            <span className="text-[28px] font-black tracking-tight text-[#00e699]">Help</span>
           </div>
         </Link>
       </SidebarHeader>

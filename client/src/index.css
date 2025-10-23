@@ -1,4 +1,4 @@
-/* 🔥 FORCE RELOAD: v20251023-GREEN-SIDEBAR - Sidebar verde com coração */
+/* 🔥 FORCE RELOAD: v20251023-TEAL-DARK - Sidebar verde petróleo escuro */
 @import './styles/theme.css';
 
 @tailwind base;
@@ -13,19 +13,19 @@ html,
   color: #e8f4f8 !important;
 }
 
-/* Sidebar e Header no tom verde brilhante */
+/* Sidebar e Header no tom verde petróleo escuro */
 [data-sidebar],
 header {
-  background-color: #00e699 !important;
+  background-color: #0a3d3d !important;
 }
 
-/* Texto ESCURO no sidebar verde */
+/* Texto CLARO no sidebar verde escuro */
 [data-sidebar],
 [data-sidebar] *,
 [data-sidebar] button,
 [data-sidebar] a,
 [data-sidebar] span {
-  color: #041012 !important;
+  color: #e8f4f8 !important;
 }
 
 /* LIGHT MODE */

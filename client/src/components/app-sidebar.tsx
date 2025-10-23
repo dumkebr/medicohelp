@@ -103,12 +103,9 @@ export function AppSidebar() {
   }, [location]);
 
   const handleNovoAtendimento = () => {
-    // Usa SessionAPI para auto-save + abertura em nova aba
-    SessionAPI.startNewVisit({
-      mode: "clinico",
-      routeBase: "/atendimento",
-      openInNewTab: true,
-    });
+    // Dispara evento customizado que a página de atendimento escuta
+    // Isso permite que a página salve a sessão atual antes de criar nova
+    window.dispatchEvent(new CustomEvent("mh:new-session"));
   };
 
   const handleAbrirAtendimento = (id: string) => {

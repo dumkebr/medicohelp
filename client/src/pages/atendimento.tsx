@@ -425,6 +425,104 @@ export default function Atendimento() {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
   }, [history.length, streamingMessage]);
 
+  // ===== IA SUGERE TÍTULO PARA ATENDIMENTO =====
+  const aiSuggestTitle = async (mensagens: Mensagem[]): Promise<string> => {
+    try {
+      const texto = mensagens
+        .filter(m => m.role === "user")
+        .map(m => m.content)
+        .join(" ")
+        .trim()
+        .slice(0, 400);
+
+      if (!texto) return `Atendimento • ${new Date().toLocaleDateString()}`;
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: `GERE APENAS UM TÍTULO CURTO (ATÉ 6 PALAVRAS, CAIXA ALTA) PARA NOMEAR ESTE ATENDIMENTO, COM BASE NO QUADRO CLÍNICO: ${texto}`,
+          history: [],
+          mode: "clinico",
+        }),
+      });
+
+      if (!response.ok) throw new Error("API falhou");
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("Streaming não disponível");
+
+      const decoder = new TextDecoder();
+      let title = "";
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data:")) {
+            try {
+              const data = JSON.parse(line.slice(5).trim());
+              if (data.content) title += data.content;
+            } catch {}
+          }
+        }
+      }
+
+      const cleanTitle = title.toUpperCase().trim().slice(0, 60);
+      return cleanTitle ? `${cleanTitle} • ${new Date().toLocaleDateString()}` : `Atendimento • ${new Date().toLocaleDateString()}`;
+    } catch {
+      // Fallback: pega últimas palavras da última mensagem do médico
+      const lastUser = [...mensagens].reverse().find(m => m.role === "user");
+      if (lastUser) {
+        const base = lastUser.content
+          .replace(/\s+/g, " ")
+          .toUpperCase()
+          .replace(/[^a-zA-Z0-9À-ÿ\s]/g, "")
+          .slice(0, 40);
+        return (base || "ATENDIMENTO") + " • " + new Date().toLocaleDateString();
+      }
+      return `Atendimento • ${new Date().toLocaleDateString()}`;
+    }
+  };
+
+  // ===== SALVAR E CRIAR NOVO ATENDIMENTO =====
+  const handleNovoAtendimentoInternal = async () => {
+    // 1) Salva atendimento atual com título da IA (se tiver mensagens)
+    if (currentAtendimento && currentAtendimento.messages.length > 0) {
+      const titulo = await aiSuggestTitle(currentAtendimento.messages);
+      renameAtendimento(currentAtendimento.id, titulo);
+      
+      toast({
+        title: "Atendimento salvo",
+        description: titulo,
+      });
+    }
+
+    // 2) Usa SessionAPI para criar novo e abrir em nova aba
+    SessionAPI.startNewVisit({
+      mode: "clinico",
+      routeBase: "/atendimento",
+      openInNewTab: true,
+    });
+  };
+
+  // ===== LISTENER PARA EVENTO CUSTOMIZADO DO SIDEBAR =====
+  useEffect(() => {
+    const listener = () => {
+      void handleNovoAtendimentoInternal();
+    };
+    window.addEventListener("mh:new-session", listener);
+    return () => window.removeEventListener("mh:new-session", listener);
+  }, [currentAtendimento]);
+
   // SISTEMA HÍBRIDO: Local + IA
   const handleChatStream = async (userMessage: string, chatHistory: any[], enableEvidence: boolean) => {
     if (streamAbortController.current) {

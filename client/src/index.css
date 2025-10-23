@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* VERSION: 2024-10-23-TEAL-UPDATE */
+
 /* LIGHT MODE */
 :root {
   --button-outline: rgba(0,0,0, .10);

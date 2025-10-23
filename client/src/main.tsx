@@ -3,7 +3,11 @@ import App from "./App";
 import "./index.css"; // Import direto (cache busting via HTML)
 import { BUILD_TIME, VERSION } from "./force-reload";
 
-const __BUILD_VERSION__ = "2025-10-23-05";
+const __BUILD_VERSION__ = "2025-10-23-FINAL";
+
+// 🔥 FORÇAR RELOAD TOTAL - Deletar TUDO
+localStorage.clear();
+sessionStorage.clear();
 
 // 🔥 CACHE KILLER: Matar service workers e limpar caches antigos
 if ("serviceWorker" in navigator) {

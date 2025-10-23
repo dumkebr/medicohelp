@@ -23,12 +23,17 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 **Technical Implementations:**
 -   **Frontend**: React, TanStack Query for state management.
 -   **Backend**: Node.js with Express.
--   **AI**: OpenAI GPT-4o for medical chat, GPT-5 Vision for image analysis.
+-   **AI - Sistema Híbrido GPT-5**:
+    -   **Primary Model**: GPT-5 with refined medical prompts (temperature 0.4, max 900 tokens for objective responses)
+    -   **Automatic Fallback**: GPT-4o if GPT-5 unavailable (seamless degradation)
+    -   **Medical Scope Detection**: Automatic validation that queries are medical-related
+    -   **Refined Prompts**: Specialist system prompts (`server/medicohelp-gpt5.ts`) that respect medical terminology (CAIXA ALTA, abbreviations like BEG, LOTE, MV+)
+    -   **Structured Responses**: Mode-specific formatting (Clínico: 🩺⚡🧪💬📇, Explicativo: 👉📚⚡💡)
+    -   **Real-time Streaming**: Server-Sent Events (SSE) with chunk-by-chunk delivery
 -   **AI Tone**: Hybrid communication style combining informal personalized greeting with formal technical content. Starts with casual greeting using physician's first name (e.g., "Beleza, João. Vamos direto ao ponto:"), followed by formal technical communication with precise medical terminology (CID-10/11, SNOMED-CT, MeSH), evidence-based medicine (SBC, ESC, AHA, ACC, AMB, CFM), and professional language compatible with specialist-to-specialist communication.
 -   **Configuration System**: JSON-based configuration (`config/medicohelp.clinico.v1.json`) defines AI clinical response structure with 5 mandatory sections and guardrails to prevent AI from inventing data and to ensure it requests missing critical information. It enforces 5 "Leis do MédicoHelp" for response quality.
 -   **Clinical Score Detector**: Semantic detection system (`server/clinical-detector.ts`) for instantly identifying and responding to queries about clinical scales/scores without involving the main AI.
 -   **Intent Detection System (Motor Único)**: An expanded system (`server/intent-detector.ts`) to detect 7 types of medical intents, using keyword, context, and priority weighting for structured responses.
--   **Streaming**: Server-Sent Events (SSE) for real-time chat responses.
 -   **Database**: PostgreSQL with Drizzle ORM.
 -   **Authentication**: JWT for role-based access, Email/Password, OAuth (Google, Apple, Microsoft, GitHub), and 6-digit verification codes.
 -   **Storage**: DbStorage (PostgreSQL), Multer for file uploads.
@@ -36,10 +41,14 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 -   **Security**: Rate limiting using `express-rate-limit`.
 
 **Feature Specifications:**
--   **AI Medical Chat with Dual-Mode System**:
-    -   **Modo Clínico (DEFAULT)**: Structured, rapid checklist format with guardrails, enforcing medical guidelines (SBC/AMB/CFM, ESC/AHA/ACC, etc.) and a mandatory 5-section response format (e.g., 1️⃣ Avaliar estabilidade → 5️⃣ Seguimento).
-    -   **Modo Explicativo + Evidências**: Educational explanations with mandatory bibliographic references (📚 Evidências clínicas), integrating PubMed evidence.
-    -   **Personalized Greeting System**: Every AI response starts with an informal greeting using the physician's first name (e.g., "Beleza, João. Vamos direto ao ponto:"), followed by formal technical content. Name is automatically extracted from authenticated user data and stored in localStorage.
+-   **AI Medical Chat with Dual-Mode System (GPT-5 Powered)**:
+    -   **Modo Clínico (DEFAULT)**: Direct clinical decision support with structured format (🩺 Diagnóstico provável, ⚡ Conduta imediata with doses, 🧪 Investigação complementar, 💬 Sinais de alarme, 📇 CID). Temperature 0.4 for stable responses. Requests missing vital signs instead of inventing data.
+    -   **Modo Avançado (Explicativo + Evidências)**: Didactic explanations with evidence-based references (👉 Conceito/Fisiopatologia, 📚 Evidências clínicas citing AHA/ACC/IDSA/OMS/SBC/AMB/CFM, ⚡ Aplicação prática, 💡 Pontos-chave). Integrates PubMed search results when available.
+    -   **Medical Scope Validation**: Automatically detects and rejects non-medical queries ("O MédicoHelp responde apenas sobre medicina").
+    -   **Term Preservation**: Respects physician's original terminology (maintains CAIXA ALTA, abbreviations like BEG/LOTE/MV+, colloquial terms like "GRIPE" without converting to "síndrome gripal").
+    -   **Personalized Greeting System**: Every AI response starts with informal greeting using physician's first name (e.g., "Beleza, João. Vamos direto ao ponto:"), followed by formal technical content. Name automatically extracted from authenticated user data.
+    -   **Hybrid Model System**: GPT-5 as primary engine with automatic fallback to GPT-4o if unavailable. Model used is logged for transparency.
+    -   **Session Management**: Auto-save with intelligent titles generated from last physician message, opens new consultations in separate tabs with URL params (`?sid=xxx`).
     -   Automatic mode switching based on user input, with user-controlled toggles.
 -   **MedPrime - Ferramentas Médicas Avançadas**:
     -   Professional visual card with emerald gradient design highlighting advanced medical tools.

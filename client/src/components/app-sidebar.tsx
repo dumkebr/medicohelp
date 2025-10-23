@@ -146,23 +146,23 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="px-4 py-2 border-b bg-background">
-        <div className="flex items-center gap-2 w-full">
+      <SidebarHeader className="px-3 py-3 border-b bg-background">
+        <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
           <img 
-            src="/logo-medicohelp-icon.svg" 
-            alt="MédicoHelp ícone" 
-            className="h-[45px] w-[45px] flex-shrink-0"
+            src={`/logo-medicohelp-icon.svg?v=${Date.now()}`}
+            alt="MédicoHelp" 
+            className="h-11 w-11 flex-shrink-0"
           />
-          <div className="flex flex-col flex-1 min-w-0">
-            <div className="flex items-center gap-0.5 whitespace-nowrap">
-              <span className="font-serif text-[26px] leading-none text-foreground">Médico</span>
-              <span className="font-serif text-[26px] leading-none text-primary">Help</span>
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-[2px] leading-none">
+              <span className="font-serif text-[24px] text-foreground">Médico</span>
+              <span className="font-serif text-[24px] text-primary font-medium">Help</span>
             </div>
-            <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+            <span className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
               A plataforma médica inteligente
-            </p>
+            </span>
           </div>
-        </div>
+        </Link>
       </SidebarHeader>
       
       <SidebarContent className="pt-0">

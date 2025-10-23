@@ -1,0 +1,118 @@
+// /components/Chat.tsx
+import React, { useState, useRef } from "react";
+
+type Mode = "clinico" | "explicativo";
+
+export default function ChatMedicoHelp({
+  doctorName = "Clairton",
+}: {
+  doctorName?: string;
+}) {
+  const [mode, setMode] = useState<Mode>("clinico");
+  const [input, setInput] = useState("");
+  const [history, setHistory] = useState<{ role: "user" | "ai"; text: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  async function sendMessage() {
+    const text = input.trim();
+    if (!text || loading) return;
+    setInput("");
+    setHistory((h) => [...h, { role: "user", text }]);
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/medicohelp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, mode, name: doctorName, stream: true }),
+      });
+
+      if (!res.body) {
+        const json = await res.json();
+        setHistory((h) => [...h, { role: "ai", text: json.text ?? "(sem resposta)" }]);
+      } else {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let aiText = "";
+        setHistory((h) => [...h, { role: "ai", text: "" }]); // reserva espaço
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          aiText += decoder.decode(value, { stream: true });
+          setHistory((h) => {
+            const copy = [...h];
+            copy[copy.length - 1] = { role: "ai", text: aiText };
+            return copy;
+          });
+        }
+      }
+    } catch (err: any) {
+      setHistory((h) => [...h, { role: "ai", text: "Erro ao consultar o MédicoHelp." }]);
+    } finally {
+      setLoading(false);
+      textAreaRef.current?.focus();
+    }
+  }
+
+  return (
+    <div className="w-full h-full flex flex-col">
+      {/* Controles superiores */}
+      <div className="flex gap-2 mb-3">
+        <button
+          className={`px-3 py-1 rounded ${mode === "clinico" ? "bg-[#3cb371] text-white" : "bg-gray-200"}`}
+          onClick={() => setMode("clinico")}
+        >
+          Clínico
+        </button>
+        <button
+          className={`px-3 py-1 rounded ${mode === "explicativo" ? "bg-[#3cb371] text-white" : "bg-gray-200"}`}
+          onClick={() => setMode("explicativo")}
+        >
+          Avançado
+        </button>
+      </div>
+
+      {/* Histórico */}
+      <div className="flex-1 overflow-auto border rounded p-3 space-y-2 bg-white">
+        {history.map((m, i) => (
+          <div key={i} className={m.role === "user" ? "text-right" : "text-left"}>
+            <div
+              className={`inline-block px-3 py-2 rounded-lg ${
+                m.role === "user" ? "bg-gray-100" : "bg-green-50"
+              } whitespace-pre-wrap`}
+            >
+              {m.text}
+            </div>
+          </div>
+        ))}
+        {loading && <div className="text-sm text-gray-500">MédicoHelp digitando…</div>}
+      </div>
+
+      {/* Entrada */}
+      <div className="mt-3 flex gap-2">
+        <textarea
+          ref={textAreaRef}
+          className="flex-1 border rounded p-2 min-h-[60px]"
+          placeholder="Fala comigo como no plantão, Doutor(a)…"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage();
+            }
+          }}
+        />
+        <button
+          onClick={sendMessage}
+          className="px-4 py-2 rounded bg-[#3cb371] text-white disabled:opacity-60"
+          disabled={loading || !input.trim()}
+        >
+          Enviar
+        </button>
+      </div>
+    </div>
+  );
+}

@@ -146,16 +146,11 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="px-3 py-3 border-b bg-background">
-        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <img 
-            src="/logo-medicohelp.png"
-            alt="MédicoHelp" 
-            className="h-10 w-10 object-contain flex-shrink-0"
-          />
-          <div className="flex flex-col leading-tight">
-            <span className="text-lg font-extrabold text-white">Médico</span>
-            <span className="text-lg font-extrabold text-[#00e699]">Help</span>
+      <SidebarHeader className="px-3 py-4 border-b bg-background">
+        <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+          <div className="flex items-baseline gap-0.5">
+            <span className="text-[28px] font-black tracking-tight text-foreground">Médico</span>
+            <span className="text-[28px] font-black tracking-tight text-[#00e699]">Help</span>
           </div>
         </Link>
       </SidebarHeader>

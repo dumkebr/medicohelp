@@ -153,11 +153,11 @@ export function AppSidebar() {
           <img 
             src="/heart-icon.png" 
             alt="MédicoHelp" 
-            className="h-14 w-14 object-contain flex-shrink-0"
+            className="h-7 w-7 object-contain flex-shrink-0"
           />
           <div className="flex items-baseline gap-0.5">
-            <span className="text-[28px] font-black tracking-tight text-white">Médico</span>
-            <span className="text-[28px] font-black tracking-tight text-[#1affb8]">Help</span>
+            <span className="text-base font-semibold tracking-tight text-white">Médico</span>
+            <span className="text-base font-semibold tracking-tight text-[#1affb8]">Help</span>
           </div>
         </Link>
       </SidebarHeader>

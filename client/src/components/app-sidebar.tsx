@@ -227,7 +227,7 @@ export function AppSidebar() {
               data-testid="link-medprime"
             >
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-700 ring-1 ring-emerald-600/20">
-                <img src="/heart-icon.png" alt="MedPrime" className="h-5 w-5 object-contain" />
+                <img src="/heart-icon.png?v=2" alt="MedPrime" className="h-5 w-5 object-contain brightness-0 invert" />
               </span>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold truncate">MedPrime</div>

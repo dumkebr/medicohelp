@@ -804,10 +804,7 @@ Só uma pergunta de confirmação se faltar algo essencial.
 - Seja objetivo e direto, como em uma lista de verificação de plantão
 - Use emojis numerados (1️⃣, 2️⃣, 3️⃣...) para passos da conduta
 - Priorize ações práticas e imediatas
-- Mantenha frases curtas e imperativas
-
-Finalize com o aviso discreto:
-> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.`;
+- Mantenha frases curtas e imperativas`;
 
     const basePrompt = `${systemPrompt}
 
@@ -882,9 +879,7 @@ Ao final da explicação, inclua SEMPRE uma seção formatada assim:
 - American Heart Association (AHA) – ACLS Guidelines 2020
 - European Society of Cardiology (ESC) – Guideline for Management of XYZ 2023
 - UpToDate: "Management of [Condition] in Adults"
-- Cochrane Database: "Systematic Review on [Topic]"
-
-> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.`;
+- Cochrane Database: "Systematic Review on [Topic]"`;
 
     const basePrompt = `${systemPrompt}
 
@@ -1119,12 +1114,7 @@ Use este contexto para fundamentar sua explicação e inclua na seção "📚 Ev
         sendEvent("chunk", { content: fullAnswer });
       }
 
-      // Ensure disclaimer is always present
-      const disclaimer = "\n\n> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.";
-      if (!fullAnswer.includes("Conteúdo de apoio clínico")) {
-        fullAnswer += disclaimer;
-        sendEvent("chunk", { content: disclaimer });
-      }
+      // LIBERADO: Sem disclaimer forçado - resposta natural
 
       // Increment quota after successful completion
       await storage.incrementQuota(userId);
@@ -1296,10 +1286,7 @@ Analise a imagem médica de forma conversacional e fluida, identificando o tipo 
 
 Use texto corrido natural, como uma discussão de caso entre colegas, evitando listas numeradas excessivas.
 
-Seja objetivo e técnico, mas mantenha o tom de conversa de plantão.
-
-Finalize com o aviso discreto:
-> Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.`,
+Seja objetivo e técnico, mas mantenha o tom de conversa de plantão.`,
                 },
                 {
                   role: "user",

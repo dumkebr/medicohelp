@@ -9,16 +9,12 @@ import TopControls from "@/components/TopControls";
  * 1. Adicione TopControls no topo do main
  * 2. Controle qual conteúdo exibir baseado na aba selecionada
  * 3. Quando aba="clinico", mostre o chat normal
- * 4. Quando aba="evidencias" ou "calculadoras", TopControls já renderiza o conteúdo
+ * 4. Quando aba="evidencias", TopControls já renderiza o conteúdo
+ * 5. O botão "Ferramentas Médico PRO" navega para /avancado
  */
 export default function DemoTopControls() {
   const handleTabChange = (tab: string) => {
     console.log("Aba mudou para:", tab);
-  };
-
-  const handleOpenCalculator = (id: string) => {
-    console.log("Abrir calculadora:", id);
-    alert(`Calculadora "${id}" será aberta em breve.\n\n(As páginas de calculadoras serão implementadas)`);
   };
 
   return (
@@ -34,7 +30,6 @@ export default function DemoTopControls() {
           <TopControls
             initialTab="clinico"
             onTabChange={handleTabChange}
-            onOpenCalculator={handleOpenCalculator}
           />
 
           {/* Área do chat (visível apenas em modo "clinico") */}
@@ -43,7 +38,8 @@ export default function DemoTopControls() {
               <p className="font-medium mb-2">💬 Área do Chat</p>
               <p>Esta área é visível quando a aba "Clínico" está ativa.</p>
               <p className="text-xs mt-2">
-                Em modo "Evidências" ou "Calculadoras", o TopControls renderiza o conteúdo específico.
+                Em modo "Evidências", o TopControls renderiza o conteúdo específico.
+                O botão "Ferramentas Médico PRO" navega para a página de ferramentas avançadas.
               </p>
             </div>
           </div>

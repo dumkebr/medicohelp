@@ -39,10 +39,10 @@ MédicoHelp is built with a modern full-stack JavaScript architecture.
   - **Features**: Enter to send, Shift+Enter for new line, auto-transcription, file preview
 - **Medical Tools Modal**: Refined layout with compact header, tab bar (#f8f9f9 background), 3px green underline on active tab, minimal gap (8px) between tabs and content, no scroll overflow issues, smooth fade-in animations (200ms) between tab switches, and full dark mode support.
 - **Sidebar Organization**: Menu Principal with 5 items (Atendimento médico, Ferramentas Avançadas, Sobre, Novo atendimento, Buscar), expandable search field, collapsible sections (Gestão de Pacientes, Atendimentos Salvos, Histórico).
-- **TopControls Component**: Reusable tabbed interface for atendimento workflow with three modes:
+- **TopControls Component**: Reusable tabbed interface for atendimento workflow with three controls:
   - **Clínico Tab**: Default view for AI medical chat
   - **Explicação + Evidências Tab**: Shows evidence panel with educational information
-  - **Calculadoras Tab**: Quick access to 13 clinical calculators (CURB-65, Wells, CHA₂DS₂-VASc, etc.)
+  - **Ferramentas Médico PRO Button**: Navigates to AdvancedHub (/avancado) for calculators and advanced tools
   - Includes save button, title display, and responsive tab layout
   - Demo available at `/demo-top-controls` (publicly accessible)
 - **AdvancedHub** (`/avancado`): Central hub for advanced tools and calculators:

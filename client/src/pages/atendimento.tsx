@@ -24,7 +24,7 @@ import type { FileAttachment, Patient, ScientificReference } from "@shared/schem
 import TopControls from "@/components/TopControls";
 import { useAuth } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import { AttachmentBar } from "@/components/AttachmentBar";
+import ChatComposer from "@/components/ChatComposer";
 import {
   getCurrentId,
   getAtendimento,
@@ -347,83 +347,8 @@ export default function Atendimento() {
     },
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files).slice(0, 10);
-      setFiles(newFiles);
-    }
-  };
-
   const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  // Handler para arquivos do AttachmentBar
-  const handleFilesFromAttachmentBar = async (selectedFiles: File[]) => {
-    // Verificar se algum arquivo é áudio
-    const audioFiles = selectedFiles.filter(f => 
-      f.type.startsWith('audio/') || f.name.match(/\.(webm|mp3|wav|m4a|ogg)$/i)
-    );
-    
-    const otherFiles = selectedFiles.filter(f => 
-      !f.type.startsWith('audio/') && !f.name.match(/\.(webm|mp3|wav|m4a|ogg)$/i)
-    );
-
-    // Adicionar arquivos não-áudio à lista normal
-    if (otherFiles.length > 0) {
-      setFiles(prev => [...prev, ...otherFiles].slice(0, 10));
-    }
-
-    // Transcrever arquivos de áudio automaticamente
-    if (audioFiles.length > 0) {
-      for (const audioFile of audioFiles) {
-        await handleTranscribeAudio(audioFile);
-      }
-    }
-  };
-
-  // Handler para texto ditado
-  const handleTextFromSpeech = (text: string) => {
-    setMessage(prev => prev ? `${prev} ${text}` : text);
-  };
-
-  // Transcrever áudio automaticamente
-  const handleTranscribeAudio = async (audioFile: File) => {
-    try {
-      toast({
-        title: "🎙️ Transcrevendo áudio...",
-        description: "Aguarde enquanto processamos sua gravação.",
-      });
-
-      const formData = new FormData();
-      formData.append("audio", audioFile);
-
-      const response = await fetch("/api/transcribe", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Erro na transcrição");
-      }
-
-      const data = await response.json();
-      
-      // Adicionar texto transcrito ao message
-      setMessage(prev => prev ? `${prev}\n\n${data.text}` : data.text);
-
-      toast({
-        title: "✅ Áudio transcrito",
-        description: "O texto foi adicionado à sua mensagem.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro na transcrição",
-        description: error.message || "Não foi possível transcrever o áudio.",
-      });
-    }
   };
 
   const handleSend = async () => {
@@ -491,13 +416,6 @@ export default function Atendimento() {
     ]);
 
     handleChatStream(enrichedMessage, chatHistory, evidenceEnabled);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      handleSend();
-    }
   };
 
   const isLoading = isStreaming || uploadMutation.isPending;
@@ -668,73 +586,65 @@ export default function Atendimento() {
       {/* COMPOSER FIXO EMBAIXO */}
       <footer className="sticky bottom-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800">
         <div className="max-w-3xl mx-auto px-4 py-4" data-testid="card-chat-input">
-          <div className="rounded-2xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-3 shadow-sm">
-            {/* FILES PREVIEW */}
-            {files.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3 pb-3 border-b border-neutral-200 dark:border-neutral-700">
-                {files.map((file, index) => (
-                  <Badge key={index} variant="secondary" className="gap-2 pr-1">
-                    <FileImage className="w-3 h-3" />
-                    <span className="text-xs max-w-[150px] truncate">{file.name}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-4 w-4 p-0 hover:bg-destructive/20"
-                      onClick={() => removeFile(index)}
-                      data-testid={`button-remove-file-${index}`}
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            {/* TEXTAREA */}
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Digite sua pergunta clínica... (Ctrl+Enter para enviar)"
-              rows={1}
-              disabled={isLoading}
-              data-testid="input-chat-message"
-              className="w-full resize-none outline-none bg-transparent p-2 text-[15px] leading-6 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
-            />
-
-            {/* FOOTER ACTIONS */}
-            <div className="flex items-center justify-between px-2 pt-2">
-              <div className="flex items-center gap-2">
-                <AttachmentBar
-                  onFilesSelected={handleFilesFromAttachmentBar}
-                  onTextFromSpeech={handleTextFromSpeech}
-                  disabled={isLoading}
-                />
-                <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                  Anexos, foto, falar ou gravar
-                </span>
-              </div>
-
-              <Button
-                onClick={handleSend}
-                disabled={isLoading || (!message.trim() && files.length === 0)}
-                data-testid="button-send-message"
-                className="px-4 py-2 rounded-xl bg-[#3cb371] text-white font-semibold hover:bg-[#2f9e62] disabled:opacity-50"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Processando...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 mr-2" />
-                    Enviar
-                  </>
-                )}
-              </Button>
+          {/* FILES PREVIEW */}
+          {files.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3 pb-3 border-b border-neutral-200 dark:border-neutral-700">
+              {files.map((file, index) => (
+                <Badge key={index} variant="secondary" className="gap-2 pr-1">
+                  <FileImage className="w-3 h-3" />
+                  <span className="text-xs max-w-[150px] truncate">{file.name}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 p-0 hover:bg-destructive/20"
+                    onClick={() => removeFile(index)}
+                    data-testid={`button-remove-file-${index}`}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </Badge>
+              ))}
             </div>
-          </div>
+          )}
+
+          {/* CHAT COMPOSER */}
+          <ChatComposer
+            onSend={async (text) => {
+              if (!text.trim() && files.length === 0) return;
+              
+              let enrichedMessage = text;
+              const chatHistory = history.flatMap((h) => [
+                { role: "user", content: h.user },
+                { role: "assistant", content: h.assistant },
+              ]);
+
+              if (files.length > 0) {
+                const formData = new FormData();
+                files.forEach((file) => formData.append("files", file));
+                formData.append("userId", "demo-doctor");
+
+                try {
+                  const uploadResult = await uploadMutation.mutateAsync(formData);
+                  const attachmentTexts = uploadResult.attachments.map(
+                    (att: any) => `[${att.type === "image" ? "Imagem" : "Arquivo"}: ${att.filename}]`
+                  );
+                  enrichedMessage = `${text}\n\n${attachmentTexts.join("\n")}`;
+                } catch (error) {
+                  console.error("Erro no upload:", error);
+                  return;
+                }
+              }
+
+              handleChatStream(enrichedMessage, chatHistory, evidenceEnabled);
+            }}
+            onFiles={async (selectedFiles) => {
+              setFiles(prev => [...prev, ...selectedFiles].slice(0, 10));
+            }}
+            uploadUrl="/api/upload"
+            transcribeUrl="/api/transcribe"
+            placeholder="Digite sua pergunta clínica…"
+            disabled={isLoading}
+          />
 
           {/* DISCLAIMER */}
           <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 text-center">

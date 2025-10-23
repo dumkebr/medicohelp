@@ -437,7 +437,7 @@ export default function Atendimento() {
               <Mascote speaking={isSending} className="mx-auto" />
               <div className="text-center">
                 <h2 className="mb-2 text-xl font-semibold text-foreground">
-                  Olá, eu sou a Dra. Clarice
+                  Olá, eu sou a Dra. Clarice [VERSÃO TEAL ATIVA]
                 </h2>
                 <p className="text-sm text-muted-foreground">
                   Sua aliada inteligente na decisão clínica

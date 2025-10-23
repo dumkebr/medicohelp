@@ -10,6 +10,15 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Force no-cache headers to prevent aggressive caching
+app.use((_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  next();
+});
+
 // Rate limiter: 10 requests per day for most /api routes
 // Skip /api/tools/* routes as they have their own rate limiting (60 req/hour per tool)
 const apiRateLimiter = rateLimit({

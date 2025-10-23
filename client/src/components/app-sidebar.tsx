@@ -1,4 +1,4 @@
-import { Activity, Users, Plus, FileText, Sparkles, Image, Home, Baby, Heart, AlertCircle, Search, ChevronDown, ChevronRight, Calculator, HeartPulse } from "lucide-react";
+import { Activity, Users, Plus, FileText, Sparkles, Image, Home, Baby, Heart, AlertCircle, Search, ChevronDown, ChevronRight, Calculator } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import {

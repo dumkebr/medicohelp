@@ -1,6 +1,7 @@
 /**
  * MédicoHelp GPT-5 Integration
  * Sistema híbrido com prompts médicos refinados e streaming
+ * ATUALIZADO: Usa nova API client.responses.create() (GPT-5)
  */
 
 import OpenAI from "openai";
@@ -115,6 +116,7 @@ async function isGPT5Available(): Promise<boolean> {
 /**
  * Ask MédicoHelp com GPT-5 (ou fallback para GPT-4o)
  * Suporta streaming em tempo real via callback
+ * USA NOVA API: client.responses.stream()
  */
 export async function askMedicoHelpStreaming(
   userText: string,
@@ -139,25 +141,25 @@ export async function askMedicoHelpStreaming(
     systemPrompt += `\n\n**Evidências científicas encontradas:**\n${options.evidenceContext}`;
   }
 
-  // Montar mensagens
-  const messages: any[] = [
+  // Montar mensagens usando novo formato "input"
+  const inputMessages: any[] = [
     { role: "system", content: systemPrompt },
   ];
 
   // Se não for médico, adicionar aviso
   if (!isMedical) {
-    messages.push({
+    inputMessages.push({
       role: "user",
       content: "Lembre-se: responda apenas sobre medicina. Se o texto a seguir não for médico, diga isso em UMA linha."
     });
   } else {
-    messages.push({
+    inputMessages.push({
       role: "user",
       content: "Responda abaixo mantendo o MESMO estilo e termos do usuário (não troque os termos clínicos que ele usou)."
     });
   }
 
-  messages.push({ role: "user", content: userText });
+  inputMessages.push({ role: "user", content: userText });
 
   // Determinar modelo
   const gpt5Available = await isGPT5Available();
@@ -169,40 +171,79 @@ export async function askMedicoHelpStreaming(
   let tokenCount = 0;
 
   try {
-    // Tentar streaming
-    const stream = await openai.chat.completions.create({
-      model: modelToUse as any,
-      messages,
-      temperature: 0.4, // Mais estável para contexto clínico
-      max_tokens: modelToUse === "gpt-5" ? 900 : 4096, // GPT-5: respostas objetivas
-      stream: true,
+    // Tentar streaming com NOVA API
+    const stream = await (openai as any).responses.stream({
+      model: modelToUse,
+      input: inputMessages,
+      temperature: 0.4,
+      max_output_tokens: modelToUse === "gpt-5" ? 900 : 4096,
     });
 
-    // Processar chunks
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      
-      if (content) {
-        fullText += content;
-        tokenCount++;
-        onChunk(content);
+    // Processar chunks usando novo formato de eventos
+    for await (const event of stream) {
+      if (event.type === "response.output_text.delta") {
+        const content = event.delta;
+        
+        if (content) {
+          fullText += content;
+          tokenCount++;
+          onChunk(content);
+        }
       }
     }
 
+    console.log(`✅ ${modelToUse} streaming: ${tokenCount} tokens`);
     return { fullText, model: modelToUse, tokens: tokenCount };
     
   } catch (error: any) {
-    // Se GPT-5 falhar, fazer fallback para GPT-4o
-    if (modelToUse === "gpt-5" && error.message?.includes("model")) {
-      console.log("⚠️ GPT-5 falhou, fazendo fallback para GPT-4o");
-      
+    console.log("⚠️ Erro no streaming GPT-5, tentando fallback:", error.message);
+    
+    // Fallback 1: Tentar GPT-4o com nova API
+    if (modelToUse === "gpt-5") {
+      try {
+        console.log("🔄 Fallback para GPT-4o com nova API...");
+        const stream = await (openai as any).responses.stream({
+          model: "gpt-4o",
+          input: inputMessages,
+          temperature: 0.4,
+          max_output_tokens: 4096,
+        });
+
+        fullText = "";
+        tokenCount = 0;
+
+        for await (const event of stream) {
+          if (event.type === "response.output_text.delta") {
+            const content = event.delta;
+            
+            if (content) {
+              fullText += content;
+              tokenCount++;
+              onChunk(content);
+            }
+          }
+        }
+
+        console.log(`✅ gpt-4o streaming fallback: ${tokenCount} tokens`);
+        return { fullText, model: "gpt-4o", tokens: tokenCount };
+      } catch (fallbackError: any) {
+        console.log("⚠️ Nova API falhou, tentando API legada...", fallbackError.message);
+      }
+    }
+
+    // Fallback 2: API legada (chat.completions)
+    try {
+      console.log("🔄 Usando API legada (chat.completions.create)...");
       const stream = await openai.chat.completions.create({
         model: "gpt-4o",
-        messages,
+        messages: inputMessages,
         temperature: 0.4,
         max_tokens: 4096,
         stream: true,
       });
+
+      fullText = "";
+      tokenCount = 0;
 
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content;
@@ -214,15 +255,18 @@ export async function askMedicoHelpStreaming(
         }
       }
 
+      console.log(`✅ gpt-4o (legado) streaming: ${tokenCount} tokens`);
       return { fullText, model: "gpt-4o", tokens: tokenCount };
+    } catch (legacyError: any) {
+      console.error("❌ Todas as tentativas de streaming falharam:", legacyError);
+      throw new Error("Streaming não disponível. Tente novamente.");
     }
-    
-    throw error;
   }
 }
 
 /**
  * Versão não-streaming (fallback)
+ * USA NOVA API: client.responses.create()
  */
 export async function askMedicoHelpNonStreaming(
   userText: string,
@@ -244,23 +288,23 @@ export async function askMedicoHelpNonStreaming(
     systemPrompt += `\n\n**Evidências científicas encontradas:**\n${options.evidenceContext}`;
   }
 
-  const messages: any[] = [
+  const inputMessages: any[] = [
     { role: "system", content: systemPrompt },
   ];
 
   if (!isMedical) {
-    messages.push({
+    inputMessages.push({
       role: "user",
       content: "Lembre-se: responda apenas sobre medicina. Se o texto a seguir não for médico, diga isso em UMA linha."
     });
   } else {
-    messages.push({
+    inputMessages.push({
       role: "user",
       content: "Responda abaixo mantendo o MESMO estilo e termos do usuário (não troque os termos clínicos que ele usou)."
     });
   }
 
-  messages.push({ role: "user", content: userText });
+  inputMessages.push({ role: "user", content: userText });
 
   const gpt5Available = await isGPT5Available();
   const modelToUse = gpt5Available ? "gpt-5" : "gpt-4o";
@@ -268,27 +312,28 @@ export async function askMedicoHelpNonStreaming(
   console.log(`🤖 Usando modelo: ${modelToUse} (non-streaming)${gpt5Available ? " (GPT-5 ativo!)" : " (fallback GPT-4o)"}`);
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: modelToUse as any,
-      messages,
+    // Tentar NOVA API
+    const response = await (openai as any).responses.create({
+      model: modelToUse,
+      input: inputMessages,
       temperature: 0.4,
-      max_tokens: modelToUse === "gpt-5" ? 900 : 4096,
-      stream: false,
+      max_output_tokens: modelToUse === "gpt-5" ? 900 : 4096,
     });
 
-    const fullText = completion.choices[0]?.message?.content || "Desculpe, não foi possível processar sua pergunta.";
+    const fullText = response.output_text || "Desculpe, não foi possível processar sua pergunta.";
     const tokens = fullText.length;
 
+    console.log(`✅ ${modelToUse} non-streaming: ${tokens} chars`);
     return { fullText, model: modelToUse, tokens };
     
   } catch (error: any) {
-    // Fallback para GPT-4o se GPT-5 falhar
-    if (modelToUse === "gpt-5" && error.message?.includes("model")) {
-      console.log("⚠️ GPT-5 falhou, fazendo fallback para GPT-4o");
-      
+    console.log("⚠️ Nova API falhou, tentando API legada...", error.message);
+    
+    // Fallback para API legada
+    try {
       const completion = await openai.chat.completions.create({
         model: "gpt-4o",
-        messages,
+        messages: inputMessages,
         temperature: 0.4,
         max_tokens: 4096,
         stream: false,
@@ -297,9 +342,11 @@ export async function askMedicoHelpNonStreaming(
       const fullText = completion.choices[0]?.message?.content || "Desculpe, não foi possível processar sua pergunta.";
       const tokens = fullText.length;
 
+      console.log(`✅ gpt-4o (legado) non-streaming: ${tokens} chars`);
       return { fullText, model: "gpt-4o", tokens };
+    } catch (legacyError: any) {
+      console.error("❌ Todas as tentativas falharam:", legacyError);
+      throw new Error("Não foi possível processar sua pergunta. Tente novamente.");
     }
-    
-    throw error;
   }
 }

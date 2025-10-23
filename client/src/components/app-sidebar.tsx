@@ -35,8 +35,6 @@ import {
 } from "@/lib/atendimentos";
 import { SessionAPI } from "@/lib/chatSessions";
 import { ItemRow } from "@/components/ItemRow";
-import heartIcon from "@assets/image_1761162023136.png";
-import logoText from "@assets/image_1761162310190.png";
 
 const menuItems = [
   {
@@ -148,28 +146,22 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="px-4 py-2 border-b bg-background">
-        <div className="flex items-center justify-start gap-2 w-full">
+      <SidebarHeader className="px-4 py-3 border-b bg-background">
+        <div className="flex items-center gap-3 w-full">
           <img 
-            src={heartIcon} 
-            alt="MédicoHelp - Ícone do coração" 
-            className="h-18 w-auto object-contain"
-            style={{ 
-              height: '72px',
-              imageRendering: 'crisp-edges',
-              filter: 'contrast(1.05) brightness(1.02)'
-            }}
+            src="/logo-medicohelp-icon.svg" 
+            alt="MédicoHelp ícone" 
+            className="h-10 w-10 flex-shrink-0"
           />
-          <img 
-            src={logoText} 
-            alt="MédicoHelp - A plataforma médica inteligente" 
-            className="h-auto w-auto object-contain"
-            style={{ 
-              height: '80px',
-              imageRendering: 'crisp-edges',
-              filter: 'contrast(1.05) brightness(1.02)'
-            }}
-          />
+          <div className="flex flex-col flex-1 min-w-0">
+            <div className="flex items-baseline gap-1 font-serif text-[22px] leading-none">
+              <span className="text-foreground">Médico</span>
+              <span className="text-primary">Help</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1 leading-tight">
+              A plataforma médica inteligente
+            </p>
+          </div>
         </div>
       </SidebarHeader>
       

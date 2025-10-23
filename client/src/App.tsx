@@ -26,6 +26,9 @@ import ForgotPassword from "@/pages/forgot-password";
 import VerifyCode from "@/pages/verify-code";
 import AdvancedHub from "@/pages/advanced-hub";
 import CalcPlaceholder from "@/pages/calc-placeholder";
+import CalcWells from "@/pages/calc-wells";
+import CalcGasometria from "@/pages/calc-gasometria";
+import CalcIG from "@/pages/calc-ig";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -90,15 +93,9 @@ function ProtectedRouter() {
         <Route path="/avancado" component={AdvancedHub} />
         
         {/* CALCULADORAS */}
-        <Route path="/calc/wells">
-          {() => <CalcPlaceholder title="Escore de Wells (TEV)" description="Probabilidade de TEP/TVP" />}
-        </Route>
-        <Route path="/calc/gasometria">
-          {() => <CalcPlaceholder title="Gasometria Arterial/Venosa" description="Análise de pH, PaCO₂, HCO₃⁻ e ânion gap" />}
-        </Route>
-        <Route path="/calc/ig">
-          {() => <CalcPlaceholder title="Idade Gestacional" description="Cálculo por DUM, DPP ou USG" />}
-        </Route>
+        <Route path="/calc/wells" component={CalcWells} />
+        <Route path="/calc/gasometria" component={CalcGasometria} />
+        <Route path="/calc/ig" component={CalcIG} />
         <Route path="/calc/child-pugh">
           {() => <CalcPlaceholder title="Child-Pugh" description="Classificação de gravidade da cirrose hepática" />}
         </Route>

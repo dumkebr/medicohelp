@@ -1,0 +1,470 @@
+import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+/*************************************************
+ * CALCULADORAS MÉDICOHELP – ARQUIVO ÚNICO
+ * - Wells (TEP)
+ * - Gasometria (A/V) com ânion gap e interpretação
+ * - Idade Gestacional (DUM/DPP/USG)
+ *
+ * Como usar nas rotas do app:
+ *   import Calculators, { WellsCalc, GasometriaCalc, IGCalc } from "./Calculators";
+ *   <Route path="/calc/wells" element={<WellsCalc/>} />
+ *   <Route path="/calc/gasometria" element={<GasometriaCalc/>} />
+ *   <Route path="/calc/ig" element={<IGCalc/>} />
+ *   (Opcional) <Route path="/calc" element={<Calculators/>} />
+ *************************************************/
+
+/* ------------------------- UI Helpers ------------------------- */
+function Card({ children, className = "" }) {
+  return (
+    <div className={`rounded-2xl border p-4 md:p-5 shadow-sm bg-white ${className}`}>{children}</div>
+  );
+}
+function SectionTitle({ children }) {
+  return <h2 className="text-lg font-semibold mb-3">{children}</h2>;
+}
+function Label({ htmlFor, children }) {
+  return (
+    <label htmlFor={htmlFor} className="text-sm text-gray-600 block mb-1">
+      {children}
+    </label>
+  );
+}
+function Input({ id, type = "number", value, onChange, step = "any", placeholder = "", className = "" }) {
+  return (
+    <input
+      id={id}
+      type={type}
+      value={value}
+      onChange={onChange}
+      step={step}
+      placeholder={placeholder}
+      className={`w-full rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${className}`}
+    />
+  );
+}
+function Row({ children }) {
+  return <div className="grid md:grid-cols-3 gap-3">{children}</div>;
+}
+function Btn({ children, onClick, variant = "default" }) {
+  const base = "px-3 py-2 rounded-xl text-sm transition";
+  const styles =
+    variant === "outline"
+      ? "border hover:bg-gray-50"
+      : "bg-emerald-600 text-white hover:bg-emerald-700";
+  return (
+    <button onClick={onClick} className={`${base} ${styles}`}>{children}</button>
+  );
+}
+
+/* ------------------------- Calculadora: Wells (TEP) ------------------------- */
+const WELLS_ITEMS = [
+  { key: "dvt", label: "Sinais clínicos de TVP (edema, dor à palpação) (+3)", score: 3 },
+  { key: "pelikely", label: "TEP mais provável que diagnósticos alternativos (+3)", score: 3 },
+  { key: "taquicardia", label: "FC > 100 bpm (+1,5)", score: 1.5 },
+  { key: "imobilizacao", label: "Imobilização ≥3 dias ou cirurgia nas últimas 4 semanas (+1,5)", score: 1.5 },
+  { key: "previa", label: "TEV prévio (TEP/TVP) (+1,5)", score: 1.5 },
+  { key: "hemoptise", label: "Hemoptise (+1)", score: 1 },
+  { key: "cancer", label: "Câncer ativo (+1)", score: 1 },
+];
+
+function useWellsScore(state) {
+  return useMemo(() => {
+    const sum = WELLS_ITEMS.reduce((acc, it) => acc + (state[it.key] ? it.score : 0), 0);
+    const twoTier = sum > 4 ? "Provável TEP (>4)" : "Improvável TEP (≤4)";
+    let threeTier = "Baixa";
+    if (sum >= 2 && sum <= 6) threeTier = "Moderada";
+    if (sum > 6) threeTier = "Alta";
+    return { sum, twoTier, threeTier };
+  }, [state]);
+}
+
+export function WellsCalc() {
+  const [checks, setChecks] = useState({});
+  const { sum, twoTier, threeTier } = useWellsScore(checks);
+
+  return (
+    <div className="w-full p-4 md:p-6 max-w-3xl mx-auto">
+      <header className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-semibold">Escore de Wells – TEP</h1>
+        <BackBtn/>
+      </header>
+      <Card>
+        <SectionTitle>Critérios</SectionTitle>
+        <div className="space-y-2">
+          {WELLS_ITEMS.map((it) => (
+            <label key={it.key} className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={!!checks[it.key]}
+                onChange={(e) => setChecks((s) => ({ ...s, [it.key]: e.target.checked }))}
+              />
+              <span>{it.label}</span>
+            </label>
+          ))}
+        </div>
+
+        <div className="mt-4 grid md:grid-cols-3 gap-3">
+          <Card className="bg-emerald-50 border-emerald-200">
+            <div className="text-sm text-gray-600">Soma</div>
+            <div className="text-2xl font-semibold">{sum.toFixed(1)}</div>
+          </Card>
+          <Card>
+            <div className="text-sm text-gray-600">Classificação (2 níveis)</div>
+            <div className="text-lg font-medium">{twoTier}</div>
+          </Card>
+          <Card>
+            <div className="text-sm text-gray-600">Classificação (3 níveis)</div>
+            <div className="text-lg font-medium">{threeTier}</div>
+          </Card>
+        </div>
+
+        <div className="mt-4 text-sm text-gray-600">
+          <p>
+            Interpretação tradicional: 0–1 (baixa), 2–6 (moderada), &gt;6 (alta). Em modelo de 2 níveis, ≤4 = improvável, &gt;4 = provável.
+          </p>
+          <ul className="list-disc ml-5 mt-2 space-y-1">
+            <li>Se improvável (≤4): D-dímero ajuda a excluir TEP em pacientes de baixa probabilidade.</li>
+            <li>Se provável (&gt;4): prosseguir direto para imagem (angio-TC), conforme protocolo local.</li>
+          </ul>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ------------------------- Calculadora: Gasometria ------------------------- */
+function parse(v) { const n = Number(v); return isFinite(n) ? n : NaN; }
+
+function winterExpectedPCO2(hco3) { return 1.5 * hco3 + 8; } // ±2
+function expectedPCO2MetabolicAlk(hco3) { return 0.7 * hco3 + 20; } // ±5
+
+function classifyAcidBase(pH) {
+  if (!isFinite(pH)) return "";
+  if (pH < 7.35) return "Acidemia";
+  if (pH > 7.45) return "Alcalemia";
+  return "pH normal";
+}
+
+function respMetabolicPrimary(pH, pco2, hco3) {
+  if (!isFinite(pH) || !isFinite(pco2) || !isFinite(hco3)) return "";
+  const acidemia = pH < 7.35; const alcalemia = pH > 7.45;
+  // heurística simples
+  if (acidemia) {
+    return hco3 < 22 ? "Metabólica (acidose)" : "Respiratória (acidose)";
+  }
+  if (alcalemia) {
+    return hco3 > 26 ? "Metabólica (alcalose)" : "Respiratória (alcalose)";
+  }
+  return "Indefinido/compensado";
+}
+
+export function GasometriaCalc() {
+  const [form, setForm] = useState({
+    tipo: "arterial", pH: "", pCO2: "", HCO3: "", Na: "", Cl: "", Albumina: "", Lactato: "", PaO2: "", FiO2: "21",
+  });
+
+  const pH = parse(form.pH), pCO2 = parse(form.pCO2), HCO3 = parse(form.HCO3);
+  const NaV = parse(form.Na), ClV = parse(form.Cl), Alb = parse(form.Albumina), Lac = parse(form.Lactato);
+  const PaO2 = parse(form.PaO2), FiO2 = parse(form.FiO2);
+
+  const ag = isFinite(NaV) && isFinite(ClV) && isFinite(HCO3) ? NaV - (ClV + HCO3) : NaN;
+  const agCorr = isFinite(ag) && isFinite(Alb) ? ag + 2.5 * (4 - Alb) : ag; // correção por albumina
+  const acidBase = classifyAcidBase(pH);
+  const prim = respMetabolicPrimary(pH, pCO2, HCO3);
+
+  const winter = isFinite(HCO3) ? winterExpectedPCO2(HCO3) : NaN; // ±2
+  const metabAlkExp = isFinite(HCO3) ? expectedPCO2MetabolicAlk(HCO3) : NaN; // ±5
+
+  const aagrad = useMemo(() => {
+    if (form.tipo !== "arterial") return NaN;
+    if (!isFinite(PaO2) || !isFinite(pCO2) || !isFinite(FiO2)) return NaN;
+    // A–a gradiente aproximado: PAO2 = FiO2*(760-47) - PaCO2/0.8
+    const fio2 = FiO2 / 100; // % -> fração
+    const PAO2 = fio2 * (760 - 47) - pCO2 / 0.8;
+    return PAO2 - PaO2;
+  }, [form.tipo, PaO2, pCO2, FiO2]);
+
+  function set(k, v) { setForm((s) => ({ ...s, [k]: v })); }
+
+  const compText = useMemo(() => {
+    if (!isFinite(pCO2) || !isFinite(HCO3)) return "";
+    let out = [];
+    if (prim.startsWith("Metabólica (acidose)")) {
+      if (isFinite(winter)) out.push(`Esperado pCO₂ (Winter): ${winter.toFixed(1)} ±2 mmHg`);
+      if (isFinite(pCO2) && isFinite(winter)) {
+        const diff = pCO2 - winter;
+        if (Math.abs(diff) > 3) out.push(diff > 0 ? "Hipoventilação relativa (componente respiratório)" : "Hiperventilação relativa (componente respiratório)");
+      }
+    } else if (prim.startsWith("Metabólica (alcalose)")) {
+      if (isFinite(metabAlkExp)) out.push(`Esperado pCO₂: ${metabAlkExp.toFixed(1)} ±5 mmHg`);
+    }
+    if (isFinite(ag)) {
+      out.push(`Ânion gap: ${ag.toFixed(1)} mEq/L${isFinite(agCorr) && agCorr !== ag ? ` (corrigido: ${agCorr.toFixed(1)})` : ""}`);
+      if (isFinite(Lac)) out.push(`Lactato: ${Lac.toFixed(2)} mmol/L`);
+    }
+    if (form.tipo === "arterial" && isFinite(aagrad)) {
+      out.push(`Gradiente A–a: ${aagrad.toFixed(0)} mmHg`);
+    }
+    return out.join(" \n");
+  }, [prim, winter, metabAlkExp, ag, agCorr, Lac, form.tipo, aagrad, pCO2]);
+
+  return (
+    <div className="w-full p-4 md:p-6 max-w-4xl mx-auto">
+      <header className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-semibold">Gasometria (A/V)</h1>
+        <BackBtn/>
+      </header>
+      <Card>
+        <SectionTitle>Dados</SectionTitle>
+        <Row>
+          <div>
+            <Label htmlFor="tipo">Tipo</Label>
+            <select id="tipo" value={form.tipo} onChange={(e)=>set("tipo", e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
+              <option value="arterial">Arterial</option>
+              <option value="venosa">Venosa</option>
+            </select>
+          </div>
+          <div>
+            <Label htmlFor="pH">pH</Label>
+            <Input id="pH" value={form.pH} onChange={(e)=>set("pH", e.target.value)} />
+          </div>
+          <div>
+            <Label htmlFor="pCO2">pCO₂ (mmHg)</Label>
+            <Input id="pCO2" value={form.pCO2} onChange={(e)=>set("pCO2", e.target.value)} />
+          </div>
+        </Row>
+        <Row>
+          <div>
+            <Label htmlFor="HCO3">HCO₃⁻ (mEq/L)</Label>
+            <Input id="HCO3" value={form.HCO3} onChange={(e)=>set("HCO3", e.target.value)} />
+          </div>
+          <div>
+            <Label htmlFor="Na">Sódio (mEq/L)</Label>
+            <Input id="Na" value={form.Na} onChange={(e)=>set("Na", e.target.value)} />
+          </div>
+          <div>
+            <Label htmlFor="Cl">Cloro (mEq/L)</Label>
+            <Input id="Cl" value={form.Cl} onChange={(e)=>set("Cl", e.target.value)} />
+          </div>
+        </Row>
+        <Row>
+          <div>
+            <Label htmlFor="Albumina">Albumina (g/dL) – opcional</Label>
+            <Input id="Albumina" value={form.Albumina} onChange={(e)=>set("Albumina", e.target.value)} />
+          </div>
+          <div>
+            <Label htmlFor="Lactato">Lactato (mmol/L) – opcional</Label>
+            <Input id="Lactato" value={form.Lactato} onChange={(e)=>set("Lactato", e.target.value)} />
+          </div>
+          {form.tipo === "arterial" ? (
+            <>
+              <div>
+                <Label htmlFor="PaO2">PaO₂ (mmHg)</Label>
+                <Input id="PaO2" value={form.PaO2} onChange={(e)=>set("PaO2", e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="FiO2">FiO₂ (%)</Label>
+                <Input id="FiO2" value={form.FiO2} onChange={(e)=>set("FiO2", e.target.value)} />
+              </div>
+            </>
+          ) : <div className="hidden"/>}
+        </Row>
+
+        <div className="mt-4 grid md:grid-cols-3 gap-3">
+          <Card className="bg-emerald-50 border-emerald-200">
+            <div className="text-sm text-gray-600">pH</div>
+            <div className="text-xl font-semibold">{isFinite(pH) ? pH.toFixed(3) : "—"} ({acidBase})</div>
+          </Card>
+          <Card>
+            <div className="text-sm text-gray-600">Primária</div>
+            <div className="text-base font-medium">{prim || "—"}</div>
+          </Card>
+          <Card>
+            <div className="text-sm text-gray-600">Anion Gap</div>
+            <div className="text-base font-medium">{isFinite(ag) ? `${ag.toFixed(1)} mEq/L${isFinite(agCorr)&& agCorr!==ag ? ` (corr.: ${agCorr.toFixed(1)})` : ""}` : "—"}</div>
+          </Card>
+        </div>
+
+        <div className="mt-4">
+          <SectionTitle>Interpretação/Compensação</SectionTitle>
+          <pre className="whitespace-pre-wrap text-sm text-gray-700">{compText || "Preencha pH, pCO₂ e HCO₃⁻ para interpretar."}</pre>
+        </div>
+      </Card>
+
+      <Card className="mt-4 text-sm text-gray-600">
+        <SectionTitle>Regras usadas (resumo)</SectionTitle>
+        <ul className="list-disc ml-5 space-y-1">
+          <li>Acidemia &lt; 7,35 | Alcalemia &gt; 7,45.</li>
+          <li>Acidose metabólica: fórmula de Winter pCO₂ ≈ 1,5×HCO₃⁻ + 8 (±2).</li>
+          <li>Alcalose metabólica: pCO₂ esperado ≈ 0,7×HCO₃⁻ + 20 (±5).</li>
+          <li>Ânion gap = Na⁺ − (Cl⁻ + HCO₃⁻). Correção por albumina: +2,5×(4 − albumina).</li>
+          <li>Gradiente A–a (arterial): PAO₂ = FiO₂×(760−47) − pCO₂/0,8; A–a = PAO₂ − PaO₂.</li>
+        </ul>
+      </Card>
+    </div>
+  );
+}
+
+/* ------------------------- Calculadora: IG Gestacional ------------------------- */
+function fmtWeeksDays(totalDays) {
+  const w = Math.floor(totalDays / 7); const d = totalDays % 7; return `${w}s${d}d`;
+}
+function addDays(date, days) { const dt = new Date(date); dt.setDate(dt.getDate() + days); return dt; }
+function diffDays(a, b) { // b - a
+  const A = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+  const B = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+  return Math.round((B.getTime() - A.getTime()) / 86400000);
+}
+function toISO(d) { return d.toISOString().slice(0,10); }
+
+export function IGCalc() {
+  const today = useMemo(() => new Date(), []);
+  const [dum, setDum] = useState("");
+  const [dpp, setDpp] = useState("");
+  const [usDate, setUsDate] = useState("");
+  const [usWeeks, setUsWeeks] = useState("");
+  const [usDays, setUsDays] = useState("");
+
+  // Cálculo por DUM
+  const dumInfo = useMemo(() => {
+    if (!dum) return null;
+    const DUM = new Date(dum);
+    const DPP = addDays(DUM, 280);
+    const igDays = diffDays(DUM, today);
+    return { DPP, igDays };
+  }, [dum, today]);
+
+  // Cálculo por USG (data + IG na data do exame)
+  const usInfo = useMemo(() => {
+    if (!usDate || (!usWeeks && !usDays)) return null;
+    const USD = new Date(usDate);
+    const weeks = Number(usWeeks || 0), days = Number(usDays || 0);
+    const igAtExamDays = weeks * 7 + days;
+    const concDays = 280 - igAtExamDays; // dias restantes para 40s0d
+    const DPP = addDays(USD, concDays);
+    const igTodayDays = 280 - diffDays(today, DPP);
+    return { DPP, igTodayDays };
+  }, [usDate, usWeeks, usDays, today]);
+
+  // Cálculo por DPP fornecida
+  const dppInfo = useMemo(() => {
+    if (!dpp) return null;
+    const DPP = new Date(dpp);
+    const igTodayDays = 280 - diffDays(today, DPP);
+    return { igTodayDays };
+  }, [dpp, today]);
+
+  return (
+    <div className="w-full p-4 md:p-6 max-w-3xl mx-auto">
+      <header className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-semibold">Idade Gestacional</h1>
+        <BackBtn/>
+      </header>
+
+      <Card>
+        <SectionTitle>Por DUM</SectionTitle>
+        <Row>
+          <div>
+            <Label htmlFor="dum">DUM</Label>
+            <Input id="dum" type="date" value={dum} onChange={(e)=>setDum(e.target.value)} />
+          </div>
+          <div className="md:col-span-2 flex items-end gap-2">
+            <Btn onClick={()=>setDum("") } variant="outline">Limpar</Btn>
+            {dumInfo && (
+              <div className="text-sm text-gray-700">
+                IG hoje: <b>{fmtWeeksDays(dumInfo.igDays)}</b> — DPP: <b>{toISO(dumInfo.DPP)}</b>
+              </div>
+            )}
+          </div>
+        </Row>
+      </Card>
+
+      <Card className="mt-4">
+        <SectionTitle>Por Ultrassom</SectionTitle>
+        <Row>
+          <div>
+            <Label htmlFor="usd">Data do USG</Label>
+            <Input id="usd" type="date" value={usDate} onChange={(e)=>setUsDate(e.target.value)} />
+          </div>
+          <div>
+            <Label htmlFor="usw">IG no USG – semanas</Label>
+            <Input id="usw" value={usWeeks} onChange={(e)=>setUsWeeks(e.target.value)} />
+          </div>
+          <div>
+            <Label htmlFor="usd2">IG no USG – dias</Label>
+            <Input id="usd2" value={usDays} onChange={(e)=>setUsDays(e.target.value)} />
+          </div>
+        </Row>
+        {usInfo && (
+          <div className="mt-3 text-sm text-gray-700">
+            IG hoje: <b>{fmtWeeksDays(usInfo.igTodayDays)}</b> — DPP: <b>{toISO(usInfo.DPP)}</b>
+          </div>
+        )}
+      </Card>
+
+      <Card className="mt-4">
+        <SectionTitle>Por DPP</SectionTitle>
+        <Row>
+          <div>
+            <Label htmlFor="dpp">DPP</Label>
+            <Input id="dpp" type="date" value={dpp} onChange={(e)=>setDpp(e.target.value)} />
+          </div>
+          <div className="md:col-span-2 flex items-end gap-2">
+            <Btn onClick={()=>setDpp("")} variant="outline">Limpar</Btn>
+            {dppInfo && (
+              <div className="text-sm text-gray-700">IG hoje: <b>{fmtWeeksDays(dppInfo.igTodayDays)}</b></div>
+            )}
+          </div>
+        </Row>
+      </Card>
+
+      <Card className="mt-4 text-sm text-gray-600">
+        <SectionTitle>Notas</SectionTitle>
+        <ul className="list-disc ml-5 space-y-1">
+          <li>DPP por DUM = DUM + 280 dias (Regra de Naegele).</li>
+          <li>Quando a DPP do USG de primeiro trimestre divergir de DUM, priorize a estimativa do USG precoce.</li>
+        </ul>
+      </Card>
+    </div>
+  );
+}
+
+/* ------------------------- Galeria/Default ------------------------- */
+function BackBtn(){
+  const nav = useNavigate?.();
+  if (!nav) return null;
+  return <Btn variant="outline" onClick={()=>nav(-1)}>← Voltar</Btn>
+}
+
+export default function Calculators() {
+  const nav = useNavigate();
+  return (
+    <div className="w-full p-4 md:p-6 max-w-5xl mx-auto">
+      <header className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-semibold">Calculadoras</h1>
+        <Btn variant="outline" onClick={()=>nav("/")}>← Voltar ao Chat</Btn>
+      </header>
+
+      <div className="grid md:grid-cols-3 gap-4">
+        <Card>
+          <SectionTitle>Wells (TEP)</SectionTitle>
+          <p className="text-sm text-gray-600 mb-3">Probabilidade clínica de embolia pulmonar.</p>
+          <Btn onClick={()=>nav("/calc/wells")}>Abrir</Btn>
+        </Card>
+        <Card>
+          <SectionTitle>Gasometria (A/V)</SectionTitle>
+          <p className="text-sm text-gray-600 mb-3">Ânion gap, compensações e A–a (A).</p>
+          <Btn onClick={()=>nav("/calc/gasometria")}>Abrir</Btn>
+        </Card>
+        <Card>
+          <SectionTitle>IG Gestacional</SectionTitle>
+          <p className="text-sm text-gray-600 mb-3">Por DUM, USG ou DPP.</p>
+          <Btn onClick={()=>nav("/calc/ig")}>Abrir</Btn>
+        </Card>
+      </div>
+    </div>
+  );
+}

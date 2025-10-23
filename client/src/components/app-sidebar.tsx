@@ -227,9 +227,7 @@ export function AppSidebar() {
               }`}
               data-testid="link-medprime"
             >
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-700 ring-1 ring-emerald-600/20">
-                <Sparkles className="h-5 w-5 text-white" aria-hidden="true" />
-              </span>
+              <Heart className="h-6 w-6 text-emerald-600 fill-emerald-600" aria-hidden="true" />
               <div className="flex-1 min-w-0">
                 <div className="font-semibold truncate">MedPrime</div>
                 <div className="text-[10px] opacity-75 truncate">Ferramentas Avançadas</div>

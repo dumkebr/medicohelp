@@ -37,6 +37,7 @@ import {
   type Atendimento as AtendimentoType,
   type Mensagem
 } from "@/lib/atendimentos";
+import { SessionAPI } from "@/lib/chatSessions";
 
 // ========================= PERSONALIZAÇÃO DO MÉDICO =========================
 interface MedicoInfo {
@@ -376,6 +377,9 @@ export default function Atendimento() {
 
   // Carregar atendimento atual
   useEffect(() => {
+    // Hidrata sessão da URL (se houver ?sid=...)
+    SessionAPI.hydrateFromURL("/atendimento");
+    
     let curId = getCurrentId();
     
     if (!curId) {

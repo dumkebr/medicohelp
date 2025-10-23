@@ -158,7 +158,7 @@ export async function askMedicoHelpStreaming(
       model: modelToUse,
       input: inputMessages,
       temperature: 0.4,
-      max_output_tokens: modelToUse === "gpt-5" ? 900 : 4096,
+      max_output_tokens: 16000, // LIBERADO: máximo permitido
     });
 
     // Processar chunks usando novo formato de eventos
@@ -188,7 +188,7 @@ export async function askMedicoHelpStreaming(
           model: "gpt-4o",
           input: inputMessages,
           temperature: 0.4,
-          max_output_tokens: 4096,
+          max_output_tokens: 16000, // LIBERADO: máximo permitido
         });
 
         fullText = "";
@@ -291,7 +291,7 @@ export async function askMedicoHelpNonStreaming(
       model: modelToUse,
       input: inputMessages,
       temperature: 0.4,
-      max_output_tokens: modelToUse === "gpt-5" ? 900 : 4096,
+      max_output_tokens: 16000, // LIBERADO: máximo permitido
     });
 
     const fullText = response.output_text || "Desculpe, não foi possível processar sua pergunta.";
@@ -309,7 +309,7 @@ export async function askMedicoHelpNonStreaming(
         model: "gpt-4o",
         messages: inputMessages,
         temperature: 0.4,
-        max_tokens: 4096,
+        max_tokens: 16000, // LIBERADO: máximo permitido
         stream: false,
       });
 

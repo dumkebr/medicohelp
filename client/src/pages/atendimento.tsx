@@ -1,103 +1,61 @@
 import { useState, useRef, useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Send, Paperclip, Loader2, FileImage, X, Save, Brain, ExternalLink, FileText, BookOpen } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Send, Mic, MicOff, Paperclip, Image as ImageIcon, Download, Plus, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { FileAttachment, Patient, ScientificReference } from "@shared/schema";
-import TopControls from "@/components/TopControls";
-import ChatComposer from "@/components/ChatComposer";
 import { useAuth } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import type { Patient, ScientificReference } from "@shared/schema";
 import {
   getCurrentId,
   getAtendimento,
   addMensagem,
-  renameAtendimento,
-  assignPatient,
-  updateMode,
   createAtendimento,
-  setSaved,
+  updateMode,
   type Atendimento as AtendimentoType,
-  type Mensagem
 } from "@/lib/atendimentos";
 import { SessionAPI } from "@/lib/chatSessions";
 
-interface ChatHistoryItem {
-  user: string;
-  assistant: string;
+interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
   references?: ScientificReference[];
 }
 
 export default function Atendimento() {
-  // ===== ESTADO =====
-  const [message, setMessage] = useState("");
-  const [history, setHistory] = useState<ChatHistoryItem[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [mode, setMode] = useState<"clinico" | "explicativo">("clinico");
+  const [input, setInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [streamingText, setStreamingText] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
-  const [savedAttachments, setSavedAttachments] = useState<any[]>([]);
-  const [mode, setMode] = useState<'clinico' | 'explicativo'>('clinico');
-  const [evidenceEnabled, setEvidenceEnabled] = useState(false);
-  const [isResearchAvailable, setIsResearchAvailable] = useState(true);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [streamingMessage, setStreamingMessage] = useState("");
-  const [currentUserMessage, setCurrentUserMessage] = useState("");
-  const [showSavePanel, setShowSavePanel] = useState(false);
-  const [useLocalFallback, setUseLocalFallback] = useState(false);
+  
   const { toast } = useToast();
   const { user } = useAuth();
-  const threadRef = useRef<HTMLDivElement>(null);
-  const [showPatientMgmt] = useLocalStorage<boolean>("mh_showPatientMgmt", true);
+  const chatRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
+  const streamAbortController = useRef<AbortController | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   
-  // Histórico de atendimentos
   const [currentAtendimento, setCurrentAtendimento] = useState<AtendimentoType | null>(null);
+  const [showPatientMgmt] = useLocalStorage<boolean>("mh_showPatientMgmt", true);
 
   const { data: patients } = useQuery<Patient[]>({
     queryKey: ["/api/patients"],
     enabled: showPatientMgmt,
   });
 
-  const researchMutation = useMutation({
-    mutationFn: async (query: string) => {
-      const response = await apiRequest("POST", "/api/research", {
-        query,
-        maxSources: 5,
-      });
-      return response as unknown as { answer: string; references: ScientificReference[] };
-    },
-    onError: (error: any) => {
-      if (error.message?.includes("não configurado")) {
-        setIsResearchAvailable(false);
-        setEvidenceEnabled(false);
-      }
-    },
-  });
-
-  const streamAbortController = useRef<AbortController | null>(null);
-
   // Carregar atendimento atual
   useEffect(() => {
-    // Hidrata sessão da URL (se houver ?sid=...)
     SessionAPI.hydrateFromURL("/atendimento");
     
     let curId = getCurrentId();
-    
     if (!curId) {
       const novo = createAtendimento();
       curId = novo.id;
@@ -106,172 +64,112 @@ export default function Atendimento() {
     const atendimento = getAtendimento(curId);
     if (atendimento) {
       setCurrentAtendimento(atendimento);
-      setMode(atendimento.mode || 'clinico');
+      setMode(atendimento.mode || "clinico");
       setSelectedPatientId(atendimento.patientId || "");
       
-      const chatHistory: ChatHistoryItem[] = [];
-      for (let i = 0; i < atendimento.messages.length; i += 2) {
-        if (i + 1 < atendimento.messages.length) {
-          chatHistory.push({
-            user: atendimento.messages[i].content,
-            assistant: atendimento.messages[i + 1].content,
-          });
-        }
-      }
-      setHistory(chatHistory);
+      const loadedMessages: ChatMessage[] = atendimento.messages.map((m, i) => ({
+        id: `msg-${i}`,
+        role: m.role,
+        content: m.content,
+      }));
+      setMessages(loadedMessages);
     }
   }, []);
 
-  const handleModeChange = (newMode: 'clinico' | 'explicativo') => {
+  // Scroll automático
+  useEffect(() => {
+    const el = chatRef.current;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    }
+  }, [messages, streamingText]);
+
+  // Listener para novo atendimento
+  useEffect(() => {
+    const listener = () => {
+      handleNovoAtendimento();
+    };
+    window.addEventListener("mh:new-session", listener);
+    return () => window.removeEventListener("mh:new-session", listener);
+  }, [currentAtendimento]);
+
+  const handleModeChange = (newMode: "clinico" | "explicativo") => {
     setMode(newMode);
     if (currentAtendimento) {
       updateMode(currentAtendimento.id, newMode);
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (streamAbortController.current) {
-        streamAbortController.current.abort();
-      }
+  async function handleSend() {
+    const trimmed = input.trim();
+    if (!trimmed || isSending) return;
+    
+    setIsSending(true);
+    const userMsg: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: trimmed,
     };
-  }, []);
+    
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
 
-  useEffect(() => {
-    threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
-  }, [history.length, streamingMessage]);
-
-  // ===== IA SUGERE TÍTULO PARA ATENDIMENTO =====
-  const aiSuggestTitle = async (mensagens: Mensagem[]): Promise<string> => {
-    try {
-      const texto = mensagens
-        .filter(m => m.role === "user")
-        .map(m => m.content)
-        .join(" ")
-        .trim()
-        .slice(0, 400);
-
-      if (!texto) return `Atendimento • ${new Date().toLocaleDateString()}`;
-
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: `GERE APENAS UM TÍTULO CURTO (ATÉ 6 PALAVRAS, CAIXA ALTA) PARA NOMEAR ESTE ATENDIMENTO, COM BASE NO QUADRO CLÍNICO: ${texto}`,
-          history: [],
-          mode: "clinico",
-        }),
+    // Salvar mensagem do usuário
+    if (currentAtendimento) {
+      addMensagem(currentAtendimento.id, { 
+        role: "user", 
+        content: trimmed,
+        ts: new Date().toISOString()
       });
-
-      if (!response.ok) throw new Error("API falhou");
-
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("Streaming não disponível");
-
-      const decoder = new TextDecoder();
-      let title = "";
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (line.startsWith("data:")) {
-            try {
-              const data = JSON.parse(line.slice(5).trim());
-              if (data.content) title += data.content;
-            } catch {}
-          }
-        }
-      }
-
-      const cleanTitle = title.toUpperCase().trim().slice(0, 60);
-      return cleanTitle ? `${cleanTitle} • ${new Date().toLocaleDateString()}` : `Atendimento • ${new Date().toLocaleDateString()}`;
-    } catch {
-      // Fallback: pega últimas palavras da última mensagem do médico
-      const lastUser = [...mensagens].reverse().find(m => m.role === "user");
-      if (lastUser) {
-        const base = lastUser.content
-          .replace(/\s+/g, " ")
-          .toUpperCase()
-          .replace(/[^a-zA-Z0-9À-ÿ\s]/g, "")
-          .slice(0, 40);
-        return (base || "ATENDIMENTO") + " • " + new Date().toLocaleDateString();
-      }
-      return `Atendimento • ${new Date().toLocaleDateString()}`;
     }
-  };
 
-  // ===== SALVAR E CRIAR NOVO ATENDIMENTO =====
-  const handleNovoAtendimentoInternal = async () => {
-    // 1) Salva atendimento atual com título da IA (se tiver mensagens)
-    if (currentAtendimento && currentAtendimento.messages.length > 0) {
-      const titulo = await aiSuggestTitle(currentAtendimento.messages);
-      renameAtendimento(currentAtendimento.id, titulo);
+    // Auto-resize textarea
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+
+    try {
+      await streamAssistantResponse(trimmed);
+    } catch (error: any) {
+      const errorMsg: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: "[Erro ao obter resposta. Tente novamente.]",
+      };
+      setMessages((prev) => [...prev, errorMsg]);
       
       toast({
-        title: "Atendimento salvo",
-        description: titulo,
+        title: "Erro",
+        description: error.message || "Falha na comunicação com o servidor",
+        variant: "destructive",
       });
+    } finally {
+      setIsSending(false);
     }
+  }
 
-    // 2) Criar novo atendimento do zero (na mesma página)
-    const novoAtendimento = createAtendimento();
-    setCurrentAtendimento(novoAtendimento);
-    
-    // 3) Resetar estados para começar limpo
-    setHistory([]);
-    setMessage("");
-    setFiles([]);
-    setSelectedPatientId("");
-    setSavedAttachments([]);
-    setMode('clinico');
-    setStreamingMessage("");
-    setCurrentUserMessage("");
-    
-    toast({
-      title: "Novo atendimento iniciado",
-      description: "Chat anterior salvo com sucesso",
-    });
-  };
-
-  // ===== LISTENER PARA EVENTO CUSTOMIZADO DO SIDEBAR =====
-  useEffect(() => {
-    const listener = () => {
-      void handleNovoAtendimentoInternal();
-    };
-    window.addEventListener("mh:new-session", listener);
-    return () => window.removeEventListener("mh:new-session", listener);
-  }, [currentAtendimento]);
-
-  // ===== CHAMADA LIMPA AO BACKEND (SEM TEMPLATES) =====
-  const handleChatStream = async (userMessage: string, chatHistory: any[], enableEvidence: boolean) => {
+  async function streamAssistantResponse(userMessage: string) {
     if (streamAbortController.current) {
       streamAbortController.current.abort();
     }
 
     const abortController = new AbortController();
     streamAbortController.current = abortController;
-    setIsStreaming(true);
-    setStreamingMessage("");
-    setCurrentUserMessage(userMessage);
     
+    const assistantId = crypto.randomUUID();
     let fullResponse = "";
     let references: ScientificReference[] | undefined;
-    
+
     try {
       const timeoutId = setTimeout(() => {
         abortController.abort();
       }, 60000);
 
-      // Chamada LIMPA - apenas o texto digitado
+      const chatHistory = messages.map((m) => ({
+        role: m.role === "user" ? "user" : "assistant",
+        content: m.content,
+      }));
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -298,6 +196,9 @@ export default function Atendimento() {
         throw new Error("Streaming não suportado");
       }
 
+      // Adicionar mensagem vazia do assistente
+      setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "" }]);
+
       let buffer = "";
       let currentEvent = "";
       let dataBuffer: string[] = [];
@@ -317,449 +218,378 @@ export default function Atendimento() {
           if (line.startsWith("event:")) {
             currentEvent = line.slice(6).trim();
           } else if (line.startsWith("data:")) {
-            dataBuffer.push(line.slice(5).trim());
-          } else if (line.trim() === "" && dataBuffer.length > 0) {
-            const fullData = dataBuffer.join("\n");
+            const dataStr = line.slice(5).trim();
+            if (dataStr) {
+              dataBuffer.push(dataStr);
+            }
+          } else if (line === "" && dataBuffer.length > 0) {
+            const fullDataStr = dataBuffer.join("");
             dataBuffer = [];
-            
+
             try {
-              const data = JSON.parse(fullData);
+              const eventData = JSON.parse(fullDataStr);
 
               if (currentEvent === "chunk") {
-                fullResponse += data.content;
-                setStreamingMessage(fullResponse);
+                const chunk = eventData.content || "";
+                fullResponse += chunk;
+                setStreamingText(fullResponse);
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === assistantId ? { ...m, content: fullResponse } : m
+                  )
+                );
+              } else if (currentEvent === "references" && eventData.references) {
+                references = eventData.references;
               } else if (currentEvent === "complete") {
-                console.log(`✅ Resposta completa: ${data.tokens} tokens em ${data.duration}ms`);
+                // Finalizado
               } else if (currentEvent === "error") {
-                throw new Error(data.message);
+                throw new Error(eventData.message || "Erro desconhecido");
               }
             } catch (parseError) {
-              console.error("Failed to parse SSE data:", fullData, parseError);
+              console.error("Erro ao parsear evento SSE:", parseError);
             }
-            
+
             currentEvent = "";
           }
         }
       }
 
-      setIsStreaming(false);
-      
-      // Buscar evidências se habilitado
-      if (enableEvidence && fullResponse) {
-        try {
-          const researchData = await researchMutation.mutateAsync(userMessage);
-          references = researchData.references;
-        } catch (error) {
-          console.error("Erro ao buscar evidências:", error);
-        }
+      // Salvar resposta do assistente
+      if (currentAtendimento && fullResponse) {
+        addMensagem(currentAtendimento.id, {
+          role: "assistant",
+          content: fullResponse,
+          ts: new Date().toISOString()
+        });
       }
 
-      // Salvar no localStorage
-      if (currentAtendimento) {
-        const now = new Date().toISOString();
-        addMensagem(currentAtendimento.id, { role: "user", content: userMessage, ts: now });
-        addMensagem(currentAtendimento.id, { role: "assistant", content: fullResponse, ts: now });
-      }
-
-      setHistory(prev => [...prev, {
-        user: userMessage,
-        assistant: fullResponse,
-        references,
-      }]);
-
-      setMessage("");
-      setFiles([]);
-      setStreamingMessage("");
-      setCurrentUserMessage("");
-      
+      setStreamingText("");
     } catch (error: any) {
-      console.error("❌ Erro ao chamar backend:", error.message);
-      
-      setIsStreaming(false);
-      setStreamingMessage("");
-      setMessage("");
-      setFiles([]);
-      setCurrentUserMessage("");
-      
-      if (error.name !== "AbortError") {
-        toast({
-          variant: "destructive",
-          title: "Erro na comunicação",
-          description: "Não foi possível conectar ao servidor. Tente novamente.",
-        });
+      if (error.name === "AbortError") {
+        throw new Error("Tempo esgotado");
       }
+      throw error;
     }
-  };
+  }
 
-  const uploadMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-        headers: {
-          "X-User-Id": "demo-doctor",
-        },
+  function handleNovoAtendimento() {
+    const novo = createAtendimento();
+    setCurrentAtendimento(novo);
+    setMessages([]);
+    setInput("");
+    setStreamingText("");
+    setFiles([]);
+    setSelectedPatientId("");
+    
+    toast({
+      title: "Novo atendimento",
+      description: "Conversa limpa. Pronto para iniciar.",
+    });
+  }
+
+  function downloadChat() {
+    const text = messages
+      .map((m) => `${m.role === "user" ? "MÉDICO" : "DR. HELP"}: ${m.content}`)
+      .join("\n\n");
+    const blob = new Blob([text], { type: "text/plain" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `conversa-${new Date().toISOString().slice(0, 19)}.txt`;
+    link.click();
+    
+    toast({
+      title: "Download concluído",
+      description: "Conversa salva em arquivo de texto",
+    });
+  }
+
+  function onAttachClick() {
+    fileRef.current?.click();
+  }
+
+  function onPhotoClick() {
+    photoRef.current?.click();
+  }
+
+  function onFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length === 0) return;
+
+    setFiles((prev) => [...prev, ...selectedFiles]);
+
+    const info = selectedFiles
+      .map((f) => `• ${f.name} (${Math.round(f.size / 1024)} KB)`)
+      .join("\n");
+    
+    const fileMsg: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: `Anexos adicionados:\n${info}`,
+    };
+    
+    setMessages((prev) => [...prev, fileMsg]);
+    
+    if (currentAtendimento) {
+      addMensagem(currentAtendimento.id, {
+        role: "user",
+        content: fileMsg.content,
+        ts: new Date().toISOString()
       });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Erro no upload");
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.attachments) {
-        setSavedAttachments(prev => [...prev, ...data.attachments]);
-      }
-    },
-    onError: (error: any) => {
+    }
+
+    e.target.value = "";
+  }
+
+  function removeFile(index: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function toggleVoice() {
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      return;
+    }
+
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
       toast({
+        title: "Não suportado",
+        description: "Reconhecimento de voz não está disponível neste navegador.",
         variant: "destructive",
-        title: "Erro no upload",
-        description: error.message || "Não foi possível enviar os arquivos.",
       });
-    },
-  });
-
-  const saveConsultationMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedPatientId) {
-        throw new Error("Selecione um paciente");
-      }
-      if (history.length === 0) {
-        throw new Error("Não há histórico de conversa para salvar");
-      }
-
-      const chatHistory = history.flatMap(h => [
-        { role: "user", content: h.user },
-        { role: "assistant", content: h.assistant },
-      ]);
-
-      return await apiRequest("POST", "/api/consultations", {
-        patientId: selectedPatientId,
-        userId: "demo-doctor",
-        complaint: history[0].user,
-        history: chatHistory,
-        attachments: savedAttachments.length > 0 ? savedAttachments : null,
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Consulta salva",
-        description: "O histórico foi registrado com sucesso no prontuário do paciente.",
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/patients/${selectedPatientId}/consultations`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
-      setHistory([]);
-      setMessage("");
-      setFiles([]);
-      setSavedAttachments([]);
-      setSelectedPatientId("");
-      setShowSavePanel(false);
-    },
-    onError: (error: any) => {
-      toast({
-        variant: "destructive",
-        title: "Erro ao salvar consulta",
-        description: error.message || "Não foi possível salvar o histórico.",
-      });
-    },
-  });
-
-  const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSend = async () => {
-    if (!message.trim() && files.length === 0) return;
-
-    // Comandos de texto rápido
-    if (currentAtendimento && message.trim() && files.length === 0) {
-      const texto = message.toLowerCase().trim();
-
-      const m1 = texto.match(/^salvar como (.+)$/i);
-      if (m1) {
-        const novoNome = message.trim().substring(12).trim();
-        setSaved(currentAtendimento.id, true);
-        renameAtendimento(currentAtendimento.id, novoNome);
-        const updated = getAtendimento(currentAtendimento.id);
-        if (updated) setCurrentAtendimento(updated);
-        setMessage("");
-        toast({
-          title: "✓ Atendimento salvo e renomeado",
-          description: `"${novoNome}" foi salvo e não será removido automaticamente.`,
-        });
-        return;
-      }
-
-      const m2 = texto.match(/^renomear (?:para )?(.+)$/i);
-      if (m2) {
-        const idx = texto.startsWith("renomear para ") ? 14 : 9;
-        const novoNome = message.trim().substring(idx).trim();
-        renameAtendimento(currentAtendimento.id, novoNome);
-        const updated = getAtendimento(currentAtendimento.id);
-        if (updated) setCurrentAtendimento(updated);
-        setMessage("");
-        toast({
-          title: "✓ Atendimento renomeado",
-          description: `Novo nome: "${novoNome}"`,
-        });
-        return;
-      }
+      return;
     }
 
-    let enrichedMessage = message;
+    const rec = new SR();
+    rec.lang = "pt-BR";
+    rec.interimResults = true;
+    rec.continuous = true;
 
-    if (files.length > 0) {
-      const formData = new FormData();
-      files.forEach(file => formData.append("files", file));
-
-      try {
-        const uploadResult = await uploadMutation.mutateAsync(formData);
-        const attachmentText = uploadResult.attachments
-          .map((a: FileAttachment) => `- ${a.filename}`)
-          .join("\n");
-        enrichedMessage = message
-          ? `${message}\n\n[Anexos enviados:\n${attachmentText}]`
-          : `[Anexos enviados:\n${attachmentText}]`;
-      } catch (error) {
-        return;
+    rec.onstart = () => setIsListening(true);
+    rec.onend = () => setIsListening(false);
+    rec.onerror = () => setIsListening(false);
+    
+    rec.onresult = (ev: any) => {
+      let transcript = "";
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        transcript += ev.results[i][0].transcript;
       }
-    }
+      setInput((prev) => (prev ? prev + " " : "") + transcript.trim());
+    };
 
-    const chatHistory = history.flatMap(h => [
-      { role: "user" as const, content: h.user },
-      { role: "assistant" as const, content: h.assistant },
-    ]);
+    recognitionRef.current = rec;
+    rec.start();
+  }
 
-    handleChatStream(enrichedMessage, chatHistory, evidenceEnabled);
-  };
-
-  const isLoading = isStreaming || uploadMutation.isPending;
+  const modeButton = (m: "clinico" | "explicativo", label: string) => (
+    <Button
+      onClick={() => handleModeChange(m)}
+      variant={mode === m ? "default" : "outline"}
+      size="sm"
+      className={mode === m ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+      data-testid={`button-mode-${m}`}
+    >
+      {label}
+    </Button>
+  );
 
   return (
-    <div className="h-screen w-full bg-neutral-50 dark:bg-neutral-900 flex flex-col">
-      {/* HEADER FIXO */}
-      <header className="sticky top-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800">
-        <div className="max-w-5xl mx-auto px-4 py-1.5">
-          <TopControls
-            initialTab="clinico"
-            onTabChange={(tab) => {
-              if (tab === "clinico") {
-                setMode("clinico");
-                setEvidenceEnabled(false);
-              } else if (tab === "avancado") {
-                setMode("explicativo");
-                setEvidenceEnabled(true);
-              }
-            }}
-          />
-
-          {showPatientMgmt && showSavePanel && history.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-800">
-              <div className="flex items-center gap-3">
-                <Select 
-                  value={selectedPatientId || "none"} 
-                  onValueChange={(v) => setSelectedPatientId(v === "none" ? "" : v)}
-                >
-                  <SelectTrigger className="flex-1 max-w-xs" data-testid="select-paciente">
-                    <SelectValue placeholder="Selecione um paciente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Selecione um paciente</SelectItem>
-                    {patients && patients.length > 0 && (
-                      patients.map((patient) => (
-                        <SelectItem key={patient.id} value={patient.id}>
-                          {patient.nome}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-                <Button
-                  onClick={() => saveConsultationMutation.mutate()}
-                  disabled={!selectedPatientId || saveConsultationMutation.isPending}
-                  data-testid="button-salvar-consulta"
-                  className="bg-[#3cb371] hover:bg-[#2f9e62]"
-                >
-                  {saveConsultationMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Salvar Consulta
-                    </>
-                  )}
-                </Button>
-              </div>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">
-                Ao salvar, todo o histórico desta conversa será registrado no prontuário do paciente
-              </p>
-            </div>
-          )}
+    <div className="flex h-full w-full flex-col bg-background">
+      {/* Header com controles */}
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-background/80 px-4 py-2 backdrop-blur">
+        <div className="flex gap-2">
+          {modeButton("clinico", "Clínico")}
+          {modeButton("explicativo", "Fundamentação teórica")}
         </div>
-      </header>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleNovoAtendimento}
+            variant="outline"
+            size="sm"
+            data-testid="button-novo-atendimento"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Novo
+          </Button>
+          <Button
+            onClick={downloadChat}
+            variant="outline"
+            size="sm"
+            disabled={messages.length === 0}
+            data-testid="button-download-chat"
+          >
+            <Download className="h-4 w-4 mr-1" />
+            Baixar
+          </Button>
+        </div>
+      </div>
 
-      {/* THREAD */}
-      <main
-        ref={threadRef}
-        className="flex-1 overflow-y-auto max-w-3xl w-full mx-auto px-4 py-6"
+      {/* Área de chat */}
+      <div
+        ref={chatRef}
+        className="flex-1 overflow-y-auto px-4 py-4"
+        data-testid="chat-container"
       >
-        {history.length === 0 && !isStreaming ? (
-          <div className="text-neutral-500 dark:text-neutral-400 text-sm mt-12 text-center space-y-2">
-            <p className="text-base font-medium">💚 MédicoHelp - Sistema Híbrido IA + Clairton</p>
-            <p>Respostas estruturadas (🩺⚡🧪💬) enriquecidas com IA</p>
-            <p className="text-xs">Funciona online (IA) e offline (local)</p>
-          </div>
-        ) : (
-          <div className="space-y-6" data-testid="card-chat-history">
-            {history.map((item, index) => (
-              <div key={index} className="space-y-4">
-                <div className="flex justify-end">
-                  <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-[#3cb371] text-white">
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{item.user}</p>
-                  </div>
-                </div>
-
-                <div className="flex justify-start">
-                  <div className="max-w-[85%] space-y-3">
-                    <div className="rounded-2xl px-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100">
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{item.assistant}</p>
-                    </div>
-
-                    {item.references && item.references.length > 0 && (
-                      <div className="bg-neutral-100 dark:bg-neutral-800/50 rounded-xl p-3 border border-neutral-200 dark:border-neutral-700">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Brain className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
-                          <p className="text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                            Referências Científicas
-                          </p>
-                        </div>
-                        <div className="space-y-2">
-                          {item.references.slice(0, 5).map((ref, refIndex) => (
-                            <a
-                              key={refIndex}
-                              href={ref.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-start gap-2 text-xs hover-elevate p-2 rounded-md transition-colors"
-                              data-testid={`link-reference-${refIndex}`}
-                            >
-                              <ExternalLink className="w-3 h-3 mt-0.5 text-neutral-500 dark:text-neutral-400 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-neutral-900 dark:text-neutral-100 line-clamp-2">
-                                  {ref.title}
-                                </p>
-                                {(ref.source || ref.authors || ref.year) && (
-                                  <p className="text-neutral-500 dark:text-neutral-400 mt-1">
-                                    {[ref.source, ref.authors, ref.year].filter(Boolean).join(" • ")}
-                                  </p>
-                                )}
-                              </div>
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {isStreaming && currentUserMessage && (
-              <div className="space-y-4 opacity-90">
-                <div className="flex justify-end">
-                  <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-[#3cb371] text-white">
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{currentUserMessage}</p>
-                  </div>
-                </div>
-
-                <div className="flex justify-start">
-                  <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100">
-                    {streamingMessage ? (
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{streamingMessage}</p>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin text-neutral-500" />
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400 italic">Gerando resposta...</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+        {messages.length === 0 && (
+          <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+            Beleza, Doutor. Vamos direto ao ponto: em que posso ajudar?
+            <br />
+            <span className="text-xs mt-2 block">
+              Conteúdo de apoio clínico. Validação e responsabilidade: médico usuário.
+            </span>
           </div>
         )}
-      </main>
+        
+        {messages.map((m) => (
+          <ChatBubble key={m.id} role={m.role} text={m.content} />
+        ))}
+        
+        {streamingText && <ChatBubble role="assistant" text={streamingText} streaming />}
+      </div>
 
-      {/* COMPOSER FIXO */}
-      <footer className="sticky bottom-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800">
-        <div className="max-w-3xl mx-auto px-4 py-4" data-testid="card-chat-input">
-          {files.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3 pb-3 border-b border-neutral-200 dark:border-neutral-700">
-              {files.map((file, index) => (
-                <Badge key={index} variant="secondary" className="gap-2 pr-1">
-                  <FileImage className="w-3 h-3" />
-                  <span className="text-xs max-w-[150px] truncate">{file.name}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-4 w-4 p-0 hover:bg-destructive/20"
-                    onClick={() => removeFile(index)}
-                    data-testid={`button-remove-file-${index}`}
-                  >
-                    <X className="w-3 h-3" />
-                  </Button>
-                </Badge>
-              ))}
-            </div>
-          )}
+      {/* Área de input */}
+      <div className="sticky bottom-0 z-10 border-t bg-background/80 px-4 py-3 backdrop-blur">
+        {/* Preview de arquivos */}
+        {files.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {files.map((file, i) => (
+              <Badge
+                key={i}
+                variant="secondary"
+                className="flex items-center gap-1"
+                data-testid={`file-badge-${i}`}
+              >
+                {file.name}
+                <button
+                  onClick={() => removeFile(i)}
+                  className="ml-1 hover:text-destructive"
+                  data-testid={`button-remove-file-${i}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
 
-          <ChatComposer
-            onSend={async (text) => {
-              if (!text.trim() && files.length === 0) return;
-              
-              let enrichedMessage = text;
-              const chatHistory = history.flatMap((h) => [
-                { role: "user", content: h.user },
-                { role: "assistant", content: h.assistant },
-              ]);
+        <div className="mx-auto flex max-w-3xl items-end gap-2">
+          {/* Botões de ação */}
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={toggleVoice}
+              variant="outline"
+              size="icon"
+              className={isListening ? "border-emerald-600 text-emerald-600" : ""}
+              data-testid="button-voice"
+            >
+              {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            </Button>
+            
+            <Button
+              onClick={onAttachClick}
+              variant="outline"
+              size="icon"
+              data-testid="button-attach"
+            >
+              <Paperclip className="h-5 w-5" />
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={onFilesSelected}
+            />
+            
+            <Button
+              onClick={onPhotoClick}
+              variant="outline"
+              size="icon"
+              data-testid="button-photo"
+            >
+              <ImageIcon className="h-5 w-5" />
+            </Button>
+            <input
+              ref={photoRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={onFilesSelected}
+            />
+          </div>
 
-              if (files.length > 0) {
-                const formData = new FormData();
-                files.forEach((file) => formData.append("files", file));
-                formData.append("userId", "demo-doctor");
-
-                try {
-                  const uploadResult = await uploadMutation.mutateAsync(formData);
-                  const attachmentTexts = uploadResult.attachments.map(
-                    (att: any) => `[${att.type === "image" ? "Imagem" : "Arquivo"}: ${att.filename}]`
-                  );
-                  enrichedMessage = `${text}\n\n${attachmentTexts.join("\n")}`;
-                } catch (error) {
-                  console.error("Erro no upload:", error);
-                  return;
+          {/* Textarea com botão de envio */}
+          <div className="relative flex-1">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                e.target.style.height = "auto";
+                e.target.style.height = e.target.scrollHeight + "px";
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
                 }
+              }}
+              rows={1}
+              placeholder={
+                mode === "clinico"
+                  ? "Descreva o caso clínico (ex.: 'IAM inferior com supra em D2, D3 e aVF, PA 90×60, FC 50')"
+                  : "Faça sua pergunta. O Dr. Help responde com fundamentação teórica."
               }
-
-              handleChatStream(enrichedMessage, chatHistory, evidenceEnabled);
-            }}
-            onFiles={async (selectedFiles) => {
-              setFiles(prev => [...prev, ...selectedFiles].slice(0, 10));
-            }}
-            uploadUrl="/api/upload"
-            transcribeUrl="/api/transcribe"
-            placeholder="Descreva o caso clínico (ex.: 'IAM inferior com supra em D2, D3 e aVF, PA 90x60, FC 50')"
-            disabled={isLoading}
-          />
-
-          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 text-center">
-            MédicoHelp - Assistente médico inteligente com IA avançada. Sempre valide clinicamente.
-          </p>
+              className="max-h-40 w-full resize-none overflow-hidden rounded-xl border bg-background p-3 pr-12 text-sm shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
+              data-testid="input-message"
+              disabled={isSending}
+            />
+            <Button
+              onClick={handleSend}
+              disabled={isSending || !input.trim()}
+              size="icon"
+              className="absolute bottom-2 right-2 h-8 w-8 bg-emerald-600 hover:bg-emerald-700"
+              data-testid="button-send"
+            >
+              {isSending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
-      </footer>
+      </div>
+    </div>
+  );
+}
+
+function ChatBubble({
+  role,
+  text,
+  streaming,
+}: {
+  role: "user" | "assistant";
+  text: string;
+  streaming?: boolean;
+}) {
+  const isUser = role === "user";
+  return (
+    <div
+      className={`mb-3 flex ${isUser ? "justify-end" : "justify-start"}`}
+      data-testid={`chat-bubble-${role}`}
+    >
+      <div
+        className={`${
+          isUser
+            ? "bg-emerald-600 text-white"
+            : "bg-muted text-foreground"
+        } max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2 text-sm shadow-sm`}
+      >
+        {text}
+        {streaming && <span className="ml-1 animate-pulse">▍</span>}
+      </div>
     </div>
   );
 }

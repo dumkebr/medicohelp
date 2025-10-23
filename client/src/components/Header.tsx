@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut } from "lucide-react";
-import logoImage from "@assets/logo_medicohelp.png";
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -36,8 +35,15 @@ export function Header() {
     <header className="border-b bg-background">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/">
-          <a className="flex items-center" data-testid="link-home">
-            <img src={logoImage} alt="MédicoHelp - A plataforma médica inteligente" className="h-10 w-auto object-contain" />
+          <a className="flex items-center gap-3" data-testid="link-home">
+            <img src="/logo-medicohelp-icon.svg" alt="MédicoHelp ícone" className="h-8 w-8" />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1 font-serif text-xl leading-none">
+                <span className="text-foreground">Médico</span>
+                <span className="text-primary">Help</span>
+              </div>
+              <p className="text-xs text-muted-foreground">Sua aliada inteligente na decisão clínica</p>
+            </div>
           </a>
         </Link>
 

@@ -155,8 +155,8 @@ export function AppSidebar() {
           />
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-[2px] leading-none">
-              <span className="font-serif text-[24px]" style={{ color: 'hsl(160, 10%, 15%)' }}>Médico</span>
-              <span className="font-serif text-[24px] font-medium" style={{ color: '#00A79D', backgroundColor: '#00A79D', padding: '2px 6px', borderRadius: '4px' }}>Help</span>
+              <span className="font-serif text-[24px] text-foreground">Médico</span>
+              <span className="font-serif text-[24px] font-medium !text-[#00A79D]" style={{ color: '#00A79D !important' }}>Help</span>
             </div>
             <span className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
               A plataforma médica inteligente

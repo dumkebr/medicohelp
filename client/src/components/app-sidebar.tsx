@@ -153,11 +153,11 @@ export function AppSidebar() {
           <img 
             src="/heart-icon.png" 
             alt="MédicoHelp" 
-            className="h-7 w-7 object-contain flex-shrink-0"
+            className="h-10 w-10 object-contain flex-shrink-0"
           />
           <div className="flex items-baseline gap-0.5">
-            <span className="text-base font-semibold tracking-tight text-white">Médico</span>
-            <span className="text-base font-semibold tracking-tight text-[#1affb8]">Help</span>
+            <span className="text-xl font-bold tracking-tight text-white">Médico</span>
+            <span className="text-xl font-bold tracking-tight text-[#1affb8]">Help</span>
           </div>
         </Link>
       </SidebarHeader>
@@ -228,10 +228,10 @@ export function AppSidebar() {
               }`}
               data-testid="link-medprime"
             >
-              <img src={medprimeHeartIcon} alt="" className="h-7 w-7" aria-hidden="true" />
+              <img src={medprimeHeartIcon} alt="" className="h-10 w-10" aria-hidden="true" />
               <div className="flex-1 min-w-0">
-                <div className="font-semibold truncate">MedPrime</div>
-                <div className="text-[10px] opacity-75 truncate">Ferramentas Avançadas</div>
+                <div className="text-base font-bold truncate">MedPrime</div>
+                <div className="text-xs opacity-75 truncate">Ferramentas Avançadas</div>
               </div>
               <ChevronRight className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
             </Link>

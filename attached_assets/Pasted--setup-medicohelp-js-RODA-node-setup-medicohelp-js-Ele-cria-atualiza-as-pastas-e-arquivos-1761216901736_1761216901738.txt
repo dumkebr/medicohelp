@@ -1,0 +1,292 @@
+// setup_medicohelp.js
+// RODA: node setup_medicohelp.js
+// Ele cria/atualiza as pastas e arquivos do MédicoHelp.
+
+import { promises as fs } from "fs";
+import path from "path";
+
+const files = {
+  "src/styles/theme.css": `
+:root{
+  --brand-900:#004C5E;   /* azul petróleo */
+  --brand-800:#006C67;   /* teal escuro (principal) */
+  --brand-500:#00A79D;   /* teal médio (acentos) */
+  --bg:#0F1F22;          /* modo escuro padrão */
+  --bg-soft:#13262B;
+  --text:#FFFFFF;
+  --muted:#E9F7F6;
+  --border:#1E3A40;
+}
+.light{
+  --bg:#F5FAF9;
+  --bg-soft:#E9F7F6;
+  --text:#0F1F22;
+  --border:#D9E3E3;
+}
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.5;
+  margin:0;
+  transition:background .25s,color .25s;
+}
+a{color:var(--brand-500);text-decoration:none}
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  background:var(--bg);
+}
+.logo-wrap{display:flex;align-items:center;gap:12px}
+.button-primary{
+  background:var(--brand-500);color:#fff;border:none;border-radius:12px;
+  padding:12px 18px;font-weight:600;cursor:pointer
+}
+.button-outline{
+  color:var(--brand-500);background:transparent;border:1px solid var(--brand-500);
+  border-radius:12px;padding:12px 18px;font-weight:600;cursor:pointer
+}
+.hero{
+  display:flex;gap:32px;align-items:center;justify-content:space-between;
+  padding:32px;background:var(--bg-soft);border:1px solid var(--border);
+  border-radius:16px;margin:24px
+}
+.card{background:var(--bg-soft);border:1px solid var(--border);border-radius:16px;padding:16px}
+.input{
+  background:transparent;border:1px solid var(--border);border-radius:12px;
+  padding:12px 16px;color:var(--text);outline:none
+}
+`,
+
+  "src/components/ThemeToggle.jsx": `
+import { useEffect, useState } from "react";
+
+export default function ThemeToggle(){
+  const [mode,setMode] = useState(localStorage.getItem("mh-theme")||"dark");
+  useEffect(()=>{
+    document.documentElement.classList.toggle("light", mode==="light");
+    localStorage.setItem("mh-theme", mode);
+  },[mode]);
+  return (
+    <button
+      onClick={()=>setMode(m=>m==="dark"?"light":"dark")}
+      style={{background:"none",border:"1px solid var(--border)",borderRadius:8,padding:"6px 10px",color:"var(--text)",cursor:"pointer"}}
+      aria-label="Alternar tema"
+      title={mode==="dark"?"Tema claro":"Tema escuro"}
+    >
+      {mode==="dark"?"☀️ Claro":"🌙 Escuro"}
+    </button>
+  );
+}
+`,
+
+  "src/components/Mascote.jsx": `
+export default function Mascote({ speaking=false }){
+  const source = speaking ? "/clarice-talking.webm" : "/clarice-idle.webm";
+  const fallback = speaking ? "/clarice-talking-fallback.png" : "/clarice-idle-fallback.png";
+  return (
+    <div style={{width:280}}>
+      <video
+        src={source}
+        autoPlay
+        loop
+        muted
+        playsInline
+        style={{width:"100%",height:"auto",borderRadius:16,display:"block"}}
+        onError={(e)=>{ e.currentTarget.outerHTML = \`<img src='\${fallback}' alt='Dra. Clarice' style='width:100%;border-radius:16px'/>\`; }}
+      />
+    </div>
+  );
+}
+`,
+
+  "src/config/voiceConfig.js": `
+export const VOICE_DEFAULT = "ember";
+export const VOICE_FALLBACK = "cove";
+export const speechRate = 0.92;  // veterana, pausado
+export const pitch = -1;         // um pouco mais grave
+`,
+
+  "src/pages/Home.jsx": `
+import "../styles/theme.css";
+import ThemeToggle from "../components/ThemeToggle";
+import Mascote from "../components/Mascote";
+
+export default function Home(){
+  return (
+    <main>
+      <header className="header">
+        <div className="logo-wrap">
+          <img src="/logo-medicohelp-icon.svg" alt="Ícone MédicoHelp" height="26" />
+          <div>
+            <div style={{fontFamily:"Georgia,serif",fontSize:22,lineHeight:1}}>
+              <span style={{color:"#FFFFFF"}}>Médico</span><span style={{color:"var(--brand-500)"}}>Help</span>
+            </div>
+            <div style={{fontSize:12,opacity:.85,color:"var(--muted)"}}>Sua aliada inteligente na decisão clínica</div>
+          </div>
+        </div>
+        <ThemeToggle/>
+      </header>
+
+      <section className="hero">
+        <Mascote speaking={false}/>
+        <div>
+          <h1 style={{margin:"0 0 8px"}}>Olá, eu sou a Dra. Clarice.</h1>
+          <p style={{margin:"0 0 12px"}}>Sua aliada inteligente na decisão clínica.</p>
+          <div style={{display:"flex",gap:12}}>
+            <button className="button-primary">Modo clínico</button>
+            <button className="button-outline">Modo evidências</button>
+          </div>
+        </div>
+      </section>
+
+      <section style={{margin:"0 24px 32px"}} className="card">
+        <label htmlFor="msg" style={{display:"block",marginBottom:8}}>Envie uma mensagem</label>
+        <div style={{display:"flex",gap:12,alignItems:"center"}}>
+          <input id="msg" className="input" style={{flex:1}} placeholder="Digite sua mensagem..." />
+          <button className="button-primary">Enviar</button>
+        </div>
+      </section>
+    </main>
+  );
+}
+`,
+
+  "src/App.jsx": `
+import Home from "./pages/Home";
+export default function App(){ return <Home/>; }
+`,
+
+  // SVGs da marca (logo correta)
+  "public/logo-medicohelp-icon.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="MédicoHelp ícone">
+  <defs>
+    <style>
+      .stroke{fill:none;stroke:#00A79D;stroke-width:10;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#00A79D}
+    </style>
+  </defs>
+  <path class="stroke" d="M128 214L62 148a44 44 0 1162-62 44 44 0 1162 62z"/>
+  <line class="stroke" x1="58" y1="105" x2="98" y2="105"/>
+  <circle class="fill" cx="58" cy="105" r="6"/>
+  <line class="stroke" x1="58" y1="128" x2="98" y2="128"/>
+  <circle class="fill" cx="58" cy="128" r="6"/>
+  <line class="stroke" x1="58" y1="151" x2="98" y2="151"/>
+  <circle class="fill" cx="58" cy="151" r="6"/>
+  <rect class="fill" x="156" y="90" width="24" height="56" rx="4"/>
+  <rect class="fill" x="136" y="110" width="64" height="16" rx="4"/>
+  <path class="stroke" d="M96 138h18l6-12 8 28 6-12h30"/>
+</svg>
+`,
+
+  "public/logo-medicohelp-horizontal.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 180" role="img" aria-label="MédicoHelp marca completa">
+  <defs>
+    <style>
+      .brand500{fill:#00A79D}
+      .brandText{fill:#FFFFFF;font-family:Georgia,serif}
+      .tag{fill:#E9F7F6;font-family:Inter,Arial,sans-serif}
+      .stroke{fill:none;stroke:#00A79D;stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#00A79D}
+    </style>
+  </defs>
+  <g transform="translate(8,8) scale(0.9)">
+    <path class="stroke" d="M128 214L62 148a44 44 0 1162-62 44 44 0 1162 62z"/>
+    <line class="stroke" x1="58" y1="105" x2="98" y2="105"/>
+    <circle class="fill" cx="58" cy="105" r="6"/>
+    <line class="stroke" x1="58" y1="128" x2="98" y2="128"/>
+    <circle class="fill" cx="58" cy="128" r="6"/>
+    <line class="stroke" x1="58" y1="151" x2="98" y2="151"/>
+    <circle class="fill" cx="58" cy="151" r="6"/>
+    <rect class="fill" x="156" y="90" width="24" height="56" rx="4"/>
+    <rect class="fill" x="136" y="110" width="64" height="16" rx="4"/>
+    <path class="stroke" d="M96 138h18l6-12 8 28 6-12h30"/>
+  </g>
+  <text x="210" y="85" class="brandText" font-size="64">Médico</text>
+  <text x="455" y="85" class="brandText brand500" font-size="64">Help</text>
+  <text x="210" y="130" class="tag" font-size="24">Sua aliada inteligente na decisão clínica</text>
+</svg>
+`,
+
+  // Placeholders da Clarice (até você subir os vídeos .webm)
+  "public/clarice-idle-fallback.png": "PNG_ID_LITE",
+  "public/clarice-talking-fallback.png": "PNG_TALK_LITE"
+};
+
+// PNGs mínimos base64 (evita arquivo binário separado)
+const PNG_ID_LITE_B64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAEgAAABQCAIAAAC8c5o/AAAACXBIWXMAAAsSAAALEgHS3X78AAAAGXRFWHRTb2Z0d2FyZQBwYWludC5uZXQgNC4yLjG2i2QZAAAAPUlEQVR4Xu3NMQEAAAwCIP1fNCMwHqY0yqYAwv8iGgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPgGvhgAAXYp7iAAAAAASUVORK5CYII=";
+
+const PNG_TALK_LITE_B64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAEgAAABQCAIAAAC8c5o/AAAACXBIWXMAAAsSAAALEgHS3X78AAAAGXRFWHRTb2Z0d2FyZQBwYWludC5uZXQgNC4yLjG2i2QZAAAAQUlEQVR4Xu3OMQEAIAwEsFZx/5l4oR8m0JYh1oBN2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4Bf1aQABQ2sRpwAAAABJRU5ErkJggg==";
+
+async function writeFileSafe(filePath, content) {
+  const dir = path.dirname(filePath);
+  await fs.mkdir(dir, { recursive: true });
+  if (content === "PNG_ID_LITE") {
+    await fs.writeFile(filePath, Buffer.from(PNG_ID_LITE_B64, "base64"));
+  } else if (content === "PNG_TALK_LITE") {
+    await fs.writeFile(filePath, Buffer.from(PNG_TALK_LITE_B64, "base64"));
+  } else {
+    await fs.writeFile(filePath, content.trimStart(), "utf-8");
+  }
+  console.log("✔", filePath);
+}
+
+(async () => {
+  try {
+    for (const [fp, content] of Object.entries(files)) {
+      await writeFileSafe(fp, content);
+    }
+
+    // Dica de integração Vite/React
+    const mainCandidates = ["src/main.jsx", "src/index.jsx"];
+    for (const cand of mainCandidates) {
+      try {
+        const exists = await fs.readFile(cand, "utf-8");
+        if (!/App\.jsx/.test(exists)) {
+          // injeta import do App e do tema se não existir
+          let updated = exists;
+          if (!/import .+ from '\\.\\/App\\.jsx'/.test(updated)) {
+            updated = `import App from './App.jsx';\n` + updated;
+          }
+          if (!/\\.\\/styles\\/theme\\.css'/.test(updated)) {
+            updated = updated.replace(/(['"]react-dom\/client['"].+\);?)/s,
+              `$1\nimport './styles/theme.css';`
+            );
+          }
+          await fs.writeFile(cand, updated, "utf-8");
+          console.log("✔ Ajustado:", cand);
+        }
+      } catch { /* ignora se não existir */ }
+    }
+
+    console.log("\n✅ Pronto. Agora suba seus vídeos em /public:");
+    console.log("   - clarice-idle.webm");
+    console.log("   - clarice-talking.webm\n");
+    console.log("Rodar: clique em Run ▶️");
+  } catch (e) {
+    console.error("Erro ao configurar:", e);
+    process.exit(1);
+  }
+})();
+Como usar (passo a passo)
+No Replit, cria o arquivo setup_medicohelp.js e cola tudo acima.
+
+Abre o Shell do Replit e roda:
+
+nginx
+Copiar código
+node setup_medicohelp.js
+Ele vai criar /public e /src com tudo dentro.
+
+Clica Run.
+
+Quando tiver os vídeos .webm da Clarice, coloca em:
+
+arduino
+Copiar código
+/public/clarice-idle.webm
+/public/clarice-talking.webm

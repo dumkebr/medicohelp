@@ -147,9 +147,10 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="px-3 py-3 border-b bg-background">
+        <div className="text-xs text-red-500 mb-2">VERSÃO NOVA CARREGADA ✓</div>
         <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
           <img 
-            src={`/logo-medicohelp-icon.svg?v=${Date.now()}`}
+            src="/logo-medicohelp-icon.svg"
             alt="MédicoHelp" 
             className="h-11 w-11 flex-shrink-0"
           />

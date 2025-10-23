@@ -146,19 +146,19 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="px-4 py-3 border-b bg-background">
-        <div className="flex items-center gap-3 w-full">
+      <SidebarHeader className="px-4 py-2 border-b bg-background">
+        <div className="flex items-center gap-2 w-full">
           <img 
             src="/logo-medicohelp-icon.svg" 
             alt="MédicoHelp ícone" 
-            className="h-10 w-10 flex-shrink-0"
+            className="h-[45px] w-[45px] flex-shrink-0"
           />
           <div className="flex flex-col flex-1 min-w-0">
-            <div className="flex items-baseline gap-1 font-serif text-[22px] leading-none">
-              <span className="text-foreground">Médico</span>
-              <span className="text-primary">Help</span>
+            <div className="flex items-center gap-0.5 whitespace-nowrap">
+              <span className="font-serif text-[26px] leading-none text-foreground">Médico</span>
+              <span className="font-serif text-[26px] leading-none text-primary">Help</span>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-1 leading-tight">
+            <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
               A plataforma médica inteligente
             </p>
           </div>

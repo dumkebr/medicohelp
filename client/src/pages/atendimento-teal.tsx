@@ -223,15 +223,58 @@ export default function AtendimentoTeal() {
                 flexDirection: "column", 
                 alignItems: "center", 
                 justifyContent: "center",
-                height: "100%",
-                gap: 16
+                height: "100%"
               }}>
-                <div style={{ maxWidth: 200 }}>
-                  <Mascote speaking={false} />
-                </div>
-                <div style={{ textAlign: "center", color: "var(--text-secondary)" }}>
-                  <h3 style={{ margin: "0 0 8px 0" }}>Dra. Clarice</h3>
-                  <p className="small" style={{ margin: 0 }}>Médica veterana, direta e acolhedora.</p>
+                <div style={{
+                  textAlign: 'center',
+                  margin: '30px auto 20px auto',
+                  color: '#d2f7ff',
+                }}>
+                  <img
+                    src="/clarice.png"
+                    alt="Dra. Clarice"
+                    style={{
+                      width: '110px',
+                      height: '110px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '2px solid #00e699',
+                      boxShadow: '0 0 12px rgba(0,230,153,0.4)',
+                      marginBottom: '12px',
+                    }}
+                  />
+                  <h2 style={{
+                    margin: '0',
+                    color: '#00e699',
+                    fontWeight: '700',
+                    fontSize: '20px'
+                  }}>
+                    Dra. Clarice
+                  </h2>
+                  <div style={{
+                    fontSize: '14px',
+                    color: '#b9e7dc',
+                    marginTop: '4px',
+                    fontStyle: 'italic'
+                  }}>
+                    Desenvolvida por médicos para ajudar nas decisões mais difíceis da medicina.
+                  </div>
+                  <div style={{
+                    fontSize: '13px',
+                    color: '#98c8bb',
+                    marginTop: '3px'
+                  }}>
+                    Médica veterana, direta e acolhedora.
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    color: '#6e9b8f',
+                    marginTop: '10px',
+                    fontStyle: 'italic'
+                  }}>
+                    *Atenção: as orientações da Dra. Clarice não substituem o julgamento clínico.  
+                    A decisão final é sempre do médico responsável.*
+                  </div>
                 </div>
               </div>
             )}

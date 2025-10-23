@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { AuthProvider } from "@/lib/auth";
 import { UserMenu } from "@/components/user-menu";
+import ClariceAvatarDebug from "@/components/ClariceAvatarDebug";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import NovoPaciente from "@/pages/novo-paciente";
@@ -200,6 +201,7 @@ function App() {
           <TooltipProvider>
             <OAuthHandler />
             <AppLayout />
+            <ClariceAvatarDebug />
           </TooltipProvider>
         </AuthProvider>
       </ThemeProvider>

@@ -25,11 +25,12 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 -   **Backend**: Node.js with Express.
 -   **AI - Sistema Híbrido GPT-5**:
     -   **Primary Model**: GPT-5 with refined medical prompts (temperature 0.4, max 900 tokens for objective responses)
-    -   **Automatic Fallback**: GPT-4o if GPT-5 unavailable (seamless degradation)
+    -   **New API Integration**: Uses `client.responses.create()` and `client.responses.stream()` (latest OpenAI SDK)
+    -   **Automatic Fallback Chain**: GPT-5 → GPT-4o (new API) → GPT-4o (legacy API) for maximum reliability
     -   **Medical Scope Detection**: Automatic validation that queries are medical-related
     -   **Refined Prompts**: Specialist system prompts (`server/medicohelp-gpt5.ts`) that respect medical terminology (CAIXA ALTA, abbreviations like BEG, LOTE, MV+)
     -   **Structured Responses**: Mode-specific formatting (Clínico: 🩺⚡🧪💬📇, Explicativo: 👉📚⚡💡)
-    -   **Real-time Streaming**: Server-Sent Events (SSE) with chunk-by-chunk delivery
+    -   **Real-time Streaming**: Server-Sent Events (SSE) with chunk-by-chunk delivery via `event.type === 'response.output_text.delta'`
 -   **AI Tone**: Hybrid communication style combining informal personalized greeting with formal technical content. Starts with casual greeting using physician's first name (e.g., "Beleza, João. Vamos direto ao ponto:"), followed by formal technical communication with precise medical terminology (CID-10/11, SNOMED-CT, MeSH), evidence-based medicine (SBC, ESC, AHA, ACC, AMB, CFM), and professional language compatible with specialist-to-specialist communication.
 -   **Configuration System**: JSON-based configuration (`config/medicohelp.clinico.v1.json`) defines AI clinical response structure with 5 mandatory sections and guardrails to prevent AI from inventing data and to ensure it requests missing critical information. It enforces 5 "Leis do MédicoHelp" for response quality.
 -   **Clinical Score Detector**: Semantic detection system (`server/clinical-detector.ts`) for instantly identifying and responding to queries about clinical scales/scores without involving the main AI.

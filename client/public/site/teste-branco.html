@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MédicoHelp - Teste Cards Brancos</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #0b3332, #0d3b3a);
+      font-family: Inter, system-ui, sans-serif;
+      color: #ffffff;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #19c29e;
+      font-size: 32px;
+      margin-bottom: 30px;
+      text-align: center;
+      font-weight: 800;
+    }
+    
+    .section-title {
+      font-size: 16px;
+      letter-spacing: 0.15em;
+      color: #19c29e;
+      margin: 40px 0 20px;
+      text-transform: uppercase;
+      font-weight: 800;
+      text-align: center;
+    }
+    
+    .grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      margin-bottom: 40px;
+    }
+    
+    .card {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      transition: 0.2s;
+      cursor: pointer;
+      border: 1px solid rgba(25,194,158,0.2);
+    }
+    
+    .card:hover {
+      background: #f8fffe;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(0,0,0,0.4);
+      border-color: rgba(25,194,158,0.4);
+    }
+    
+    .card h3 {
+      margin: 0 0 12px;
+      color: #0d3b3a;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+    
+    .card p {
+      color: #0d3b3a;
+      margin: 0;
+      line-height: 1.7;
+      font-size: 15px;
+      opacity: 0.85;
+    }
+    
+    .alert {
+      background: #19c29e;
+      color: #042e2c;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      font-weight: 700;
+      text-align: center;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="alert">
+      ✅ ESTA É A VERSÃO COM CARDS BRANCOS E ALTA LEGIBILIDADE!
+    </div>
+    
+    <h1>🎨 MédicoHelp - Teste de Contraste</h1>
+    
+    <div class="section-title">O QUE É</div>
+    
+    <div class="grid">
+      <div class="card">
+        <h3>🩺 Modo Clínico</h3>
+        <p>História clínica estruturada (SOAP ou personalizada), interpretação de exames e geração automática de relatórios.</p>
+      </div>
+      
+      <div class="card">
+        <h3>📚 Evidências</h3>
+        <p>Base científica integrada — diretrizes, protocolos e fundamentos teóricos revisados para cada decisão médica.</p>
+      </div>
+      
+      <div class="card">
+        <h3>🧮 MedPrime</h3>
+        <p>Acesso rápido à posologia segura, cálculo automático de dose e alertas de gestação, pediatria e função renal.</p>
+      </div>
+    </div>
+    
+    <div class="section-title">RECURSOS PRINCIPAIS</div>
+    
+    <div class="grid">
+      <div class="card">
+        <h3>📸 História Clínica Automatizada</h3>
+        <p>Envie fotos, áudios ou PDFs — a IA extrai informações relevantes e organiza automaticamente no formato que você precisa.</p>
+      </div>
+      
+      <div class="card">
+        <h3>🎙️ Modo Voz - Converse diretamente com a Dra. Clarice</h3>
+        <p>Tire dúvidas de conduta, posologia e interpretação de exames por voz, em tempo real, sem precisar digitar.</p>
+      </div>
+      
+      <div class="card">
+        <h3>🔬 Upload de exames e laudos com leitura automática</h3>
+        <p>Envie imagens de RX, TC, RM, USG ou dermatologia — receba uma descrição estruturada pronta para o prontuário.</p>
+      </div>
+      
+      <div class="card">
+        <h3>💊 Módulo avançado com fundamentação teórica</h3>
+        <p>Explicações detalhadas com raciocínio terapêutico, fisiopatologia e referências científicas atualizadas.</p>
+      </div>
+    </div>
+    
+    <div class="section-title">EM BREVE</div>
+    
+    <div class="grid">
+      <div class="card">
+        <h3>🤰 Especialidades avançadas</h3>
+        <p>Gestantes, lactantes, pediatria e emergências — com ajustes de conduta, posologia inteligente e alertas de risco.</p>
+      </div>
+      
+      <div class="card">
+        <h3>📊 Módulo avançado com fundamentação teórica</h3>
+        <p>IG automática, acompanhamento de exames, relatórios e alertas de risco gestacional para agilizar o pré-natal.</p>
+      </div>
+      
+      <div class="card">
+        <h3>🎥 Atendimentos Digitais</h3>
+        <p>Consultas por vídeo integradas, emissão de receitas, laudos e pedidos — com validação via Memed (roadmap).</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MédicoHelp — Sua aliada inteligente na decisão clínica</title>
+<meta name="description" content="Plataforma médica inteligente: apoio clínico, evidências, calculadoras e posologia.">
+<link rel="icon" href="assets/logo_main.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="container header">
+    <div class="brand">
+      <img src="assets/logo_main.png" alt="MédicoHelp logo">
+      <div>
+        <div class="title">MédicoHelp</div>
+        <div class="subtitle">Sua aliada inteligente na decisão clínica</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="index.html">Início</a>
+      <a href="cadastro.html">Cadastro</a>
+      <a href="#recursos">Recursos</a>
+      <a href="termo-confidencialidade.html">Confidencialidade</a>
+      <a class="btn btn-primary" href="cadastro.html">Entrar</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <span class="kicker">Apresentamos a Dra. Clarice</span>
+        <h1>Decisão clínica rápida, do jeito tradicional — com segurança e evidência.</h1>
+        <p>A Dra. Clarice apoia sua conduta com respostas objetivas (Modo Clínico), explicações embasadas (Evidências) e ferramentas práticas (MedPrime: calculadoras e posologia).</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="cadastro.html">Começar agora</a>
+          <a class="btn" href="#como-funciona">Como funciona</a>
+        </div>
+        <div class="chatbox" style="margin-top:18px">
+          <input id="userInput" placeholder="Digite sua mensagem…">
+          <button id="micBtn" class="icon-btn" title="Falar com a Dra. Clarice (transcrever)">
+            🎙️
+          </button>
+          <button id="phoneBtn" class="icon-btn" title="Ligar para a Dra. Clarice (modo voz)">
+            📞
+          </button>
+        </div>
+        <div class="notice" style="margin-top:10px">
+          Dica: Modo voz mostra um painel de ligação para a Dra. Clarice (simulação). Integração real pode ser acoplada depois.
+        </div>
+      </div>
+      <div class="hero-mini">
+        <img src="assets/clarice_png.png" alt="Dra. Clarice">
+        <div class="bubble">
+          <strong>Olá, eu sou a Dra. Clarice!</strong><br>
+          Bem-vindo ao MédicoHelp. Como posso ajudar você hoje?
+          <div style="margin-top:10px">
+            <span class="badge">Modo Clínico</span>
+            <span class="badge">Evidências Clínicas</span>
+            <span class="badge">MedPrime</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="como-funciona" class="section">
+      <span class="kicker">O que é</span>
+      <h2>Plataforma médica inteligente — direta, confiável e pronta para o plantão</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>🩺 Modo Clínico</h3>
+          <p class="bullets">
+            Respostas objetivas, passo a passo, linguagem médica tradicional. Protocolos de pronto-socorro (dor torácica, dispneia, febre etc.).
+          </p>
+        </div>
+        <div class="card">
+          <h3>📚 Evidências Clínicas</h3>
+          <p class="bullets">
+            Explicações com base científica, racional terapêutico e referências. Bom para discutir caso e registrar fundamentação.
+          </p>
+        </div>
+        <div class="card">
+          <h3>⚕️ MedPrime (Calculadoras)</h3>
+          <p class="bullets">
+            Dose mg/kg, ajustes renal/gestante, conversão para mL/comprimidos, máximos por dose/dia. Tudo rápido e auditável.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="recursos" class="section">
+      <span class="kicker">Recursos</span>
+      <h2>Ferramentas que resolvem na prática</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>📎 Anexos: foto, áudio e PDF</h3>
+          <p class="bullets">Envie imagem do exame, áudio do relato ou PDF do laudo para contextualizar o atendimento.</p>
+        </div>
+        <div class="card">
+          <h3>🎙️ Modo Voz &quot;Ligar para a Dra. Clarice&quot;</h3>
+          <p class="bullets">Ícone de telefone inicia a chamada simulada; integração real pode usar WebRTC/SDK conforme necessidade.</p>
+        </div>
+        <div class="card">
+          <h3>🛡️ Segurança e LGPD</h3>
+          <p class="bullets">Cadastro controlado (CRM/UF ou Aluno 6º ano com universidade), termo de confidencialidade e verificação por e-mail/WhatsApp.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <span class="kicker">Para quem é</span>
+      <h2>Médicos e alunos do 6º ano</h2>
+      <ul class="list">
+        <li>Médicos: CRM e UF obrigatórios.</li>
+        <li>Alunos 6º ano: informar universidade e aceitar termo.</li>
+        <li>Login por e-mail; aprovação administrativa para ativação completa.</li>
+      </ul>
+      <div class="cta" style="margin-top:14px">
+        <a class="btn btn-primary" href="cadastro.html">Fazer cadastro</a>
+        <a class="btn" href="termo-confidencialidade.html">Ler termo</a>
+      </div>
+    </section>
+
+    <section class="section">
+      <span class="kicker">Contato</span>
+      <h2>Fale com a equipe</h2>
+      <p class="bullets">
+        WhatsApp: <strong>+55 44 9106-5757</strong> · E-mail: <strong>sic@medicohelp.com.br</strong>
+      </p>
+    </section>
+  </main>
+
+  <div id="callModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(2px)">
+    <div style="max-width:520px;margin:8% auto;background:#0c2b27;border-radius:16px;box-shadow:var(--shadow);padding:18px">
+      <div style="display:flex;gap:16px;align-items:center">
+        <img src="assets/clarice_png.png" alt="Dra. Clarice" style="height:96px;border-radius:12px">
+        <div>
+          <div style="font-weight:700">Ligando para Dra. Clarice…</div>
+          <div id="callStatus" class="bullets">Ligando para Dra. Clarice…</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px">
+        <button id="closeCall" class="btn">Encerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="container footer">
+    © 2025 MédicoHelp · Desenvolvido por Dr. Clairton Luis Dumke (CRM PR 53866) · <a href="privacidade.html">Privacidade</a>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>

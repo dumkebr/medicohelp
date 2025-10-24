@@ -508,7 +508,7 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="landing-container landing-footer">
-        © 2025 MédicoHelp · Desenvolvido por Dr. Clairton Luis Dumke (CRM PR 53866) · <a href="/legal/privacidade.html" target="_blank" rel="noopener noreferrer">Privacidade</a>
+        © 2025 MédicoHelp · <strong>C.J.Dumke Tecnologia e Saúde LTDA / MEI</strong> · <a href="/legal/privacidade.html" target="_blank" rel="noopener noreferrer">Privacidade</a>
       </footer>
 
       {/* Floating Chat Button (FAB) */}

@@ -11,6 +11,7 @@ a:hover{text-decoration:underline}
 h1,h2,h3{margin:0 0 12px}
 small, .muted{color:var(--muted)}
 .btn{display:inline-block;background:var(--accent);color:#07322f;padding:10px 16px;border-radius:12px;font-weight:700}
+code,kbd{background:#07322f;padding:2px 6px;border-radius:6px}
 hr{border:0;border-top:1px solid #1e5b55;margin:24px 0}
 ul{margin:8px 0 8px 22px}
 footer{margin-top:28px;font-size:.9rem}

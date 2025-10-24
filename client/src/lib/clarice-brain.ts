@@ -5,11 +5,41 @@ export interface KBItem {
   resposta_html: string;
 }
 
-// KB Categories (modular approach)
-const KB_FILES = ['geral.json', 'assinatura.json', 'conta.json', 'tecnico.json'];
-
-// Load all KB files and merge
+// Load all KB files using index.json (modular V7)
 export async function loadAllKB(base = '/kb/'): Promise<KBItem[]> {
+  try {
+    // Load index first to get list of files
+    const indexRes = await fetch(base + 'index.json', { cache: 'no-store' });
+    if (!indexRes.ok) {
+      console.warn('KB index not found, falling back to hardcoded list');
+      return loadFallbackKB(base);
+    }
+    
+    const index = await indexRes.json();
+    const files = index.files || [];
+    
+    const all: KBItem[] = [];
+    for (const f of files) {
+      try {
+        const res = await fetch(base + f, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          all.push(...data);
+        }
+      } catch (e) {
+        console.warn('KB file fail', f, e);
+      }
+    }
+    return all;
+  } catch (e) {
+    console.warn('KB index fail', e);
+    return loadFallbackKB(base);
+  }
+}
+
+// Fallback loader for backward compatibility
+async function loadFallbackKB(base: string): Promise<KBItem[]> {
+  const KB_FILES = ['geral.json', 'assinatura.json', 'conta.json', 'tecnico.json'];
   const all: KBItem[] = [];
   for (const f of KB_FILES) {
     try {

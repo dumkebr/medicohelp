@@ -8,234 +8,234 @@
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:20px;background:#052d2b;color:#e6fff9}
   .card{background:#003c3c;padding:16px;border-radius:10px;margin-bottom:12px;box-shadow:0 4px 18px rgba(0,0,0,.3)}
   input,textarea,select,button{font:inherit}
-  .grid{display:grid;grid-template-columns:1fr 320px;gap:12px}
+  .tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .tab{background:#034c44;padding:8px 12px;border-radius:8px;cursor:pointer}
+  .tab.active{background:#00b37e;color:#00302c}
+  .hidden{display:none}
   .monos{font-family:monospace;background:#022a27;padding:10px;border-radius:6px;overflow:auto}
   .small{font-size:13px;color:#cfeee6}
   .btn{background:#00b37e;color:#00302c;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
-  .danger{background:#d9534f}
+  .danger{background:#d9534f;color:#fff}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
-  <h1>MédicoHelp — Painel Admin (local)</h1>
-  <div class="card">
-    <strong>Atenção</strong> — Este painel é local e para administração básica. Não acessa e-mails reais. Para integração segura com Gmail/relatórios, é necessário um servidor com OAuth e permissões. Veja instruções abaixo.
+  <h1>MédicoHelp — Painel Admin</h1>
+
+  <div class="card" id="login-card">
+    <h2>Login</h2>
+    <div class="row">
+      <input id="email" placeholder="Email" value="admin@medicohelp.local" />
+      <input id="password" type="password" placeholder="Senha" value="medicohelp-admin" />
+      <button class="btn" id="btn-login">Entrar</button>
+    </div>
+    <p class="small">Token salvo no navegador. Depois de logado, você consegue criar <b>editores</b> para manter protocolos/FAQ e a Clarice permite atualizações via chat.</p>
   </div>
 
-  <div class="grid">
-    <div>
-      <div class="card">
-        <h2>Login rápido</h2>
-        <p class="small">Login administrativo local (senha padrão: <code>medicohelp-admin</code>). Para produção, implemente backend seguro.</p>
-        <input type="password" id="admin-pass" placeholder="Senha" style="width:100%;padding:8px;border-radius:8px;border:1px solid #044" />
-        <div style="margin-top:8px">
-          <button class="btn" id="btn-login">Entrar</button>
-          <button class="btn danger" id="btn-logout" style="display:none">Sair</button>
-        </div>
-      </div>
+  <div id="app" class="hidden">
+    <div class="row">
+      <div>Logado como: <b id="who"></b> (<span id="role"></span>)</div>
+      <button class="btn" id="btn-logout" style="margin-left:auto">Sair</button>
+    </div>
 
-      <div class="card" id="panel-actions" style="display:none">
-        <h2>KB — Gerenciar FAQ</h2>
-        <p class="small">Você pode fazer upload de arquivos JSON para /kb ou editar abaixo e salvar.</p>
-        <label>Arquivo KB (usar o nome ex: <code>novotema.json</code>)</label><br/>
-        <input id="kb-name" placeholder="nome.json" style="width:60%;padding:6px;border-radius:6px;border:1px solid #044" />
-        <input type="file" id="kb-file" accept=".json" style="margin-left:8px" />
-        <button class="btn" id="btn-upload">Upload</button>
-        <hr style="border-color:#034">
-        <h3>Editar KB existente</h3>
-        <select id="kb-list" style="width:100%;padding:8px;border-radius:6px;border:1px solid #044"></select>
-        <textarea id="kb-editor" rows="10" style="width:100%;margin-top:8px;padding:8px;border-radius:6px;border:1px solid #044;background:#022a27;color:#e6fff9"></textarea>
-        <div style="margin-top:8px">
-          <button class="btn" id="btn-save-kb">Salvar</button>
-          <button class="btn" id="btn-delete-kb" style="background:#c94d4d">Apagar</button>
-        </div>
-      </div>
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-tab="users">Usuários</div>
+      <div class="tab" data-tab="kb">KB / FAQ</div>
+      <div class="tab" data-tab="protocols">Protocolos</div>
+      <div class="tab" data-tab="logs">Perguntas</div>
+      <div class="tab" data-tab="sales">Vendas</div>
+      <div class="tab" data-tab="emails">E-mails</div>
+    </div>
 
-      <div class="card" id="panel-logs" style="display:none">
-        <h2>Logs — Perguntas da Clarice</h2>
-        <p class="small">Logs são salvos no <code>localStorage</code> do navegador. Você pode baixar um JSON com as perguntas.</p>
-        <button class="btn" id="btn-export-logs">Exportar logs</button>
-        <button class="btn" id="btn-clear-logs" style="background:#c94d4d">Limpar logs</button>
-        <div style="margin-top:8px">
-          <h4>Preview</h4>
-          <pre id="logs-preview" class="monos" style="height:160px"></pre>
-        </div>
-      </div>
-
-      <div class="card" id="panel-sales" style="display:none">
-        <h2>Relatórios — Vendas (upload CSV)</h2>
-        <p class="small">Faça upload de um CSV de vendas para gerar resumo rápido (colunas: date,product,amount).</p>
-        <input type="file" id="sales-file" accept=".csv" />
-        <button class="btn" id="btn-parse-sales">Processar CSV</button>
-        <div id="sales-out" style="margin-top:8px"></div>
-      </div>
-
-      <div class="card">
-        <h2>Conectar e-mail (nota)</h2>
-        <p class="small">Por segurança e políticas, este painel não acessa e-mails. Para integrar e extrair relatórios de vendas / tickets via e-mail, você precisa:</p>
-        <ol class="small">
-          <li>Criar um pequeno backend (Node/Python) hospedado em servidor ou cloud.</li>
-          <li>Implementar OAuth2 (Gmail) ou IMAP autenticado com credenciais seguras.</li>
-          <li>Expor endpoints que o painel admin consome (ex.: /api/emails, /api/sales).</li>
-        </ol>
-        <p class="small">Se quiser, eu te forneço o código do backend para coletar e-mails e gerar relatórios — depois integro ao painel.</p>
+    <div id="panel-users" class="card">
+      <h2>Usuários</h2>
+      <p class="small">Crie <b>editores</b> para que possam corrigir protocolos pela plataforma.</p>
+      <div class="row">
+        <input id="new-email" placeholder="email do usuário" />
+        <input id="new-pass" placeholder="senha" />
+        <select id="new-role"><option value="editor">editor</option><option value="admin">admin</option></select>
+        <button class="btn" id="btn-create-user">Criar usuário</button>
       </div>
     </div>
 
-    <div>
-      <div class="card">
-        <h3>Resumo</h3>
-        <div id="admin-summary" class="small"></div>
+    <div id="panel-kb" class="card hidden">
+      <h2>KB / FAQ</h2>
+      <div class="row">
+        <button class="btn" id="btn-list-kb">Listar arquivos</button>
+        <input id="kb-name" placeholder="arquivo.json" />
+        <button class="btn" id="btn-new-kb">Novo/Salvar</button>
+        <button class="btn danger" id="btn-delete-kb">Apagar</button>
       </div>
+      <select id="kb-files" style="margin-top:8px;width:100%"></select>
+      <textarea id="kb-editor" rows="14" style="width:100%;margin-top:8px" class="monos"></textarea>
+    </div>
 
-      <div class="card">
-        <h3>KB files</h3>
-        <ul id="kb-files-list" class="small"></ul>
+    <div id="panel-protocols" class="card hidden">
+      <h2>Protocolos</h2>
+      <div class="row">
+        <input id="prot-id" placeholder="id (ex: azitromicina-pneumonia-adulto)" style="min-width:320px" />
+        <button class="btn" id="btn-load-prot">Carregar</button>
       </div>
+      <textarea id="prot-editor" rows="14" style="width:100%;margin-top:8px" class="monos">{ 
+  "title": "Azitromicina — Pneumonia (Adulto)",
+  "version": "2025-10",
+  "valid_from": "2025-10-01",
+  "change_note": "Diretriz: curso de 5 dias",
+  "content_json": { "posologia": "500 mg VO 1x/dia por 5 dias" }
+}</textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="btn-save-prot">Salvar/Versionar</button>
+      </div>
+    </div>
 
-      <div class="card">
-        <h3>Ajuda rápida</h3>
-        <p class="small">1) Faça login → 2) Edite ou envie novos arquivos JSON para /kb → 3) Use Exportar logs para analisar perguntas frequentes.</p>
+    <div id="panel-logs" class="card hidden">
+      <h2>Perguntas do bot</h2>
+      <div class="row">
+        <button class="btn" id="btn-load-logs">Atualizar</button>
+        <a class="btn" id="btn-csv" href="/api/logs/csv" target="_blank">Exportar CSV</a>
       </div>
+      <pre id="logs-out" class="monos" style="height:220px"></pre>
+    </div>
+
+    <div id="panel-sales" class="card hidden">
+      <h2>Vendas</h2>
+      <div class="row">
+        <input type="file" id="sales-file" accept=".csv" />
+        <button class="btn" id="btn-upload-sales">Upload CSV</button>
+        <button class="btn" id="btn-sales-summary">Resumo</button>
+      </div>
+      <pre id="sales-out" class="monos" style="height:220px"></pre>
+    </div>
+
+    <div id="panel-emails" class="card hidden">
+      <h2>E-mails</h2>
+      <p class="small">Configure Gmail OAuth no backend (.env). Depois clique em “Carregar”.</p>
+      <div class="row"><button class="btn" id="btn-load-emails">Carregar</button></div>
+      <pre id="emails-out" class="monos" style="height:220px"></pre>
     </div>
   </div>
 
 <script>
-// Admin UI logic (client-side only)
-const PASS = 'medicohelp-admin'; // senha local padrão (troque em produção)
-const panelActions = document.getElementById('panel-actions');
-const panelLogs = document.getElementById('panel-logs');
-const panelSales = document.getElementById('panel-sales');
-const btnLogin = document.getElementById('btn-login');
-const btnLogout = document.getElementById('btn-logout');
-const adminPass = document.getElementById('admin-pass');
-const kbList = document.getElementById('kb-list');
-const kbEditor = document.getElementById('kb-editor');
-const kbFilesList = document.getElementById('kb-files-list');
-const logsPreview = document.getElementById('logs-preview');
+const qs = s=>document.querySelector(s);
+const qsa = s=>Array.from(document.querySelectorAll(s));
+const API = p=>p;
+let TOKEN = localStorage.getItem('mh_token') || '';
 
-function setLogged(inState){
-  if(inState){
-    panelActions.style.display='block'; panelLogs.style.display='block'; panelSales.style.display='block';
-    btnLogout.style.display='inline-block'; btnLogin.style.display='none';
-    loadSummary(); loadKBList();
-  } else {
-    panelActions.style.display='none'; panelLogs.style.display='none'; panelSales.style.display='none';
-    btnLogout.style.display='none'; btnLogin.style.display='inline-block';
-  }
+function setLogged(token, email, role){
+  TOKEN = token || '';
+  if(token){ localStorage.setItem('mh_token', token); }
+  document.getElementById('login-card').classList.toggle('hidden', !!token);
+  document.getElementById('app').classList.toggle('hidden', !token);
+  if(token){ qs('#who').textContent = email; qs('#role').textContent = role; }
 }
+if(TOKEN){ setLogged(TOKEN, 'sessão ativa', ''); }
 
-btnLogin.addEventListener('click', ()=>{
-  if(adminPass.value === PASS){ localStorage.setItem('mh_admin','1'); setLogged(true); } else { alert('Senha incorreta'); }
+qsa('.tab').forEach(el=> el.addEventListener('click', ()=>{
+  qsa('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const tab = el.dataset.tab;
+  qsa('[id^=panel-]').forEach(p=>p.classList.add('hidden'));
+  qs('#panel-' + tab).classList.remove('hidden');
+}));
+
+qs('#btn-login').addEventListener('click', async ()=>{
+  const email = qs('#email').value.trim();
+  const password = qs('#password').value;
+  const r = await fetch(API('/api/auth/login'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password }) });
+  if(!r.ok){ alert('Falha no login'); return; }
+  const j = await r.json();
+  setLogged(j.token, j.email, j.role);
 });
-btnLogout.addEventListener('click', ()=>{ localStorage.removeItem('mh_admin'); setLogged(false); });
+qs('#btn-logout').addEventListener('click', ()=>{ localStorage.removeItem('mh_token'); setLogged('', '', ''); });
 
-function loadSummary(){
-  const logs = JSON.parse(localStorage.getItem('clarice_logs')||'[]');
-  const byDay = {};
-  logs.forEach(l => { const d = (new Date(l.at)).toISOString().slice(0,10); byDay[d]=(byDay[d]||0)+1; });
-  const total = logs.length;
-  document.getElementById('admin-summary').innerHTML = `<p>Total perguntas: <strong>${total}</strong></p><p>Últimos dias: ${Object.entries(byDay).slice(-5).map(e=>e.join(':')).join(', ')}</p>`;
-  logsPreview.textContent = JSON.stringify(logs.slice(-50), null, 2);
+// Users
+qs('#btn-create-user').addEventListener('click', async ()=>{
+  const email = qs('#new-email').value.trim();
+  const password = qs('#new-pass').value;
+  const role = qs('#new-role').value;
+  const r = await fetch(API('/api/auth/users'), { method:'POST', headers:{'Content-Type':'application/json','requester':TOKEN}, body: JSON.stringify({ email, password, role }) });
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok){ alert('Erro: '+(j.error||r.status)); return; }
+  alert('Usuário criado');
+});
+
+// KB
+qs('#btn-list-kb').addEventListener('click', async ()=>{
+  const r = await fetch(API('/api/kb'), { headers:{'x-auth':TOKEN} });
+  const j = await r.json();
+  const sel = qs('#kb-files'); sel.innerHTML='';
+  (j.files||[]).forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f; sel.appendChild(o); });
+  if(j.files?.[0]) loadKb(j.files[0]);
+});
+async function loadKb(name){
+  const r = await fetch(API('/api/kb/'+encodeURIComponent(name)), { headers:{'x-auth':TOKEN} });
+  const txt = await r.text();
+  qs('#kb-name').value = name;
+  qs('#kb-editor').value = txt;
+  qs('#kb-files').value = name;
 }
-
-async function loadKBList(){
-  try{
-    const idx = await fetch('/kb/index.json').then(r=>r.ok? r.json() : {files:[]});
-    kbList.innerHTML=''; kbFilesList.innerHTML='';
-    idx.files.forEach(f => {
-      const o=document.createElement('option'); o.value=f; o.textContent=f; kbList.appendChild(o);
-      const li=document.createElement('li'); li.textContent=f; kbFilesList.appendChild(li);
-    });
-    if(idx.files[0]) loadKBFile(idx.files[0]);
-  }catch(e){ console.warn(e); }
-}
-
-async function loadKBFile(name){
-  try{
-    const r = await fetch('/kb/' + name);
-    if(!r.ok) return;
-    const j = await r.text(); kbEditor.value = j; kbList.value = name;
-  }catch(e){ console.warn(e); }
-}
-
-kbList.addEventListener('change', ()=> loadKBFile(kbList.value));
-
-document.getElementById('btn-save-kb').addEventListener('click', async ()=>{
-  const name = kbList.value;
-  if(!name) return alert('Selecione um arquivo na lista');
-  try{
-    // For static hosting, we cannot write files server-side. So instead provide the edited content for download.
-    const blob = new Blob([kbEditor.value], {type:'application/json'});
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
-    alert('Arquivo preparado para download. Faça upload para o servidor/hosting para atualizar o KB.');
-  }catch(e){ alert('Erro ao preparar o arquivo'); }
+qs('#kb-files').addEventListener('change', ()=> loadKb(qs('#kb-files').value));
+qs('#btn-new-kb').addEventListener('click', async ()=>{
+  const name = qs('#kb-name').value.trim();
+  if(!name.endsWith('.json')) return alert('Use .json');
+  let data; try{ data = JSON.parse(qs('#kb-editor').value || '[]'); }catch{ return alert('JSON inválido'); }
+  const r = await fetch(API('/api/kb/'+encodeURIComponent(name)), { method:'POST', headers:{'Content-Type':'application/json','x-auth':TOKEN}, body: JSON.stringify(data) });
+  if(!r.ok) return alert('Falha ao salvar');
+  alert('KB salvo');
+});
+qs('#btn-delete-kb').addEventListener('click', async ()=>{
+  const name = qs('#kb-name').value.trim();
+  if(!name) return;
+  if(!confirm('Apagar '+name+'?')) return;
+  const r = await fetch(API('/api/kb/'+encodeURIComponent(name)), { method:'DELETE', headers:{'x-auth':TOKEN} });
+  if(!r.ok) return alert('Falha ao apagar');
+  alert('KB apagado');
 });
 
-document.getElementById('btn-delete-kb').addEventListener('click', ()=>{
-  const name = kbList.value;
-  if(!name) return alert('Selecione um arquivo');
-  if(!confirm('Apagar localmente não é possível neste painel estático. Você pode excluir no servidor/hosting. Deseja preparar um "delete note" para o time?')) return;
-  const note = { action:'delete_kb', file:name, by:'admin', at:new Date().toISOString() };
-  const blob = new Blob([JSON.stringify(note, null, 2)], {type:'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'delete-'+name+'.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
-  alert('Nota de exclusão preparada para envio ao time infra.');
+// Protocolos
+qs('#btn-load-prot').addEventListener('click', async ()=>{
+  const id = qs('#prot-id').value.trim();
+  const r = await fetch(API('/api/protocols/'+encodeURIComponent(id)), { headers:{'x-auth':TOKEN} });
+  if(!r.ok){ alert('Não encontrado'); return; }
+  const txt = await r.text();
+  qs('#prot-editor').value = txt;
+});
+qs('#btn-save-prot').addEventListener('click', async ()=>{
+  const id = qs('#prot-id').value.trim();
+  let data; try{ data = JSON.parse(qs('#prot-editor').value); }catch{ return alert('JSON inválido'); }
+  const r = await fetch(API('/api/protocols/'+encodeURIComponent(id)), { method:'POST', headers:{'Content-Type':'application/json','x-auth':TOKEN}, body: JSON.stringify(data) });
+  if(!r.ok){ alert('Falha ao salvar'); return; }
+  alert('Protocolo salvo/versão registrada.');
 });
 
-document.getElementById('btn-upload').addEventListener('click', ()=>{
-  const finput = document.getElementById('kb-file');
-  const nameInput = document.getElementById('kb-name');
-  const file = finput.files[0];
-  const name = nameInput.value.trim();
-  if(!file || !name) return alert('Escolha um arquivo e informe o nome (ex: novo.json)');
-  const reader = new FileReader();
-  reader.onload = ()=>{
-    // Prepare file for download to be uploaded to hosting by infra
-    const blob = new Blob([reader.result], {type:'application/json'});
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
-    alert('Arquivo preparado para upload no servidor. Faça o deploy para que a Clarice carregue o novo KB.');
-  };
-  reader.readAsText(file);
+// Logs
+qs('#btn-load-logs').addEventListener('click', async ()=>{
+  const r = await fetch(API('/api/logs'), { headers:{'x-auth':TOKEN} });
+  const j = await r.json();
+  qs('#logs-out').textContent = JSON.stringify(j, null, 2);
 });
 
-// Logs export/clear
-document.getElementById('btn-export-logs').addEventListener('click', ()=>{
-  const data = localStorage.getItem('clarice_logs')||'[]';
-  const blob = new Blob([data], {type:'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'clarice_logs.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+// Sales
+qs('#btn-upload-sales').addEventListener('click', async ()=>{
+  const f = qs('#sales-file').files[0];
+  if(!f) return alert('Escolha um CSV');
+  const fd = new FormData(); fd.append('file', f);
+  const r = await fetch(API('/api/sales/upload'), { method:'POST', headers:{'x-auth':TOKEN}, body: fd });
+  const j = await r.json();
+  qs('#sales-out').textContent = JSON.stringify(j, null, 2);
 });
-document.getElementById('btn-clear-logs').addEventListener('click', ()=>{
-  if(confirm('Limpar logs localmente?')){ localStorage.removeItem('clarice_logs'); loadSummary(); alert('Logs limpos no navegador.'); }
-});
-
-// Sales CSV parsing (simple)
-document.getElementById('btn-parse-sales').addEventListener('click', ()=>{
-  const f = document.getElementById('sales-file').files[0];
-  if(!f) return alert('Escolha um CSV com colunas: date,product,amount');
-  const r = new FileReader();
-  r.onload = ()=>{
-    const txt = r.result;
-    const lines = txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-    const rows = lines.map(l => l.split(','));
-    const header = rows.shift().map(h=>h.toLowerCase().trim());
-    const dateIdx = header.indexOf('date'), prodIdx = header.indexOf('product'), amtIdx = header.indexOf('amount');
-    if(dateIdx<0 || prodIdx<0 || amtIdx<0) return alert('Cabeçalho inválido. Use: date,product,amount');
-    const summary={total:0, byProduct:{}};
-    rows.forEach(rw=>{
-      const amt = parseFloat((rw[amtIdx]||'0').replace(/[^0-9\.\-]/g,'')) || 0;
-      summary.total += amt;
-      const p = rw[prodIdx]||'unknown';
-      summary.byProduct[p] = (summary.byProduct[p]||0) + amt;
-    });
-    document.getElementById('sales-out').innerHTML = '<pre class="monos">'+JSON.stringify(summary, null, 2)+'</pre>';
-  };
-  r.readAsText(f);
+qs('#btn-sales-summary').addEventListener('click', async ()=>{
+  const r = await fetch(API('/api/sales/summary'), { headers:{'x-auth':TOKEN} });
+  const j = await r.json();
+  qs('#sales-out').textContent = JSON.stringify(j, null, 2);
 });
 
-// Initialize
-if(localStorage.getItem('mh_admin')) setLogged(true); else setLogged(false);
-loadKBList();
-loadSummary();
+// Emails
+qs('#btn-load-emails').addEventListener('click', async ()=>{
+  const r = await fetch(API('/api/emails'), { headers:{'x-auth':TOKEN} });
+  const j = await r.json();
+  qs('#emails-out').textContent = JSON.stringify(j, null, 2);
+});
 </script>
 </body>
 </html>

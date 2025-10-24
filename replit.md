@@ -62,6 +62,14 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 
 ## Recent Updates
 
+### V7 Integration (Oct 24, 2025)
+-   **Site Estático Completo**: 6 páginas HTML integradas (index, cadastro, termos, privacidade, admin, admin-api)
+-   **Assets Profissionais**: 7 imagens high-res (hero1, chat1, logos, Clarice mascot)
+-   **Modal "Conhecer Recursos"**: Hero Clarice + FeaturesSection com 12 cards clicáveis, animações fade-in/slide-up
+-   **Componentes React Novos**: HeroClarice.tsx, FeaturesSection.tsx
+-   **KB V7 com index.json**: Sistema modular atualizado com manifest e fallback automático
+-   **Clarice Brain**: server/clarice_brain.js integrado, client/lib atualizado
+
 ### Knowledge Base & Admin System
 -   **KB V5 (Modular)**: 4-category system (geral, assinatura, conta, tecnico) with intelligent scoring algorithm (100pts exact, 50pts starts-with, 10pts contains)
 -   **Interactive Buttons**: HTML buttons in KB responses with data-action handlers (e.g., cancelar_assinatura, trocar_email)

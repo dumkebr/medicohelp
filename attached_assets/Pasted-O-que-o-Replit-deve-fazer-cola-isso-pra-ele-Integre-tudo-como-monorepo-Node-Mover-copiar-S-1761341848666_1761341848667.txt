@@ -1,0 +1,89 @@
+O que o Replit deve fazer (cola isso pra ele)
+
+Integre tudo como monorepo Node.
+
+Mover/copiar
+• 🌐 Site Estático/*.html → client/public/
+• 🎨 assets/ → client/public/assets/
+• 🧠 kb/*.json → server/kb/
+• 🤖 clarice_brain.js → server/clarice_brain.js
+
+Instalar dependências
+• Na raiz: npm i -D concurrently
+• Em server/: npm i express cors dotenv
+• Em client/: se for Vite/React: npm i (já tem package.json)
+
+Scripts de execução (raiz package.json)
+
+{
+  "name": "medicohelp_v7",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -k \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix server run start"
+  }
+}
+
+
+Scripts internos
+• server/package.json:
+
+{ "scripts": { "dev": "node server.js", "start": "node server.js" } }
+
+
+• client/package.json (Vite):
+
+{ "scripts": { "dev": "vite", "build": "vite build", "preview": "vite preview" } }
+
+
+Server serve a build do client em produção
+No server/server.js (Express):
+
+import express from "express";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+dotenv.config();
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// API da Clarice
+app.post("/api/clarice", async (req, res) => {
+  // usar clarice_brain + KB em server/kb
+  // (mantém como já está no projeto)
+});
+
+// Produção: servir o client
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientDist = path.join(__dirname, "..", "client", "dist");
+app.use(express.static(clientDist));
+app.get("*", (_, r) => r.sendFile(path.join(clientDist, "index.html")));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server on " + PORT));
+
+
+Variáveis de ambiente (Secrets)
+• OPENAI_API_KEY
+• ADMIN_EMAIL
+• ADMIN_PASSWORD
+
+Run/Deploy no Replit
+• Rodar: npm run dev (desenvolvimento)
+• Build + produção (opcional): npm run build e depois npm start
+
+Observações rápidas
+
+O admin.html vai para client/public/admin.html e continua acessível (ex.: /admin.html).
+
+A KB fica em server/kb/ e o clarice_brain.js lê de lá.
+
+Em produção, o server serve o build do client (sem precisar de dois processos).
+
+No Replit, deixe o Run como npm run dev pra trabalhar; quando for “Deploy”, use npm start.

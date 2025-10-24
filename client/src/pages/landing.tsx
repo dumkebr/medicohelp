@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { FaWhatsapp } from "react-icons/fa";
 import { Mail, X, Send } from "lucide-react";
+import { loadKB, findAnswer, type KBItem } from "@/lib/clarice-brain";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
@@ -11,7 +12,13 @@ export default function Landing() {
     { text: 'Olá! Eu sou a <b>Dra. Clarice</b>, assistente virtual do MédicoHelp. Como posso te ajudar hoje?', sender: 'clarice' }
   ]);
   const [inputValue, setInputValue] = useState("");
+  const [kb, setKb] = useState<KBItem[]>([]);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Load Knowledge Base on mount
+  useEffect(() => {
+    loadKB().then(data => setKb(data));
+  }, []);
 
   const handleAudioCall = () => {
     setAudioButtonText("🔔 Ligando para a Dra. Clarice...");
@@ -40,27 +47,30 @@ export default function Landing() {
     setInputValue("");
 
     setTimeout(() => {
-      const lowerText = text.toLowerCase();
-      let response = '';
-
-      if (lowerText.includes('contato') || lowerText.includes('equipe') || lowerText.includes('atendimento')) {
-        response = 'Perfeito! Posso te encaminhar agora para a equipe pelo WhatsApp.';
-      } else if (lowerText.includes('preço') || lowerText.includes('plano') || lowerText.includes('assinatura') || lowerText.includes('valor')) {
-        response = 'Sobre planos e preços eu posso te orientar e, se preferir, encaminho você para a equipe no WhatsApp.';
-      } else if (lowerText.includes('cadastro') || lowerText.includes('registrar') || lowerText.includes('criar conta')) {
-        response = 'Para se cadastrar, clique no botão "Entrar" no topo da página ou <a href="/register" style="color: #1affb8; font-weight: 600; text-decoration: underline;">clique aqui</a>.';
-      } else {
-        response = 'Entendi. Posso tentar te ajudar por aqui, ou te encaminhar à nossa equipe no WhatsApp.';
-      }
-
-      setMessages(prev => [...prev, { text: response, sender: 'clarice' }]);
-
-      setTimeout(() => {
+      // Try to find answer in Knowledge Base
+      const answer = findAnswer(kb, text);
+      
+      if (answer) {
+        // Found in KB - use the configured response
         setMessages(prev => [...prev, { 
-          text: '👉 <a href="https://wa.me/5544991065757?text=Olá!%20Gostaria%20de%20falar%20com%20a%20equipe%20do%20MédicoHelp" target="_blank" rel="noopener noreferrer" style="color: #1affb8; font-weight: 600; text-decoration: none;">Falar com a equipe no WhatsApp</a>', 
+          text: answer.resposta_html, 
           sender: 'clarice' 
         }]);
-      }, 900);
+      } else {
+        // Fallback response
+        setMessages(prev => [...prev, { 
+          text: 'Entendi sua dúvida. Posso te ajudar por aqui, ou encaminhar você para a equipe no WhatsApp para um atendimento mais personalizado.', 
+          sender: 'clarice' 
+        }]);
+        
+        // Show WhatsApp option
+        setTimeout(() => {
+          setMessages(prev => [...prev, { 
+            text: '👉 <a href="https://wa.me/5544991065757?text=Olá!%20Gostaria%20de%20falar%20com%20a%20equipe%20do%20MédicoHelp" target="_blank" rel="noopener noreferrer" style="color: #1affb8; font-weight: 600; text-decoration: none;">Falar com a equipe no WhatsApp</a>', 
+            sender: 'clarice' 
+          }]);
+        }, 700);
+      }
     }, 700);
   };
 

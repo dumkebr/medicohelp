@@ -46,8 +46,8 @@ export default function Landing() {
         }
         .landing-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         .landing-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
-        .landing-brand { display: flex; align-items: center; gap: 8px; }
-        .landing-brand .logo-img { height: 32px; width: 32px; object-fit: contain; display: block; margin: 0; padding: 0; }
+        .landing-brand { display: flex; align-items: center; gap: 10px; }
+        .landing-brand .logo-img { height: 44px; width: 44px; object-fit: contain; display: block; margin: 0; padding: 0; }
         .landing-brand .brand-content { display: flex; align-items: center; gap: 12px; }
         .landing-brand .title { font-weight: 700; font-size: 26px; letter-spacing: 0.2px; line-height: 1; display: flex; align-items: center; }
         .landing-brand .heart-icon { height: 32px; width: 32px; }

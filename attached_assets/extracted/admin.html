@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MédicoHelp — Admin</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:20px;background:#052d2b;color:#e6fff9}
+  .card{background:#003c3c;padding:16px;border-radius:10px;margin-bottom:12px;box-shadow:0 4px 18px rgba(0,0,0,.3)}
+  input,textarea,select,button{font:inherit}
+  .tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .tab{background:#034c44;padding:8px 12px;border-radius:8px;cursor:pointer}
+  .tab.active{background:#00b37e;color:#00302c}
+  .hidden{display:none}
+  .monos{font-family:monospace;background:#022a27;padding:10px;border-radius:6px;overflow:auto}
+  .small{font-size:13px;color:#cfeee6}
+  .btn{background:#00b37e;color:#00302c;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+  .danger{background:#d9534f;color:#fff}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+  <h1>MédicoHelp — Painel Admin</h1>
+
+  <div class="card" id="login-card">
+    <h2>Login</h2>
+    <div class="row">
+      <input id="email" placeholder="Email" value="admin@medicohelp.local" />
+      <input id="password" type="password" placeholder="Senha" value="medicohelp-admin" />
+      <button class="btn" id="btn-login">Entrar</button>
+    </div>
+    <p class="small">Token salvo no navegador. Depois de logado, você consegue criar <b>editores</b> para manter protocolos/FAQ e a Clarice permite atualizações via chat.</p>
+  </div>
+
+  <div id="app" class="hidden">
+    <div class="row">
+      <div>Logado como: <b id="who"></b> (<span id="role"></span>)</div>
+      <button class="btn" id="btn-logout" style="margin-left:auto">Sair</button>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-tab="users">Usuários</div>
+      <div class="tab" data-tab="kb">KB / FAQ</div>
+      <div class="tab" data-tab="protocols">Protocolos</div>
+      <div class="tab" data-tab="logs">Perguntas</div>
+      <div class="tab" data-tab="sales">Vendas</div>
+      <div class="tab" data-tab="emails">E-mails</div>
+    </div>
+
+    <div id="panel-users" class="card">
+      <h2>Usuários</h2>
+      <p class="small">Crie <b>editores</b> para que possam corrigir protocolos pela plataforma.</p>
+      <div class="row">
+        <input id="new-email" placeholder="email do usuário" />
+        <input id="new-pass" placeholder="senha" />
+        <select id="new-role"><option value="editor">editor</option><option value="admin">admin</option></select>
+        <button class="btn" id="btn-create-user">Criar usuário</button>
+      </div>
+    </div>
+
+    <div id="panel-kb" class="card hidden">
+      <h2>KB / FAQ</h2>
+      <div class="row">
+        <button class="btn" id="btn-list-kb">Listar arquivos</button>
+        <input id="kb-name" placeholder="arquivo.json" />
+        <button class="btn" id="btn-new-kb">Novo/Salvar</button>
+        <button class="btn danger" id="btn-delete-kb">Apagar</button>
+      </div>
+      <select id="kb-files" style="margin-top:8px;width:100%"></select>
+      <textarea id="kb-editor" rows="14" style="width:100%;margin-top:8px" class="monos"></textarea>
+    </div>
+
+    <div id="panel-protocols" class="card hidden">
+      <h2>Protocolos</h2>
+      <div class="row">
+        <input id="prot-id" placeholder="id (ex: azitromicina-pneumonia-adulto)" style="min-width:320px" />
+        <button class="btn" id="btn-load-prot">Carregar</button>
+      </div>
+      <textarea id="prot-editor" rows="14" style="width:100%;margin-top:8px" class="monos">{ 
+  "title": "Azitromicina — Pneumonia (Adulto)",
+  "version": "2025-10",
+  "valid_from": "2025-10-01",
+  "change_note": "Diretriz: curso de 5 dias",
+  "content_json": { "posologia": "500 mg VO 1x/dia por 5 dias" }
+}</textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="btn-save-prot">Salvar/Versionar</button>
+      </div>
+    </div>
+
+    <div id="panel-logs" class="card hidden">
+      <h2>Perguntas do bot</h2>
+      <div class="row">
+        <button class="btn" id="btn-load-logs">Atualizar</button>
+        <a class="btn" id="btn-csv" href="/api/logs/csv" target="_blank">Exportar CSV</a>
+      </div>
+      <pre id="logs-out" class="monos" style="height:220px"></pre>
+    </div>
+
+    <div id="panel-sales" class="card hidden">
+      <h2>Vendas</h2>
+      <div class="row">
+        <input type="file" id="sales-file" accept=".csv" />
+        <button class="btn" id="btn-upload-sales">Upload CSV</button>
+        <button class="btn" id="btn-sales-summary">Resumo</button>
+      </div>
+      <pre id="sales-out" class="monos" style="height:220px"></pre>
+    </div>
+
+    <div id="panel-emails" class="card hidden">
+      <h2>E-mails</h2>
+      <p class="small">Configure Gmail OAuth no backend (.env). Depois clique em “Carregar”.</p>
+      <div class="row"><button class="btn" id="btn-load-emails">Carregar</button></div>
+      <pre id="emails-out" class="monos" style="height:220px"></pre>
+    </div>
+  </div>
+
+<script>
+const qs = s=>document.querySelector(s);
+const qsa = s=>Array.from(document.querySelectorAll(s));
+const API = p=>p;
+let TOKEN = localStorage.getItem('mh_token') || '';
+
+function setLogged(token, email, role){
+  TOKEN = token || '';
+  if(token){ localStorage.setItem('mh_token', token); }
+  document.getElementById('login-card').classList.toggle('hidden', !!token);
+  document.getElementById('app').classList.toggle('hidden', !token);
+  if(token){ qs('#who').textContent = email; qs('#role').textContent = role; }
+}
+if(TOKEN){ setLogged(TOKEN, 'sessão ativa', ''); }
+
+qsa('.tab').forEach(el=> el.addEventListener('click', ()=>{
+  qsa('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const tab = el.dataset.tab;
+  qsa('[id^=panel-]').forEach(p=>p.classList.add('hidden'));
+  qs('#panel-' + tab).classList.remove('hidden');
+}));
+
+qs('#btn-login').addEventListener('click', async ()=>{
+  const email = qs('#email').value.trim();
+  const password = qs('#password').value;
+  const r = await fetch(API('/api/auth/login'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password }) });
+  if(!r.ok){ alert('Falha no login'); return; }
+  const j = await r.json();
+  setLogged(j.token, j.email, j.role);
+});
+qs('#btn-logout').addEventListener('click', ()=>{ localStorage.removeItem('mh_token'); setLogged('', '', ''); });
+
+// Users
+qs('#btn-create-user').addEventListener('click', async ()=>{
+  const email = qs('#new-email').value.trim();
+  const password = qs('#new-pass').value;
+  const role = qs('#new-role').value;
+  const r = await fetch(API('/api/auth/users'), { method:'POST', headers:{'Content-Type':'application/json','requester':TOKEN}, body: JSON.stringify({ email, password, role }) });
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok){ alert('Erro: '+(j.error||r.status)); return; }
+  alert('Usuário criado');
+});
+
+// KB
+qs('#btn-list-kb').addEventListener('click', async ()=>{
+  const r = await fetch(API('/api/kb'), { headers:{'x-auth':TOKEN} });
+  const j = await r.json();
+  const sel = qs('#kb-files'); sel.innerHTML='';
+  (j.files||[]).forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f; sel.appendChild(o); });
+  if(j.files?.[0]) loadKb(j.files[0]);
+});
+async function loadKb(name){
+  const r = await fetch(API('/api/kb/'+encodeURIComponent(name)), { headers:{'x-auth':TOKEN} });
+  const txt = await r.text();
+  qs('#kb-name').value = name;
+  qs('#kb-editor').value = txt;
+  qs('#kb-files').value = name;
+}
+qs('#kb-files').addEventListener('change', ()=> loadKb(qs('#kb-files').value));
+qs('#btn-new-kb').addEventListener('click', async ()=>{
+  const name = qs('#kb-name').value.trim();
+  if(!name.endsWith('.json')) return alert('Use .json');
+  let data; try{ data = JSON.parse(qs('#kb-editor').value || '[]'); }catch{ return alert('JSON inválido'); }
+  const r = await fetch(API('/api/kb/'+encodeURIComponent(name)), { method:'POST', headers:{'Content-Type':'application/json','x-auth':TOKEN}, body: JSON.stringify(data) });
+  if(!r.ok) return alert('Falha ao salvar');
+  alert('KB salvo');
+});
+qs('#btn-delete-kb').addEventListener('click', async ()=>{
+  const name = qs('#kb-name').value.trim();
+  if(!name) return;
+  if(!confirm('Apagar '+name+'?')) return;
+  const r = await fetch(API('/api/kb/'+encodeURIComponent(name)), { method:'DELETE', headers:{'x-auth':TOKEN} });
+  if(!r.ok) return alert('Falha ao apagar');
+  alert('KB apagado');
+});
+
+// Protocolos
+qs('#btn-load-prot').addEventListener('click', async ()=>{
+  const id = qs('#prot-id').value.trim();
+  const r = await fetch(API('/api/protocols/'+encodeURIComponent(id)), { headers:{'x-auth':TOKEN} });
+  if(!r.ok){ alert('Não encontrado'); return; }
+  const txt = await r.text();
+  qs('#prot-editor').value = txt;
+});
+qs('#btn-save-prot').addEventListener('click', async ()=>{
+  const id = qs('#prot-id').value.trim();
+  let data; try{ data = JSON.parse(qs('#prot-editor').value); }catch{ return alert('JSON inválido'); }
+  const r = await fetch(API('/api/protocols/'+encodeURIComponent(id)), { method:'POST', headers:{'Content-Type':'application/json','x-auth':TOKEN}, body: JSON.stringify(data) });
+  if(!r.ok){ alert('Falha ao salvar'); return; }
+  alert('Protocolo salvo/versão registrada.');
+});
+
+// Logs
+qs('#btn-load-logs').addEventListener('click', async ()=>{
+  const r = await fetch(API('/api/logs'), { headers:{'x-auth':TOKEN} });
+  const j = await r.json();
+  qs('#logs-out').textContent = JSON.stringify(j, null, 2);
+});
+
+// Sales
+qs('#btn-upload-sales').addEventListener('click', async ()=>{
+  const f = qs('#sales-file').files[0];
+  if(!f) return alert('Escolha um CSV');
+  const fd = new FormData(); fd.append('file', f);
+  const r = await fetch(API('/api/sales/upload'), { method:'POST', headers:{'x-auth':TOKEN}, body: fd });
+  const j = await r.json();
+  qs('#sales-out').textContent = JSON.stringify(j, null, 2);
+});
+qs('#btn-sales-summary').addEventListener('click', async ()=>{
+  const r = await fetch(API('/api/sales/summary'), { headers:{'x-auth':TOKEN} });
+  const j = await r.json();
+  qs('#sales-out').textContent = JSON.stringify(j, null, 2);
+});
+
+// Emails
+qs('#btn-load-emails').addEventListener('click', async ()=>{
+  const r = await fetch(API('/api/emails'), { headers:{'x-auth':TOKEN} });
+  const j = await r.json();
+  qs('#emails-out').textContent = JSON.stringify(j, null, 2);
+});
+</script>
+</body>
+</html>

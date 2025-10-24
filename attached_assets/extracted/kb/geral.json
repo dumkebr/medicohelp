@@ -1,0 +1,30 @@
+[
+  {
+    "id": "o_que_e",
+    "perguntas": [
+      "o que é o médicohelp",
+      "sobre a plataforma",
+      "para que serve",
+      "como funciona"
+    ],
+    "resposta_html": "O <b>MédicoHelp</b> é uma plataforma de apoio ao médico com a <b>Dra. Clarice</b> (IA clínica) para condutas objetivas e evidências."
+  },
+  {
+    "id": "modos_chat",
+    "perguntas": [
+      "modo clínico",
+      "evidências clínicas",
+      "fundamentação teórica"
+    ],
+    "resposta_html": "<b>Modos</b>: <b>Clínico</b> (direto à conduta) e <b>Evidências Clínicas</b> (base científica)."
+  },
+  {
+    "id": "modo_voz",
+    "perguntas": [
+      "modo voz",
+      "ligar",
+      "telefone"
+    ],
+    "resposta_html": "Use o botão de <b>telefone</b> ao lado da caixa de digitação para falar com a Clarice por voz."
+  }
+]

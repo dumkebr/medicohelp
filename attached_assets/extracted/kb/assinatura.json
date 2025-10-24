@@ -1,0 +1,22 @@
+[
+  {
+    "id": "planos_precos",
+    "perguntas": [
+      "planos",
+      "preços",
+      "quanto custa",
+      "mensalidade",
+      "assinatura"
+    ],
+    "resposta_html": "<b>Planos (em definição)</b>: Limitado, Livre e PRO. Fale com a equipe para condições de lançamento."
+  },
+  {
+    "id": "cancelar_assinatura",
+    "perguntas": [
+      "cancelar assinatura",
+      "quero cancelar",
+      "cancelamento"
+    ],
+    "resposta_html": "Clique abaixo para falar com a equipe:<br><button class='clarice-action' data-action='cancelar'>Cancelar assinatura</button>"
+  }
+]

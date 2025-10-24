@@ -36,23 +36,55 @@ export function findAnswer(kb: KBItem[], userText: string): KBItem | null {
 
   const t = normalize(userText);
 
-  // 1. Exact match in perguntas array
+  // Score-based matching for better precision
+  const matches: Array<{ item: KBItem; score: number }> = [];
+
+  // 1. Score all items based on match quality
   for (const item of kb) {
     if (!item.perguntas) continue;
+    
+    let score = 0;
     for (const q of item.perguntas) {
-      if (t.includes(normalize(q))) {
-        return item;
+      const normalizedQ = normalize(q);
+      
+      // Exact match (highest priority)
+      if (t === normalizedQ) {
+        score += 100;
       }
+      // Starts with (high priority)
+      else if (t.startsWith(normalizedQ) || normalizedQ.startsWith(t)) {
+        score += 50;
+      }
+      // Contains (medium priority)
+      else if (t.includes(normalizedQ)) {
+        score += 10;
+      }
+      // Partial word match (low priority)
+      else {
+        const words = normalizedQ.split(' ');
+        const matchedWords = words.filter(w => t.includes(w));
+        score += matchedWords.length * 2;
+      }
+    }
+    
+    if (score > 0) {
+      matches.push({ item, score });
     }
   }
 
-  // 2. Intent-based fallback (semantic patterns)
+  // Return the highest scoring match
+  if (matches.length > 0) {
+    matches.sort((a, b) => b.score - a.score);
+    return matches[0].item;
+  }
+
+  // 2. Intent-based fallback (semantic patterns) - in priority order
   const intents = [
-    { id: 'cancelar_assinatura', keys: ['cancelar', 'cancelamento', 'cancelar assinatura'] },
-    { id: 'trocar_email', keys: ['trocar email', 'trocar e-mail', 'alterar email', 'mudar e-mail', 'errado email'] },
+    { id: 'cancelar_assinatura', keys: ['cancelar assinatura', 'quero cancelar', 'cancelamento'] },
+    { id: 'trocar_email', keys: ['trocar email', 'trocar e-mail', 'alterar email', 'mudar e-mail'] },
     { id: 'whatsapp_contato', keys: ['whatsapp', 'contato', 'suporte', 'falar com a equipe'] },
     { id: 'cadastro', keys: ['cadastro', 'cadastrar', 'criar conta'] },
-    { id: 'planos_precos', keys: ['plano', 'preco', 'preço', 'mensalidade', 'assinatura'] },
+    { id: 'planos_precos', keys: ['plano', 'preco', 'preço', 'mensalidade'] },
   ];
 
   for (const intent of intents) {

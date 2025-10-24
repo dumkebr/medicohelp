@@ -58,6 +58,32 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 **System Design Choices:**
 -   **Data Structures**: PostgreSQL + Drizzle ORM for `patients`, `users`, `user_settings`, `consultations`, `research_analytics`, and `medical_tools_audit` tables.
 -   **localStorage Data Structures**: Keys for `mh_atendimentos`, `mh_current_atendimento_id`, `mh_showPatientMgmt`, `medicohelp_mode`, `medicohelp_evidence`, and `calc_history`.
+-   **Microservices Backend (V6)**: Optional separate Node.js backend (`medicohelp-backend/`) for advanced admin features: KB management via API, centralized analytics in SQLite, sales reporting, and medical protocols versioning.
+
+## Recent Updates
+
+### Knowledge Base & Admin System
+-   **KB V5 (Modular)**: 4-category system (geral, assinatura, conta, tecnico) with intelligent scoring algorithm (100pts exact, 50pts starts-with, 10pts contains)
+-   **Interactive Buttons**: HTML buttons in KB responses with data-action handlers (e.g., cancelar_assinatura, trocar_email)
+-   **Analytics System**: localStorage logging with export function, tracks all user questions for improvement
+-   **Painel Admin Local**: Standalone HTML (`/admin.html`) for KB management, log viewing, and CSV sales processing
+-   **Painel Admin API**: API-connected version (`/admin-api.html`) consumes backend microservice when available
+
+### Legal Documentation  
+-   **V4.1 Simplified**: Ultra-condensed HTML (1 paragraph) for quick acceptance, full PDFs for legal archive
+-   **Legal Validity Note**: Explicit reference to Art. 107 CC + Arts. 7º/10 Marco Civil for electronic acceptance
+-   **Official CNPJ**: 63.354.382/0001-71 included throughout
+-   **Company**: C.J.Dumke Tecnologia e Saúde LTDA / MEI, Foro: Paranavaí-PR
+
+### Backend Microservice V6 (Optional)
+-   **Location**: `medicohelp-backend/` (separate Node.js project)
+-   **Database**: SQLite (`data/medicohelp.db`) with users, logs, sales, protocols tables
+-   **APIs**: REST endpoints for KB CRUD, analytics, sales reporting, protocol versioning
+-   **Auth**: Simple token-based (header: `x-auth`)
+-   **Roles**: admin (full access) and editor (KB/protocols only)
+-   **Default credentials**: admin@medicohelp.com.br / medicohelp-admin
+-   **Port**: 3001 (configurable via .env)
+-   **Setup**: `cd medicohelp-backend && npm install && npm start`
 
 ## External Dependencies
 

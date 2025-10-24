@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hero MédicoHelp</title>
+  <style>
+    :root{
+      --bg:#082b2b;          /* fundo escuro esverdeado já usado por você */
+      --fg:#e7f6f2;          /* texto principal */
+      --muted:#cfe7e2;       /* texto secundário */
+      --green:#22c55e;       /* Modo Clínico */
+      --blue:#3b82f6;        /* Fundamentação Teórica */
+      --orange:#f59e0b;      /* MedPrime */
+      --maxw:1040px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;color:var(--fg);}
+    .wrap{max-width:var(--maxw);margin:0 auto;padding:40px 20px;}
+
+    /* HERO */
+    .hero{display:flex;flex-direction:column;gap:18px}
+
+    .h1{font-weight:800;line-height:1.1;letter-spacing:-0.01em;margin:0;}
+    /* responsivo sem quebrar feio */
+    .h1{font-size:clamp(28px,6vw,48px);} 
+
+    .lead{font-size:clamp(16px,2.2vw,18px);line-height:1.55;color:var(--muted);margin:0}
+    .lead b{color:var(--fg)}
+
+    /* Pílulas para equilibrar destaque entre os três blocos */
+    .pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-weight:700;font-size:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+    .dot{width:8px;height:8px;border-radius:999px;}
+    .pill--clinico .dot{background:var(--green)}
+    .pill--teorico .dot{background:var(--blue)}
+    .pill--medprime .dot{background:var(--orange)}
+
+    .disclaimer{margin-top:8px;font-style:italic;color:var(--muted);font-size:14px}
+
+    /* alinhamento fino (mantém eixo à esquerda, sem parecer "fora do prumo") */
+    .hero{align-items:flex-start}
+
+    /* opcional: linha sutil sob o título pra ancorar visualmente */
+    .underline{width:72px;height:3px;background:rgba(255,255,255,.18);border-radius:2px}
+
+    /* acessibilidade e contraste */
+    a{color:inherit}
+  </style>
+</head>
+<body>
+  <section class="wrap hero" aria-label="Apresentação da Dra. Clarice">
+    <h1 class="h1">Decisão clínica rápida, do jeito tradicional — feita por médicos, para médicos.</h1>
+    <div class="underline" aria-hidden="true"></div>
+
+    <p class="lead">
+      A Dra. Clarice apoia sua conduta com respostas objetivas <b>(Modo Clínico)</b> e explicações baseadas em evidências <b>(Fundamentação Teórica)</b>, além de ferramentas práticas <b>(MedPrime: calculadoras e posologia)</b>.
+    </p>
+
+    <div class="pills" role="list" aria-label="Modos de uso">
+      <span class="pill pill--clinico" role="listitem"><span class="dot" aria-hidden="true"></span>Modo Clínico</span>
+      <span class="pill pill--teorico" role="listitem"><span class="dot" aria-hidden="true"></span>Fundamentação Teórica</span>
+      <span class="pill pill--medprime" role="listitem"><span class="dot" aria-hidden="true"></span>MedPrime</span>
+    </div>
+
+    <p class="disclaimer">Clareza, segurança e medicina de verdade — do jeito que sempre funcionou.</p>
+  </section>
+</body>
+</html>

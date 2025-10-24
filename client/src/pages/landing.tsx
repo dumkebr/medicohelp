@@ -1,51 +1,7 @@
-import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
-  const [showCallModal, setShowCallModal] = useState(false);
-  const [callStatus, setCallStatus] = useState("Ligando para Dra. Clarice…");
-  const [audioButtonText, setAudioButtonText] = useState("📞 Ligar para a Dra. Clarice");
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  const handleMicClick = () => {
-    alert("Microfone: gravar e transcrever (placeholder).");
-  };
-
-  const handlePhoneClick = () => {
-    setShowCallModal(true);
-    setCallStatus("Ligando para Dra. Clarice…");
-    setTimeout(() => {
-      setCallStatus("Conectado com Dra. Clarice (simulação)");
-    }, 1200);
-  };
-
-  const handleCloseCall = () => {
-    setShowCallModal(false);
-    setCallStatus("Ligando para Dra. Clarice…");
-  };
-
-  const handleAudioCall = () => {
-    setAudioButtonText("🔔 Ligando para a Dra. Clarice...");
-    
-    setTimeout(() => {
-      setAudioButtonText("📞 Conversando com Dra. Clarice");
-      
-      // Try to play audio (best effort - may be blocked by browser)
-      if (audioRef.current) {
-        audioRef.current.src = "/audio/alo_doutor.mp3";
-        audioRef.current.load();
-        audioRef.current.play().catch(() => {
-          // Audio autoplay blocked - expected in some browsers
-        });
-      }
-      
-      // Reset button after conversation duration (6 seconds)
-      setTimeout(() => {
-        setAudioButtonText("📞 Ligar para a Dra. Clarice");
-      }, 6000);
-    }, 1800);
-  };
 
   return (
     <div style={{ 
@@ -76,15 +32,19 @@ export default function Landing() {
         .landing-nav a, .landing-btn { background: transparent; border: 1px solid rgba(255,255,255,.15); padding: 10px 14px; border-radius: 12px; color: var(--text); cursor: pointer; text-decoration: none; display: inline-block; }
         .landing-btn-primary { background: var(--teal); border: none; color: #042c28; font-weight: 700; }
         .landing-btn-primary:hover { background: var(--teal-2); }
-        .landing-hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: center; padding: 20px 0 10px; }
-        .landing-hero-card { background: var(--bg-2); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; }
-        .landing-hero h1 { font-size: 40px; line-height: 1.1; margin: 0 0 12px; }
-        .landing-hero p { color: var(--muted); font-size: 18px; }
-        .landing-cta { margin-top: 16px; display: flex; gap: 12px; }
-        .landing-chatbox { margin-top: 14px; background: #0c2b27; border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 12px; display: flex; gap: 10px; align-items: center; }
-        .landing-chatbox input { flex: 1; background: transparent; border: none; color: var(--text); font-size: 16px; outline: none; }
-        .landing-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: #0b2522; border: 1px solid rgba(255,255,255,.12); cursor: pointer; }
-        .landing-icon-btn:hover { background: #103330; }
+        .landing-hero { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; padding: 40px 0 20px; max-width: 1040px; }
+        .landing-hero h1 { font-weight: 800; line-height: 1.1; letter-spacing: -0.01em; margin: 0; font-size: clamp(28px, 6vw, 48px); }
+        .landing-hero .underline { width: 72px; height: 3px; background: rgba(255,255,255,.18); border-radius: 2px; }
+        .landing-hero .lead { font-size: clamp(16px, 2.2vw, 18px); line-height: 1.55; color: var(--muted); margin: 0; }
+        .landing-hero .lead b { color: var(--text); }
+        .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+        .pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 14px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); }
+        .pill .dot { width: 8px; height: 8px; border-radius: 999px; }
+        .pill--clinico .dot { background: #22c55e; }
+        .pill--teorico .dot { background: #3b82f6; }
+        .pill--medprime .dot { background: #f59e0b; }
+        .disclaimer { margin-top: 8px; font-style: italic; color: var(--muted); font-size: 14px; }
+        .landing-cta { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; }
         .landing-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .landing-card { background: var(--bg-2); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
         .landing-card h3 { margin: 0 0 8px; }
@@ -93,26 +53,11 @@ export default function Landing() {
         .landing-kicker { color: var(--teal); text-transform: uppercase; font-size: 12px; letter-spacing: 0.18em; }
         .landing-section h2 { margin: 6px 0 8px; font-size: 28px; }
         .landing-footer { padding: 26px 0; color: var(--muted); font-size: 14px; border-top: 1px solid rgba(255,255,255,.1); margin-top: 30px; }
-        .landing-hero-mini { display: flex; gap: 22px; align-items: center; }
-        .landing-hero-mini img { height: 220px; border-radius: 16px; box-shadow: var(--shadow); }
-        .landing-bubble { background: #0f2f2b; padding: 16px 18px; border-radius: 16px; max-width: 520px; box-shadow: var(--shadow); }
-        .landing-badge { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #0f2f2b; border: 1px solid rgba(255,255,255,.12); color: var(--muted); font-size: 12px; margin-right: 6px; }
         .landing-list { margin: 0; padding-left: 18px; color: var(--muted); }
-        .landing-notice { background: #0e2623; border-left: 4px solid var(--teal); padding: 12px 14px; border-radius: 8px; color: var(--muted); }
-        
-        .clarice-header { display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 60px; padding: 8px 16px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px); width: fit-content; min-width: 280px; margin-bottom: 16px; }
-        .clarice-info { display: flex; align-items: center; gap: 10px; }
-        .clarice-info img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; }
-        .clarice-info h3 { margin: 0; color: #34d399; font-size: 15px; font-weight: 700; }
-        .clarice-info p { margin: 0; color: #d1d5db; font-size: 13px; line-height: 1.2; }
-        .whatsapp-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: #25d366; border-radius: 50%; transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .whatsapp-btn:hover { transform: scale(1.12); box-shadow: 0 0 12px #25d366; }
-        .whatsapp-btn img { width: 24px; height: 24px; filter: brightness(0) invert(1); }
         
         @media (max-width: 900px) {
-          .landing-hero { grid-template-columns: 1fr; }
           .landing-grid-3 { grid-template-columns: 1fr; }
-          .landing-hero-mini img { height: 160px; }
+          .landing-hero h1 { font-size: clamp(24px, 5vw, 40px); }
         }
       `}</style>
 
@@ -139,92 +84,40 @@ export default function Landing() {
       {/* Main Content */}
       <main className="landing-container">
         {/* Hero Section */}
-        <section className="landing-hero">
-          <div className="landing-hero-card">
-            {/* Cabeçalho da Dra. Clarice com botão de WhatsApp */}
-            <div className="clarice-header">
-              <div className="clarice-info">
-                <img src="/assets/clarice-header.png" alt="Dra. Clarice — Assistente Médica IA" />
-                <div>
-                  <h3>Dra. Clarice</h3>
-                  <p>Assistente Médica IA</p>
-                </div>
-              </div>
-              <a 
-                href="https://wa.me/554491065757" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="whatsapp-btn" 
-                title="Conversar no WhatsApp"
-                data-testid="button-whatsapp"
-              >
-                <img src="/assets/whatsapp-icon.svg" alt="WhatsApp" />
-              </a>
-            </div>
-            
-            <h1>Decisão clínica rápida, do jeito tradicional — feita por médicos, para médicos.</h1>
-            <p style={{ marginBottom: '12px' }}>A Dra. Clarice apoia sua conduta com respostas objetivas (<strong>Modo Clínico</strong>), explicações baseadas em evidências e ferramentas práticas (<strong>MedPrime</strong>: calculadoras e posologia). Clareza, segurança e medicina de verdade — do jeito que sempre funcionou.</p>
-            <p style={{ color: '#1affb8', fontWeight: '600', marginBottom: '16px' }}>
-              💬 Sabia que você pode até "ligar" para a Dra. Clarice?<br />
-              Clique abaixo e ela te atende pessoalmente!
-            </p>
-            <div className="landing-cta">
-              <button 
-                className="landing-btn landing-btn-primary" 
-                onClick={handleAudioCall}
-                data-testid="button-ligar-clarice"
-              >
-                {audioButtonText}
-              </button>
-              <button 
-                className="landing-btn landing-btn-primary" 
-                onClick={() => setLocation("/register")}
-                data-testid="button-comecar"
-              >
-                Começar agora
-              </button>
-              <a className="landing-btn" href="#como-funciona">Como funciona</a>
-            </div>
-            
-            {/* Hidden audio element */}
-            <audio ref={audioRef} preload="auto">
-              <source src="/audio/alo_doutor.mp3" type="audio/mpeg" />
-              Seu navegador não suporta áudio.
-            </audio>
-            <div className="landing-chatbox" style={{ marginTop: '18px' }}>
-              <input placeholder="Digite sua mensagem…" data-testid="input-demo-message" />
-              <button 
-                className="landing-icon-btn" 
-                onClick={handleMicClick}
-                title="Falar com a Dra. Clarice (transcrever)"
-                data-testid="button-mic"
-              >
-                🎙️
-              </button>
-              <button 
-                className="landing-icon-btn" 
-                onClick={handlePhoneClick}
-                title="Ligar para a Dra. Clarice (modo voz)"
-                data-testid="button-phone"
-              >
-                📞
-              </button>
-            </div>
-            <div className="landing-notice" style={{ marginTop: '10px' }}>
-              Dica: Modo voz mostra um painel de ligação para a Dra. Clarice (simulação). Integração real pode ser acoplada depois.
-            </div>
+        <section className="landing-hero" aria-label="Apresentação da Dra. Clarice">
+          <h1>Decisão clínica rápida, do jeito tradicional — feita por médicos, para médicos.</h1>
+          <div className="underline" aria-hidden="true"></div>
+          
+          <p className="lead">
+            A Dra. Clarice apoia sua conduta com respostas objetivas <b>(Modo Clínico)</b> e explicações baseadas em evidências <b>(Fundamentação Teórica)</b>, além de ferramentas práticas <b>(MedPrime: calculadoras e posologia)</b>.
+          </p>
+          
+          <div className="pills" role="list" aria-label="Modos de uso">
+            <span className="pill pill--clinico" role="listitem" data-testid="pill-clinico">
+              <span className="dot" aria-hidden="true"></span>
+              Modo Clínico
+            </span>
+            <span className="pill pill--teorico" role="listitem" data-testid="pill-teorico">
+              <span className="dot" aria-hidden="true"></span>
+              Fundamentação Teórica
+            </span>
+            <span className="pill pill--medprime" role="listitem" data-testid="pill-medprime">
+              <span className="dot" aria-hidden="true"></span>
+              MedPrime
+            </span>
           </div>
-          <div className="landing-hero-mini">
-            <img src="/assets/clarice_png.png" alt="Dra. Clarice" />
-            <div className="landing-bubble">
-              <strong>Olá, eu sou a Dra. Clarice!</strong><br />
-              Bem-vindo ao MédicoHelp. Como posso ajudar você hoje?
-              <div style={{ marginTop: '10px' }}>
-                <span className="landing-badge">Modo Clínico</span>
-                <span className="landing-badge">Evidências Clínicas</span>
-                <span className="landing-badge">MedPrime</span>
-              </div>
-            </div>
+          
+          <p className="disclaimer">Clareza, segurança e medicina de verdade — do jeito que sempre funcionou.</p>
+          
+          <div className="landing-cta">
+            <button 
+              className="landing-btn landing-btn-primary" 
+              onClick={() => setLocation("/register")}
+              data-testid="button-comecar"
+            >
+              Começar agora
+            </button>
+            <a className="landing-btn" href="#recursos" data-testid="link-recursos">Conhecer recursos</a>
           </div>
         </section>
 
@@ -304,53 +197,6 @@ export default function Landing() {
           </p>
         </section>
       </main>
-
-      {/* Call Modal */}
-      {showCallModal && (
-        <div 
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,.55)',
-            backdropFilter: 'blur(2px)',
-            zIndex: 10000
-          }}
-          onClick={handleCloseCall}
-        >
-          <div 
-            style={{
-              maxWidth: '520px',
-              margin: '8% auto',
-              background: '#0c2b27',
-              borderRadius: '16px',
-              boxShadow: 'var(--shadow)',
-              padding: '18px'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <img 
-                src="/assets/clarice_png.png" 
-                alt="Dra. Clarice" 
-                style={{ height: '96px', borderRadius: '12px' }} 
-              />
-              <div>
-                <div style={{ fontWeight: '700' }}>Ligando para Dra. Clarice…</div>
-                <div className="landing-bullets">{callStatus}</div>
-              </div>
-            </div>
-            <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button 
-                className="landing-btn" 
-                onClick={handleCloseCall}
-                data-testid="button-close-call"
-              >
-                Encerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Footer */}
       <footer className="landing-container landing-footer">

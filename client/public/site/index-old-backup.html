@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MédicoHelp</title>
+  <link rel="stylesheet" href="css/style.css?v=cards-brancos-fix2">
+  <meta name="color-scheme" content="dark light">
+</head>
+<body>
+  <header class="mh-header">
+    <div class="mh-container mh-flex-between">
+      <div class="mh-logo">
+        <img src="assets/logo-lockup.png" alt="MédicoHelp" class="mh-logo-img">
+        <small class="mh-powered">POWERED BY GPT-5</small>
+      </div>
+      <nav class="mh-nav">
+        <a href="#/" class="is-active">Início</a>
+        <a href="#/medprime">MedPrime</a>
+        <a href="#/recursos">Recursos</a>
+        <a href="#/precos">Planos</a>
+        <a href="#/entrar" id="btn-entrar">Entrar</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="app">
+    <section class="mh-hero">
+      <div class="mh-container mh-hero-grid">
+        <div class="mh-hero-copy">
+          <div class="mh-chip">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2v6M7 4.5A9 9 0 1 0 21 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            CONHEÇA A DRA. CLARICE
+          </div>
+          <h1>Assistente médica inteligente — 24/7, direta e confiável</h1>
+          <p class="mh-lead">Condutas objetivas, evidências clínicas e ferramentas que agilizam seu plantão. Envie exames, descreva lesões, gere SOAP e acione a voz da Dra. Clarice quando precisar.</p>
+          <div class="mh-cta">
+            <a class="mh-btn" id="cta-comecar">Começar agora</a>
+            <a class="mh-btn ghost" id="cta-voz">Ligar para a Dra. Clarice</a>
+            <a class="mh-btn ghost" id="cta-upload">Enviar exame</a>
+          </div>
+          <ul class="mh-hero-points">
+            <li>Interpretação de imagens (RX, USG, TC, RM) e dermatologia com descrição clínica.</li>
+            <li>Histórias clínicas no formato <b>SOAP</b> ou personalizadas, prontas para o prontuário.</li>
+            <li>Calculadoras integradas e módulo <b>MedPrime</b> para doses e scores.</li>
+          </ul>
+        </div>
+        <div class="mh-hero-clarice">
+          <img src="assets/clarice.png" alt="Dra. Clarice" />
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="mh-section"></section>
+
+    <section id="plans" class="mh-section">
+      <div class="mh-container">
+        <h2 class="mh-title center">Planos (beta)</h2>
+        <div class="mh-grid">
+          <div class="mh-card span-6">
+            <h4>Essencial</h4>
+            <p>Uso individual básico + MedPrime. Ideal para plantão.</p>
+            <ul class="mh-bullets">
+              <li>Modo Clínico + Evidências</li>
+              <li>MedPrime ilimitado</li>
+              <li>Suporte por e-mail</li>
+            </ul>
+            <div class="mh-price">R$ —</div>
+          </div>
+          <div class="mh-card span-6">
+            <h4>Profissional</h4>
+            <p>Inclui anexos/voz, história clínica automática e roadmap de laudos.</p>
+            <ul class="mh-bullets">
+              <li>Anexos (foto/áudio/PDF)</li>
+              <li>Modo Voz (simulado)</li>
+              <li>Pré-natal inteligente (em breve)</li>
+            </ul>
+            <div class="mh-price">R$ —</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="mh-footer">
+    <div class="mh-container mh-flex-between">
+      <p>© MédicoHelp — feito por médicos, para médicos.</p>
+      <p><a href="#/termos">Termos</a> · <a href="#/privacidade">Privacidade</a></p>
+    </div>
+  </footer>
+
+  <div class="mh-modal" id="modal-voz" hidden>
+    <div class="mh-modal-box">
+      <h3>Ligando para a Dra. Clarice…</h3>
+      <p>A chamada de voz é simulada nesta versão. Se sua plataforma tiver WebRTC/SDK, conectaremos automaticamente.</p>
+      <div class="mh-modal-actions">
+        <button class="mh-btn" id="voz-iniciar">Iniciar</button>
+        <button class="mh-btn ghost" data-close="#modal-voz">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mh-modal" id="modal-upload" hidden>
+    <div class="mh-modal-box">
+      <h3>Enviar exame/lesão</h3>
+      <p>Faça upload de imagem/PDF. Caso sua SPA tenha um uploader próprio, chamaremos ele automaticamente.</p>
+      <input type="file" id="file-input" multiple accept="image/*,.pdf">
+      <div class="mh-modal-actions">
+        <button class="mh-btn" id="upload-enviar">Enviar</button>
+        <button class="mh-btn ghost" data-close="#modal-upload">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

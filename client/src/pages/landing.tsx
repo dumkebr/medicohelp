@@ -164,7 +164,11 @@ export default function Landing() {
               </a>
             </div>
             
-            <span className="landing-kicker">Apresentamos a Dra. Clarice</span>
+            {/* Ícone do coração médico */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <img src="/assets/heart-icon.png" alt="MédicoHelp" style={{ height: '48px', width: '48px' }} />
+            </div>
+            
             <h1>Decisão clínica rápida, do jeito tradicional — feita por médicos, para médicos.</h1>
             <p style={{ marginBottom: '12px' }}>A Dra. Clarice apoia sua conduta com respostas objetivas (<strong>Modo Clínico</strong>), explicações baseadas em evidências e ferramentas práticas (<strong>MedPrime</strong>: calculadoras e posologia). Clareza, segurança e medicina de verdade — do jeito que sempre funcionou.</p>
             <p style={{ color: '#1affb8', fontWeight: '600', marginBottom: '16px' }}>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MédicoHelp - VERSÃO LEGÍVEL</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background: #0d3b3a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #ffffff;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    .alert {
+      background: #ffeb3b;
+      color: #000;
+      padding: 30px;
+      border-radius: 12px;
+      margin: 0 auto 40px;
+      max-width: 900px;
+      font-weight: 900;
+      text-align: center;
+      font-size: 24px;
+      border: 4px solid #ffc107;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #ffffff;
+      font-size: 36px;
+      margin-bottom: 40px;
+      text-align: center;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    
+    .section-title {
+      font-size: 20px;
+      letter-spacing: 0.2em;
+      color: #19c29e;
+      margin: 50px 0 30px;
+      text-transform: uppercase;
+      font-weight: 900;
+      text-align: center;
+    }
+    
+    .grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      margin-bottom: 50px;
+    }
+    
+    /* CARDS COM FUNDO BRANCO SÓLIDO */
+    .card {
+      background: #FFFFFF !important;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      transition: 0.2s;
+      cursor: pointer;
+      border: 3px solid #19c29e;
+    }
+    
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+      border-color: #15a085;
+    }
+    
+    /* TÍTULOS DOS CARDS EM PRETO */
+    .card h3 {
+      margin: 0 0 16px;
+      color: #000000 !important;
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.3;
+    }
+    
+    /* TEXTO DOS CARDS EM PRETO */
+    .card p {
+      color: #000000 !important;
+      margin: 0;
+      line-height: 1.8;
+      font-size: 16px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="alert">
+    ⚠️ VERSÃO COM MÁXIMO CONTRASTE - CARDS BRANCOS COM TEXTO PRETO ⚠️
+  </div>
+  
+  <div class="container">
+    <h1>🩺 MédicoHelp - Plataforma Médica IA</h1>
+    
+    <div class="section-title">📋 O QUE É</div>
+    
+    <div class="grid">
+      <div class="card">
+        <h3>Modo Clínico</h3>
+        <p>Respostas passo a passo, linguagem médica tradicional. Protocolos de PS (dor torácica, dispneia, febre, convulsão, dor abdominal etc.).</p>
+      </div>
+      
+      <div class="card">
+        <h3>Evidências Clínicas</h3>
+        <p>Explicações com base científica, raciocínio terapêutico e referências atualizadas. Ideal para registrar fundamentação teórica.</p>
+      </div>
+      
+      <div class="card">
+        <h3>MedPrime (Calculadoras)</h3>
+        <p>Dose mg/kg, ajustes renal/gestante, conversões para mL/comprimidos, limites por dose/dia. Rápido, preciso e auditável.</p>
+      </div>
+    </div>
+    
+    <div class="section-title">⚡ RECURSOS PRINCIPAIS</div>
+    
+    <div class="grid">
+      <div class="card">
+        <h3>História Clínica Automatizada</h3>
+        <p>Envie imagens de exames ou lesões de pele — a IA descreve automaticamente (cor, bordas, tamanho, padrão) e gera texto clínico pronto. PDFs/laudos são interpretados e liberados digitados para colar na história clínica.</p>
+      </div>
+      
+      <div class="card">
+        <h3>Modo Voz "Ligar para a Dra. Clarice"</h3>
+        <p>Ícone de telefone inicia a chamada simulada. Tire dúvidas de conduta, posologia e interpretação por voz, em tempo real.</p>
+      </div>
+      
+      <div class="card">
+        <h3>Upload de exames e laudos com leitura automática</h3>
+        <p>RX, USG, TC, RM e Dermatologia. Ajuda na leitura e correlação clínica, com resumo estruturado pronto para a anamnese.</p>
+      </div>
+      
+      <div class="card">
+        <h3>Calculadoras Inteligentes</h3>
+        <p>Peça os cálculos pela IA (doses, correções, scores) ou acesse direto o módulo MedPrime com todas as calculadoras.</p>
+      </div>
+      
+      <div class="card">
+        <h3>Histórias Clínicas Automáticas</h3>
+        <p>Gere SOAP tradicional ou um modelo personalizado ao seu estilo. Tudo limpo, objetivo e pronto para o prontuário.</p>
+      </div>
+      
+      <div class="card">
+        <h3>Segurança e LGPD</h3>
+        <p>Cadastro controlado (CRM/UF ou Aluno 6º ano com universidade), termo de confidencialidade e verificação por e-mail/WhatsApp.</p>
+      </div>
+    </div>
+    
+    <div class="section-title">🚀 EM BREVE</div>
+    
+    <div class="grid">
+      <div class="card">
+        <h3>Especialidades Avançadas</h3>
+        <p>Especialidades avançadas (gestantes, lactantes, pediatria e emergência), videoatendimento médico pela plataforma, geração de relatórios inteligentes e integração completa com o PosologiaCerta.</p>
+      </div>
+      
+      <div class="card">
+        <h3>Módulo Pré-natal Inteligente</h3>
+        <p>IG automática, acompanhamento de exames, relatórios e alertas de risco gestacional para agilizar o pré-natal.</p>
+      </div>
+      
+      <div class="card">
+        <h3>Atendimentos Digitais</h3>
+        <p>Consultas por vídeo integradas, emissão de receitas, laudos e pedidos — com validação via Memed (roadmap).</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

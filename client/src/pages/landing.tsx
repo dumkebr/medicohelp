@@ -120,22 +120,23 @@ export default function Landing() {
       <header className="landing-container landing-header">
         <div className="landing-brand">
           <img src="/assets/logo_main.png" alt="MédicoHelp logo" className="logo-img" />
-          <div className="brand-content">
-            <div className="title">MédicoHelp</div>
-            <img src="/assets/heart-icon.png" alt="Ícone médico" className="heart-icon" />
-          </div>
+          <div className="title">MédicoHelp</div>
         </div>
-        <nav className="landing-nav">
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img src="/assets/heart-icon.png" alt="Ícone médico" style={{ height: '32px', width: '32px' }} />
+          <nav className="landing-nav">
           <a href="#recursos">Recursos</a>
           <a href="/termo-confidencialidade">Confidencialidade</a>
-          <button 
-            className="landing-btn landing-btn-primary" 
-            onClick={() => setLocation("/register")}
-            data-testid="button-cadastro"
-          >
-            Entrar
-          </button>
-        </nav>
+            <button 
+              className="landing-btn landing-btn-primary" 
+              onClick={() => setLocation("/register")}
+              data-testid="button-cadastro"
+            >
+              Entrar
+            </button>
+          </nav>
+        </div>
       </header>
 
       {/* Main Content */}

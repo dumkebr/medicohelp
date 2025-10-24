@@ -1,0 +1,32 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadastro – MédicoHelp – Plataforma de Apoio à Decisão Médica</title>
+<link rel="stylesheet" href="static/style.css">
+<script>
+function salvarConsentimento(e){
+  const ok = document.getElementById('aceite').checked;
+  if(!ok){ alert('Para prosseguir, aceite o Termo de Uso.'); e.preventDefault(); return false; }
+  localStorage.setItem('mh_aceite_termo', new Date().toISOString());
+  alert('Cadastro enviado (exemplo). Aceite registrado.');
+}
+</script></head>
+<body><div class="container"><div class="card">
+<div class="header"><strong>MédicoHelp – Plataforma de Apoio à Decisão Médica</strong></div>
+<h1>Cadastro</h1>
+<form onsubmit="salvarConsentimento(event)">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <label>Nome completo<input required></label>
+    <label>E-mail<input required type="email"></label>
+    <label>Telefone/WhatsApp<input required value="+55 44 9106-5757"></label>
+    <label>Perfil<select required><option value="">Selecione</option><option>Médico</option><option>Aluno 6º ano</option></select></label>
+    <label>CRM<input></label>
+    <label>UF<input maxlength="2" placeholder="PR"></label>
+    <label>Universidade<input></label>
+  </div>
+  <div class="notice" style="margin-top:14px"><strong>Aviso:</strong> Uso exclusivo para apoio à decisão médica e educação.</div>
+  <p><input id="aceite" type="checkbox" required> Declaro que <a href="legal/termo.html" target="_blank">li e aceito o Termo de Uso</a> e a <a href="legal/privacidade.html" target="_blank">Política de Privacidade</a>.</p>
+  <button class="btn" type="submit">Enviar cadastro</button> <a class="btn" href="legal/termo.html" target="_blank">Ler termo</a>
+</form>
+<div class="footer-box"><p><strong>C.J.Dumke Tecnologia e Saúde LTDA / MEI</strong> – CNPJ 63.354.382/0001-71<br>Avenida James Patrick Clark, 41 – Pôr do Sol, Terra Rica/PR – CEP 87890-000<br>Contato: +55 44 9106-5757 · sic@medicohelp.com.br</p>
+<p><small>MédicoHelp – Plataforma de Apoio à Decisão Médica. MédicoHelp – Desenvolvido por médicos, para médicos.</small></p></div>
+</div></div></body></html>

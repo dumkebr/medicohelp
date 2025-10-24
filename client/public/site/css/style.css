@@ -39,24 +39,44 @@ a{color:var(--accent);text-decoration:none}
 .mh-hero-points{color:var(--txt-secondary);padding-left:18px;line-height:1.7}
 .mh-hero-points li{margin:8px 0}
 .mh-section{padding:8px 0 28px}
-.mh-title{font-size:clamp(22px,3vw,34px);font-weight:800;margin:0 0 6px;color:var(--txt)}
+.mh-title{font-size:clamp(22px,3vw,34px);font-weight:800;margin:0 0 12px;color:var(--txt)}
 .center{text-align:center}
 .mh-grid{display:grid;gap:14px;grid-template-columns:repeat(12,1fr)}
+
+/* CARDS COM FUNDO BRANCO - ALTA LEGIBILIDADE */
 .mh-card{
   grid-column:span 12;
-  background:var(--panel);
+  background:#ffffff;
   border-radius:var(--radius);
-  padding:16px;
-  box-shadow:var(--shadow);
+  padding:20px;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
   transition:.18s;
   position:relative;
   overflow:hidden;
   cursor:pointer;
-  border:1px solid rgba(25,194,158,.12);
+  border:1px solid rgba(25,194,158,.2);
 }
-.mh-card:hover{background:var(--panel-2);transform:translateY(-1px);border-color:rgba(25,194,158,.25)}
-.mh-card h4{margin:0 0 8px;color:var(--txt);font-size:18px;font-weight:700}
-.mh-card p{color:var(--txt-secondary);margin:0;line-height:1.6}
+.mh-card:hover{
+  background:#f8fffe;
+  transform:translateY(-2px);
+  box-shadow:0 6px 25px rgba(0,0,0,.4);
+  border-color:rgba(25,194,158,.4)
+}
+.mh-card h4{
+  margin:0 0 10px;
+  color:#0d3b3a;
+  font-size:19px;
+  font-weight:800;
+  line-height:1.4;
+}
+.mh-card p{
+  color:#0d3b3a;
+  margin:0;
+  line-height:1.7;
+  font-size:15px;
+  opacity:0.85;
+}
+
 .mh-bullets{margin:8px 0 0;color:var(--txt-secondary);padding-left:18px}
 .mh-bullets li{margin:4px 0}
 .mh-price{margin-top:12px;font-weight:800;color:var(--accent);font-size:20px}
@@ -74,8 +94,16 @@ a{color:var(--accent);text-decoration:none}
 .mh-modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
 /* partial */
 .mh-wrap{background:linear-gradient(180deg,#0b3332,var(--bg)); color:var(--txt); padding:32px 20px; border-radius:24px; box-shadow:var(--shadow);}
-.mh-sub{font-size:clamp(14px,2vw,18px); color:var(--txt-secondary); margin:0 0 20px;line-height:1.7}
-.mh-section-title{font-size:16px; letter-spacing:.18em; color:var(--accent); margin:24px 0 16px; text-transform:uppercase;font-weight:800}
-.mh-kicker{font-size:clamp(18px,2.4vw,22px); font-weight:700; margin:0 0 14px;color:var(--txt)}
+.mh-sub{font-size:clamp(15px,2vw,19px); color:var(--txt); margin:0 0 20px;line-height:1.7;font-weight:400}
+.mh-section-title{
+  font-size:15px; 
+  letter-spacing:.15em; 
+  color:var(--accent); 
+  margin:32px 0 16px; 
+  text-transform:uppercase;
+  font-weight:800;
+  text-align:center;
+}
+.mh-kicker{font-size:clamp(18px,2.4vw,22px); font-weight:700; margin:0 0 20px;color:var(--txt);text-align:center}
 .mh-ico{width:18px;height:18px;color:var(--accent);flex:0 0 18px}
-.mh-hr{height:1px;background:linear-gradient(90deg,transparent, rgba(26,165,142,.5), transparent); margin:32px 0}
+.mh-hr{height:1px;background:linear-gradient(90deg,transparent, rgba(26,165,142,.5), transparent); margin:40px 0}

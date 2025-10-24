@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { register as registerUser } from "@/lib/authService";
@@ -26,6 +27,9 @@ const registerSchema = z.object({
   role: z.enum(["medico", "estudante"], { required_error: "Selecione um papel" }),
   crm: z.string().optional(),
   uf: z.string().optional(),
+  termsAccepted: z.boolean().refine((val) => val === true, {
+    message: "Você deve aceitar os Termos de Uso para criar uma conta",
+  }),
 }).refine((data) => {
   if (data.role === "medico") {
     return !!data.crm && !!data.uf;
@@ -53,6 +57,7 @@ export default function Register() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       role: "estudante",
+      termsAccepted: false,
     },
   });
 
@@ -191,6 +196,46 @@ export default function Register() {
                 </div>
               </>
             )}
+
+            {/* Terms Acceptance */}
+            <div className="space-y-3 pt-4 border-t">
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="termsAccepted"
+                  checked={watch("termsAccepted")}
+                  onCheckedChange={(checked) => setValue("termsAccepted", checked as boolean)}
+                  data-testid="checkbox-terms"
+                />
+                <div className="flex-1">
+                  <Label htmlFor="termsAccepted" className="text-sm font-normal leading-relaxed cursor-pointer">
+                    Declaro que{" "}
+                    <a 
+                      href="/legal/termo.html" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium"
+                      data-testid="link-terms"
+                    >
+                      li e aceito o Termo de Uso
+                    </a>
+                    {" "}e a{" "}
+                    <a 
+                      href="/legal/privacidade.html" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium"
+                      data-testid="link-privacy"
+                    >
+                      Política de Privacidade
+                    </a>
+                    .
+                  </Label>
+                </div>
+              </div>
+              {errors.termsAccepted && (
+                <p className="text-sm text-destructive pl-8">{errors.termsAccepted.message}</p>
+              )}
+            </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button

@@ -124,7 +124,7 @@ export default function Landing() {
         
         <nav className="landing-nav">
           <a href="#recursos">Recursos</a>
-          <a href="/termo-confidencialidade">Confidencialidade</a>
+          <a href="/legal/termo.html" target="_blank" rel="noopener noreferrer">Termo de Uso</a>
           <button 
             className="landing-btn landing-btn-primary" 
             onClick={() => setLocation("/register")}
@@ -288,7 +288,7 @@ export default function Landing() {
             >
               Fazer cadastro
             </button>
-            <a className="landing-btn" href="/termo-confidencialidade">Ler termo</a>
+            <a className="landing-btn" href="/legal/termo.html" target="_blank" rel="noopener noreferrer">Ler termo</a>
           </div>
         </section>
 
@@ -321,7 +321,7 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="landing-container landing-footer">
-        © 2025 MédicoHelp · Desenvolvido por Dr. Clairton Luis Dumke (CRM PR 53866) · <a href="/privacidade">Privacidade</a>
+        © 2025 MédicoHelp · Desenvolvido por Dr. Clairton Luis Dumke (CRM PR 53866) · <a href="/legal/privacidade.html" target="_blank" rel="noopener noreferrer">Privacidade</a>
       </footer>
     </div>
   );

@@ -68,6 +68,17 @@ export default function Landing() {
         .pill--medprime .dot { background: #f59e0b; }
         .disclaimer { margin-top: 8px; font-style: italic; color: var(--muted); font-size: 14px; text-align: center; max-width: 700px; }
         .landing-cta { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+        
+        /* Clarice Card */
+        .clarice-card { display: flex; align-items: center; gap: 32px; background: linear-gradient(135deg, #0a3834 0%, #0c4540 100%); border-radius: 24px; padding: 40px; margin: 60px auto; max-width: 900px; box-shadow: 0 20px 60px rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.08); position: relative; overflow: hidden; }
+        .clarice-card::before { content: ''; position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(31,183,166,0.15) 0%, transparent 70%); border-radius: 50%; }
+        .clarice-card-image { width: 280px; height: 280px; border-radius: 50%; object-fit: cover; border: 4px solid var(--teal); box-shadow: 0 10px 40px rgba(31,183,166,.3); flex-shrink: 0; background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%); }
+        .clarice-card-content { flex: 1; z-index: 1; }
+        .clarice-card-badge { display: inline-block; background: rgba(31,183,166,.2); border: 1px solid var(--teal); color: var(--teal); padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
+        .clarice-card h2 { font-size: 32px; font-weight: 800; margin: 0 0 12px; line-height: 1.2; }
+        .clarice-card p { font-size: 17px; line-height: 1.6; color: var(--muted); margin: 0 0 10px; }
+        .clarice-card-highlight { color: var(--teal); font-weight: 700; }
+        
         .landing-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .landing-card { background: var(--bg-2); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
         .landing-card h3 { margin: 0 0 8px; }
@@ -81,6 +92,10 @@ export default function Landing() {
         @media (max-width: 900px) {
           .landing-grid-3 { grid-template-columns: 1fr; }
           .landing-hero h1 { font-size: clamp(24px, 5vw, 40px); }
+          .clarice-card { flex-direction: column; text-align: center; padding: 30px 20px; }
+          .clarice-card-image { width: 200px; height: 200px; }
+          .clarice-card h2 { font-size: 26px; }
+          .clarice-card p { font-size: 16px; }
         }
       `}</style>
 
@@ -161,6 +176,34 @@ export default function Landing() {
             Seu navegador não suporta áudio.
           </audio>
         </section>
+
+        {/* Clarice Presentation Card */}
+        <div className="landing-container">
+          <div className="clarice-card">
+            <img 
+              src="/assets/clarice-hero.png" 
+              alt="Dra. Clarice - Assistente Médica IA" 
+              className="clarice-card-image"
+              data-testid="img-clarice-hero"
+            />
+            <div className="clarice-card-content">
+              <span className="clarice-card-badge">🤖 Powered by GPT-5</span>
+              <h2>Conheça a Dra. Clarice</h2>
+              <p>
+                Sua <span className="clarice-card-highlight">assistente médica inteligente</span> disponível 24/7, 
+                treinada com conhecimento médico atualizado e pronta para apoiar suas decisões clínicas.
+              </p>
+              <p>
+                💡 <strong>Respostas em segundos</strong> — Condutas objetivas, evidências científicas e 
+                ferramentas práticas para o dia a dia médico.
+              </p>
+              <p style={{ marginTop: '16px', fontSize: '15px', fontStyle: 'italic' }}>
+                "Do plantão ao consultório, a Dra. Clarice está sempre ao seu lado — 
+                <span className="clarice-card-highlight"> sem julgamentos, sem pressa, com toda a medicina que você precisa.</span>"
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Como Funciona */}
         <section id="como-funciona" className="landing-section">

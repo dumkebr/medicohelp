@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { FaWhatsapp } from "react-icons/fa";
 import { Mail, X, Send } from "lucide-react";
-import { loadKB, findAnswer, type KBItem } from "@/lib/clarice-brain";
+import { loadAllKB, findAnswer, handleAction, logQuestion, type KBItem } from "@/lib/clarice-brain";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
@@ -15,9 +15,9 @@ export default function Landing() {
   const [kb, setKb] = useState<KBItem[]>([]);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Load Knowledge Base on mount
+  // Load Knowledge Base on mount (modular V5)
   useEffect(() => {
-    loadKB().then(data => setKb(data));
+    loadAllKB().then((data: KBItem[]) => setKb(data));
   }, []);
 
   const handleAudioCall = () => {
@@ -46,8 +46,11 @@ export default function Landing() {
     setMessages(prev => [...prev, { text, sender: 'user' }]);
     setInputValue("");
 
+    // Log question for analytics
+    logQuestion(text);
+
     setTimeout(() => {
-      // Try to find answer in Knowledge Base
+      // Try to find answer in Knowledge Base (V5 modular)
       const answer = findAnswer(kb, text);
       
       if (answer) {
@@ -73,6 +76,22 @@ export default function Landing() {
       }
     }, 700);
   };
+
+  // Handle action buttons in KB responses (V5)
+  useEffect(() => {
+    const handleActionClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('clarice-action')) {
+        const action = target.getAttribute('data-action');
+        if (action) {
+          handleAction(action);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleActionClick);
+    return () => document.removeEventListener('click', handleActionClick);
+  }, []);
 
   return (
     <div style={{ 
@@ -245,6 +264,38 @@ export default function Landing() {
           align-self: flex-end;
           color: #042c28;
           font-weight: 500;
+        }
+        
+        /* KB Action Buttons (V5) */
+        .clarice-action {
+          display: inline-block;
+          margin-top: 8px;
+          padding: 8px 16px;
+          background: #00d9a3;
+          color: #041012;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 13px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .clarice-action:hover {
+          background: #1affb8;
+          transform: translateY(-1px);
+        }
+        .clarice-action:active {
+          transform: translateY(0);
+        }
+        .clarice-whats {
+          color: #1affb8 !important;
+          font-weight: 600;
+          text-decoration: none;
+          border-bottom: 1px solid rgba(26, 255, 184, 0.3);
+          transition: border-color 0.2s ease;
+        }
+        .clarice-whats:hover {
+          border-bottom-color: #1affb8;
         }
         
         .floating-chat-input {

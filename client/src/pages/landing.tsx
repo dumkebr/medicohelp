@@ -96,33 +96,60 @@ export default function Landing() {
   // Setup window.MedicoHelp global API
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const ROUTES: Record<string, string> = {
+        history: '/',
+        voice: '/',
+        medprime: '/medprime',
+        calculators: '/medprime',
+        upload: '/',
+        evidence: '/',
+        avancado: '/avancado'
+      };
+
       (window as any).MedicoHelp = {
-        navigate: (route: string) => {
-          if (route.startsWith('/')) {
-            setLocation(route);
+        // Navegação genérica (ajustada para Wouter SPA)
+        navigate: (routeKeyOrUrl: string) => {
+          const url = ROUTES[routeKeyOrUrl] || routeKeyOrUrl || '/';
+          // Usa o hook interno da SPA (Wouter)
+          if (url.startsWith('/')) {
+            setLocation(url);
           } else {
-            const routes: Record<string, string> = {
-              history: '/',
-              voice: '/',
-              medprime: '/medprime',
-              calculators: '/medprime'
-            };
-            setLocation(routes[route] || '/');
+            // Fallback: recarrega página se não for rota interna
+            window.location.href = url;
           }
         },
-        createHistory: ({ mode = 'SOAP' }: { mode?: string }) => {
+        
+        // Abre História Clínica (modo SOAP por padrão)
+        createHistory: ({ mode = 'SOAP' }: { mode?: string } = {}) => {
           setLocation('/');
         },
+        
+        // Abre o Modo Voz / "ligar para a Dra. Clarice"
         openVoice: () => {
           handleAudioCall();
         },
+        
+        // Upload de exames
         openUploader: () => {
           setLocation('/');
         },
+        
+        // Acessos rápidos
+        openCalculators: () => {
+          setLocation('/medprime');
+        },
+        
+        openEvidence: () => {
+          setLocation('/');
+        },
+        
         openMedPrime: () => {
           setLocation('/medprime');
         }
       };
+
+      // Log discreto para depuração
+      console.debug('[MédicoHelp] API global inicializada. Rotas:', ROUTES);
     }
   }, [setLocation]);
 

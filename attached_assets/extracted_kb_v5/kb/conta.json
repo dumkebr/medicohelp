@@ -1,0 +1,22 @@
+[
+  {
+    "id": "cadastro",
+    "perguntas": [
+      "como faço cadastro",
+      "cadastrar",
+      "criar conta",
+      "começar a usar"
+    ],
+    "resposta_html": "Para se cadastrar: informe <b>CRM</b> e <b>UF</b>. Se for <b>aluno do 6º ano</b>, informe a <b>Universidade</b>. Aceite o <a href='/termo-confidencialidade.html' target='_blank'>Termo</a>."
+  },
+  {
+    "id": "trocar_email",
+    "perguntas": [
+      "trocar e-mail",
+      "alterar email",
+      "mudar e-mail",
+      "erro de e-mail"
+    ],
+    "resposta_html": "Precisa atualizar seu e-mail? Posso encaminhar ao suporte:<br><button class='clarice-action' data-action='trocar_email'>Trocar e-mail</button>"
+  }
+]

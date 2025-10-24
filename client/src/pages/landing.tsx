@@ -1,5 +1,7 @@
 import { useState, useRef } from "react";
 import { useLocation } from "wouter";
+import { FaWhatsapp } from "react-icons/fa";
+import { Mail } from "lucide-react";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
@@ -91,6 +93,15 @@ export default function Landing() {
         .landing-section h2 { margin: 6px 0 8px; font-size: 28px; }
         .landing-footer { padding: 26px 0; color: var(--muted); font-size: 14px; border-top: 1px solid rgba(255,255,255,.1); margin-top: 30px; }
         .landing-list { margin: 0; padding-left: 18px; color: var(--muted); }
+        
+        /* Contact Buttons */
+        .contact-buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+        .contact-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: 12px; font-weight: 600; font-size: 15px; text-decoration: none; transition: all 0.2s; border: none; cursor: pointer; }
+        .contact-btn-whatsapp { background: #25D366; color: #fff; }
+        .contact-btn-whatsapp:hover { background: #20BA5A; transform: translateY(-2px); }
+        .contact-btn-email { background: rgba(255,255,255,.1); color: var(--text); border: 1px solid rgba(255,255,255,.2); }
+        .contact-btn-email:hover { background: rgba(255,255,255,.15); transform: translateY(-2px); }
+        .contact-btn svg { width: 20px; height: 20px; }
         
         @media (max-width: 900px) {
           .landing-grid-3 { grid-template-columns: 1fr; }
@@ -285,9 +296,26 @@ export default function Landing() {
         <section className="landing-section">
           <span className="landing-kicker">Contato</span>
           <h2>Fale com a equipe</h2>
-          <p className="landing-bullets">
-            WhatsApp: <strong>+55 44 9106-5757</strong> · E-mail: <strong>sic@medicohelp.com.br</strong>
-          </p>
+          <div className="contact-buttons">
+            <a 
+              href="https://wa.me/5544991065757?text=Olá!%20Gostaria%20de%20saber%20mais%20sobre%20o%20MédicoHelp" 
+              className="contact-btn contact-btn-whatsapp"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="button-whatsapp"
+            >
+              <FaWhatsapp />
+              WhatsApp: (44) 9106-5757
+            </a>
+            <a 
+              href="mailto:sic@medicohelp.com.br?subject=Contato%20-%20MédicoHelp"
+              className="contact-btn contact-btn-email"
+              data-testid="button-email"
+            >
+              <Mail />
+              sic@medicohelp.com.br
+            </a>
+          </div>
         </section>
       </main>
 

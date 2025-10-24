@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MédicoHelp – Bloco O QUE É / RECURSOS / EM BREVE</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Componente independente -->
+  <section class="mh-wrap" aria-label="Apresentação MédicoHelp">
+    <div class="mh-chip">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="mh-ico"><path d="M12 2v6M7 4.5A9 9 0 1 0 21 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      POWERED BY GPT-5
+    </div>
+
+    <h2 class="mh-title">Plataforma médica inteligente — direta, confiável e pronta para o plantão</h2>
+    <p class="mh-sub">Condutas objetivas, evidências clínicas e ferramentas práticas para o dia a dia do médico.</p>
+
+    <div class="mh-section-title">O QUE É</div>
+    <div class="mh-grid" role="list">
+      <article class="mh-card" role="listitem">
+        <h4>
+          <svg class="mh-ico" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M7 4v6m5 5v5m0-5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Modo Clínico
+        </h4>
+        <p>Respostas passo a passo, linguagem médica tradicional. Protocolos de PS (dor torácica, dispneia, febre, convulsão, dor abdominal etc.).</p>
+      </article>
+
+      <article class="mh-card" role="listitem">
+        <h4>
+          <svg class="mh-ico" viewBox="0 0 24 24" fill="none"><path d="M5 4h14v14H5zM9 8h6m-6 4h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 20h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Evidências Clínicas
+        </h4>
+        <p>Explicações com base científica, raciocínio terapêutico e referências atualizadas. Ideal para registrar fundamentação teórica.</p>
+      </article>
+
+      <article class="mh-card" id="card-medprime" role="listitem" data-route="/medprime">
+        <h4>
+          <svg class="mh-ico" viewBox="0 0 24 24" fill="none"><path d="M4 12h8m4 0h4M8 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          MedPrime (Calculadoras)
+        </h4>
+        <p>Dose mg/kg, ajustes renal/gestante, conversões para mL/comprimidos, limites por dose/dia. Rápido, preciso e auditável.</p>
+      </article>
+    </div>
+
+    <div class="mh-hr" role="separator" aria-hidden="true"></div>
+
+    <div class="mh-section-title">RECURSOS</div>
+    <h3 class="mh-kicker">Ferramentas que resolvem na prática</h3>
+
+    <div class="mh-grid" role="list">
+      <article class="mh-card span-6" id="card-anexos" data-route="/upload">
+        <h4>
+          <svg class="mh-ico" viewBox="0 0 24 24" fill="none"><path d="M8 12v5a4 4 0 0 0 8 0v-7a3 3 0 1 0-6 0v7a2 2 0 1 0 4 0v-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Anexos: foto, áudio e PDF
+        </h4>
+        <p>Envie imagens de exames ou lesões de pele — a IA descreve automaticamente (cor, bordas, tamanho, padrão) e gera texto clínico pronto. PDFs/laudos são interpretados e liberados digitados para colar na história clínica.</p>
+      </article>
+
+      <article class="mh-card span-6" id="card-voz" data-route="/voice">
+        <h4>
+          <svg class="mh-ico" viewBox="0 0 24 24" fill="none"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 1 1-6 0V6a3 3 0 0 1 3-3Zm8 9a8 8 0 0 1-16 0m8 8v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Modo Voz “Ligar para a Dra. Clarice”
+        </h4>
+        <p>Ícone de telefone inicia a chamada simulada. Tire dúvidas de conduta, posologia e interpretação por voz, em tempo real.</p>
+      </article>
+
+      <article class="mh-card span-6" id="card-imagens" data-route="/imagens">
+        <h4>
+          <svg class="mh-ico" viewBox="0 0 24 24" fill="none"><path d="M4 5h16v14H4zM7 14l3-3 3 3 3-4 1 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Interpretação de Imagens Médicas
+        </h4>
+        <p>RX, USG, TC, RM e Dermatologia. Ajuda na leitura e correlação clínica, com resumo estruturado pronto para a anamnese.</p>
+      </article>
+
+      <article class="mh-card span-6" id="card-soap" data-route="/historia">
+        <h4>
+          <svg class="mh-ico" viewBox="0 0 24 24" fill="none"><path d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Histórias Clínicas Automáticas (SOAP ou Personalizada)
+        </h4>
+        <p>Gere SOAP tradicional ou um modelo personalizado ao seu estilo. Tudo limpo, objetivo e pronto para o prontuário.</p>
+      </article>
+
+      <article class="mh-card span-6" id="card-calc" data-route="/medprime">
+        <h4>
+          <svg class="mh-ico" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4zM8 8h8M8 12h8M8 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Calculadoras Inteligentes
+        </h4>
+        <p>Peça os cálculos pela IA (doses, correções, scores) ou acesse direto o módulo <strong>MedPrime</strong> com todas as calculadoras.</p>
+      </article>
+
+      <article class="mh-card span-6">
+        <h4>
+          <svg class="mh-ico" viewBox="0 0 24 24" fill="none"><path d="M12 2a6 6 0 0 0-6 6v3H4v7h16v-7h-2V8a6 6 0 0 0-6-6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10 15l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Segurança e LGPD
+        </h4>
+        <p>Cadastro controlado (CRM/UF ou Aluno 6º ano com universidade), termo de confidencialidade e verificação por e-mail/WhatsApp.</p>
+      </article>
+    </div>
+
+    <div class="mh-hr" role="separator" aria-hidden="true"></div>
+
+    <div class="mh-section-title">EM BREVE</div>
+    <div class="mh-grid" role="list">
+      <article class="mh-card span-8">
+        <h4>
+          <svg class="mh-ico" viewBox="0 0 24 24" fill="none"><path d="M12 7v10m-5-5h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Especialidades Avançadas
+        </h4>
+        <p>Condutas personalizadas para gestantes e lactantes, pediatria, cardiologia e mais — incluindo alertas e ajustes de tratamento.</p>
+      </article>
+
+      <article class="mh-card span-6">
+        <h4>
+          <svg class="mh-ico" viewBox="0 0 24 24" fill="none"><path d="M7 11a5 5 0 1 1 10 0v3a5 5 0 1 1-10 0v-3Z" stroke="currentColor" stroke-width="2"/><path d="M12 4v3m0 10v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Módulo Pré-natal Inteligente
+        </h4>
+        <p>IG automática, acompanhamento de exames, relatórios e alertas de risco gestacional para agilizar o pré-natal.</p>
+      </article>
+
+      <article class="mh-card span-6">
+        <h4>
+          <svg class="mh-ico" viewBox="0 0 24 24" fill="none"><path d="M3 6h18v12H3zM8 18v3h8v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Atendimentos Digitais
+        </h4>
+        <p>Consultas por vídeo integradas, emissão de receitas, laudos e pedidos — com validação via Memed (roadmap).</p>
+      </article>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>

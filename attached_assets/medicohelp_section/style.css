@@ -1,0 +1,33 @@
+:root{
+  --bg:#0d3b3a;
+  --panel:#0f4a47;
+  --panel-2:#0e4441;
+  --chip:#123f3d;
+  --accent:#19c29e;
+  --txt:#e8fffb;
+  --muted:#a7d6cd;
+  --radius:18px;
+  --shadow:0 10px 30px rgba(0,0,0,.25), inset 0 0 0 1px rgba(25,194,158,.18);
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#0b3332,var(--bg));font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--txt);padding:24px}
+.mh-wrap{background:linear-gradient(180deg,#0b3332,var(--bg)); color:var(--txt); padding:32px 20px; border-radius:24px; box-shadow:var(--shadow);}
+.mh-title{font-size:clamp(22px,3vw,34px); font-weight:800; letter-spacing:.2px; margin:0 0 6px}
+.mh-sub{font-size:clamp(14px,2vw,18px); color:var(--muted); margin:0 0 20px}
+.mh-chip{display:inline-flex; gap:8px; align-items:center; background:var(--chip); color:var(--accent); padding:6px 10px; border-radius:999px; border:1px solid rgba(25,194,158,.25); font-weight:700; font-size:12px; margin-bottom:10px}
+.mh-grid{display:grid; gap:14px; grid-template-columns:repeat(12,1fr)}
+.mh-card{grid-column:span 12; background:var(--panel); border-radius:var(--radius); padding:16px 16px 14px; box-shadow:var(--shadow); transition:.18s ease; position:relative; overflow:hidden; cursor:pointer}
+.mh-card:hover{background:var(--panel-2); transform:translateY(-1px)}
+.mh-card h4{display:flex; align-items:center; gap:10px; font-size:18px; margin:0 0 6px}
+.mh-card p{margin:0; color:var(--muted); line-height:1.5}
+.mh-hr{height:1px; background:linear-gradient(90deg,transparent, rgba(26,165,142,.4), transparent); margin:24px 0}
+.mh-section-title{font-size:16px; letter-spacing:.18em; color:var(--muted); margin:4px 0 12px; text-transform:uppercase}
+.mh-kicker{font-size:clamp(18px,2.4vw,22px); font-weight:700; margin:0 0 14px}
+.mh-ico{width:18px; height:18px; color:var(--accent); flex:0 0 18px}
+@media (min-width:720px){
+  .mh-card{grid-column:span 4}
+  .mh-card.span-6{grid-column:span 6}
+  .mh-card.span-8{grid-column:span 8}
+}
+/* Acessibilidade: foco */
+.mh-card:focus{outline:2px solid var(--accent); outline-offset:2px}

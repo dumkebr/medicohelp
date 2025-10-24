@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
   const [showCallModal, setShowCallModal] = useState(false);
   const [callStatus, setCallStatus] = useState("Ligando para Dra. Clarice…");
+  const [audioButtonText, setAudioButtonText] = useState("📞 Ligar para a Dra. Clarice");
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const handleMicClick = () => {
     alert("Microfone: gravar e transcrever (placeholder).");
@@ -21,6 +23,35 @@ export default function Landing() {
   const handleCloseCall = () => {
     setShowCallModal(false);
     setCallStatus("Ligando para Dra. Clarice…");
+  };
+
+  const handleAudioCall = () => {
+    console.log("[AUDIO CALL] Button clicked at", Date.now());
+    setAudioButtonText("🔔 Ligando para a Dra. Clarice...");
+    console.log("[AUDIO CALL] State set to 'Ligando...'");
+    
+    // Change to "Conversando" after simulated dial time
+    const timer1 = setTimeout(() => {
+      console.log("[AUDIO CALL] Timeout 1 fired (1800ms) - setting to 'Conversando'");
+      setAudioButtonText("📞 Conversando com Dra. Clarice");
+      
+      // Try to play audio (best effort - may be blocked by browser)
+      if (audioRef.current) {
+        audioRef.current.src = "/audio/alo_doutor.mp3";
+        audioRef.current.load();
+        audioRef.current.play().catch((error) => {
+          console.log("Audio autoplay blocked (expected in browsers):", error.message);
+        });
+      }
+      
+      // Reset button after conversation duration (6 seconds)
+      const timer2 = setTimeout(() => {
+        console.log("[AUDIO CALL] Timeout 2 fired (6000ms) - resetting to 'Ligar'");
+        setAudioButtonText("📞 Ligar para a Dra. Clarice");
+      }, 6000);
+      console.log("[AUDIO CALL] Timer 2 set (ID:", timer2, ")");
+    }, 1800);
+    console.log("[AUDIO CALL] Timer 1 set (ID:", timer1, ")");
   };
 
   return (
@@ -110,9 +141,20 @@ export default function Landing() {
         <section className="landing-hero">
           <div className="landing-hero-card">
             <span className="landing-kicker">Apresentamos a Dra. Clarice</span>
-            <h1>Decisão clínica rápida, do jeito tradicional — com segurança e evidência.</h1>
-            <p>A Dra. Clarice apoia sua conduta com respostas objetivas (Modo Clínico), explicações embasadas (Evidências) e ferramentas práticas (MedPrime: calculadoras e posologia).</p>
+            <h1>Decisão clínica rápida, do jeito tradicional — feita por médicos, para médicos.</h1>
+            <p style={{ marginBottom: '12px' }}>A Dra. Clarice apoia sua conduta com respostas objetivas (<strong>Modo Clínico</strong>), explicações baseadas em evidências e ferramentas práticas (<strong>MedPrime</strong>: calculadoras e posologia). Clareza, segurança e medicina de verdade — do jeito que sempre funcionou.</p>
+            <p style={{ color: '#1affb8', fontWeight: '600', marginBottom: '16px' }}>
+              💬 Sabia que você pode até "ligar" para a Dra. Clarice?<br />
+              Clique abaixo e ela te atende pessoalmente!
+            </p>
             <div className="landing-cta">
+              <button 
+                className="landing-btn landing-btn-primary" 
+                onClick={handleAudioCall}
+                data-testid="button-ligar-clarice"
+              >
+                {audioButtonText}
+              </button>
               <button 
                 className="landing-btn landing-btn-primary" 
                 onClick={() => setLocation("/register")}
@@ -122,6 +164,12 @@ export default function Landing() {
               </button>
               <a className="landing-btn" href="#como-funciona">Como funciona</a>
             </div>
+            
+            {/* Hidden audio element */}
+            <audio ref={audioRef} preload="auto">
+              <source src="/audio/alo_doutor.mp3" type="audio/mpeg" />
+              Seu navegador não suporta áudio.
+            </audio>
             <div className="landing-chatbox" style={{ marginTop: '18px' }}>
               <input placeholder="Digite sua mensagem…" data-testid="input-demo-message" />
               <button 

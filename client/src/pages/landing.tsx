@@ -1,11 +1,16 @@
 import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { FaWhatsapp } from "react-icons/fa";
-import { Mail } from "lucide-react";
+import { Mail, X, Send } from "lucide-react";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
   const [audioButtonText, setAudioButtonText] = useState("📞 Ligar para a Dra. Clarice");
+  const [chatOpen, setChatOpen] = useState(false);
+  const [messages, setMessages] = useState<Array<{text: string, sender: 'clarice' | 'user'}>>([
+    { text: 'Olá! Eu sou a <b>Dra. Clarice</b>, assistente virtual do MédicoHelp. Como posso te ajudar hoje?', sender: 'clarice' }
+  ]);
+  const [inputValue, setInputValue] = useState("");
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const handleAudioCall = () => {
@@ -25,6 +30,38 @@ export default function Landing() {
         setAudioButtonText("📞 Ligar para a Dra. Clarice");
       }, 6000);
     }, 1800);
+  };
+
+  const handleSendMessage = () => {
+    const text = inputValue.trim();
+    if (!text) return;
+
+    setMessages(prev => [...prev, { text, sender: 'user' }]);
+    setInputValue("");
+
+    setTimeout(() => {
+      const lowerText = text.toLowerCase();
+      let response = '';
+
+      if (lowerText.includes('contato') || lowerText.includes('equipe') || lowerText.includes('atendimento')) {
+        response = 'Perfeito! Posso te encaminhar agora para a equipe pelo WhatsApp.';
+      } else if (lowerText.includes('preço') || lowerText.includes('plano') || lowerText.includes('assinatura') || lowerText.includes('valor')) {
+        response = 'Sobre planos e preços eu posso te orientar e, se preferir, encaminho você para a equipe no WhatsApp.';
+      } else if (lowerText.includes('cadastro') || lowerText.includes('registrar') || lowerText.includes('criar conta')) {
+        response = 'Para se cadastrar, clique no botão "Entrar" no topo da página ou <a href="/register" style="color: #1affb8; font-weight: 600; text-decoration: underline;">clique aqui</a>.';
+      } else {
+        response = 'Entendi. Posso tentar te ajudar por aqui, ou te encaminhar à nossa equipe no WhatsApp.';
+      }
+
+      setMessages(prev => [...prev, { text: response, sender: 'clarice' }]);
+
+      setTimeout(() => {
+        setMessages(prev => [...prev, { 
+          text: '👉 <a href="https://wa.me/5544991065757?text=Olá!%20Gostaria%20de%20falar%20com%20a%20equipe%20do%20MédicoHelp" target="_blank" rel="noopener noreferrer" style="color: #1affb8; font-weight: 600; text-decoration: none;">Falar com a equipe no WhatsApp</a>', 
+          sender: 'clarice' 
+        }]);
+      }, 900);
+    }, 700);
   };
 
   return (
@@ -103,6 +140,143 @@ export default function Landing() {
         .contact-btn-email:hover { background: rgba(255,255,255,.15); transform: translateY(-2px); }
         .contact-btn svg { width: 20px; height: 20px; }
         
+        /* Floating Chat Styles */
+        .floating-chat-fab {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          width: 68px;
+          height: 68px;
+          border-radius: 50%;
+          background: #ffffff;
+          border: 3px solid #00d9a3;
+          box-shadow: 0 6px 24px rgba(0, 217, 163, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
+          cursor: pointer;
+          z-index: 10000;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          padding: 0;
+          overflow: hidden;
+        }
+        .floating-chat-fab:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 30px rgba(0, 217, 163, 0.45), 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        .floating-chat-fab:active {
+          transform: translateY(-1px);
+        }
+        
+        .floating-chat-panel {
+          position: fixed;
+          bottom: 100px;
+          right: 20px;
+          width: 380px;
+          max-height: 550px;
+          background: #052828;
+          border-radius: 16px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          z-index: 9999;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          border: 1px solid rgba(0, 217, 163, 0.2);
+        }
+        
+        .floating-chat-header {
+          background: #041e1e;
+          padding: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 1px solid rgba(0, 217, 163, 0.15);
+        }
+        
+        .floating-chat-close {
+          background: transparent;
+          border: none;
+          color: #c9d7d4;
+          cursor: pointer;
+          padding: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 6px;
+          transition: background 0.2s;
+        }
+        .floating-chat-close:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .floating-chat-messages {
+          flex: 1;
+          padding: 16px;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          min-height: 300px;
+          max-height: 400px;
+        }
+        
+        .floating-chat-message {
+          padding: 10px 14px;
+          border-radius: 12px;
+          max-width: 82%;
+          word-wrap: break-word;
+          line-height: 1.5;
+          font-size: 14px;
+        }
+        .floating-chat-message.clarice {
+          background: #0a3a35;
+          align-self: flex-start;
+          color: #f3f7f6;
+        }
+        .floating-chat-message.user {
+          background: #00d9a3;
+          align-self: flex-end;
+          color: #042c28;
+          font-weight: 500;
+        }
+        
+        .floating-chat-input {
+          padding: 12px;
+          display: flex;
+          gap: 8px;
+          background: #041e1e;
+          border-top: 1px solid rgba(0, 217, 163, 0.15);
+        }
+        .floating-chat-input input {
+          flex: 1;
+          border: none;
+          padding: 10px 14px;
+          border-radius: 20px;
+          background: #0a3a35;
+          color: #f3f7f6;
+          font-size: 14px;
+          outline: none;
+        }
+        .floating-chat-input input::placeholder {
+          color: #7a9b96;
+        }
+        .floating-chat-input input:focus {
+          background: #0d4540;
+        }
+        
+        .floating-chat-send {
+          background: #00d9a3;
+          border: none;
+          color: #042c28;
+          padding: 10px 14px;
+          border-radius: 20px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.2s;
+        }
+        .floating-chat-send:hover {
+          background: #1affb8;
+        }
+        
         @media (max-width: 900px) {
           .landing-grid-3 { grid-template-columns: 1fr; }
           .landing-hero h1 { font-size: clamp(24px, 5vw, 40px); }
@@ -112,6 +286,19 @@ export default function Landing() {
           .ai-badge h2 { font-size: 22px; }
           .ai-badge-content p { font-size: 14px; }
           .ai-badge-quote { font-size: 13px; padding: 12px 14px; }
+          
+          .floating-chat-fab {
+            width: 60px;
+            height: 60px;
+            bottom: 16px;
+            right: 16px;
+          }
+          .floating-chat-panel {
+            left: 12px;
+            right: 12px;
+            bottom: 90px;
+            width: auto;
+          }
         }
       `}</style>
 
@@ -323,6 +510,89 @@ export default function Landing() {
       <footer className="landing-container landing-footer">
         © 2025 MédicoHelp · Desenvolvido por Dr. Clairton Luis Dumke (CRM PR 53866) · <a href="/legal/privacidade.html" target="_blank" rel="noopener noreferrer">Privacidade</a>
       </footer>
+
+      {/* Floating Chat Button (FAB) */}
+      <button
+        onClick={() => setChatOpen(!chatOpen)}
+        className="floating-chat-fab"
+        data-testid="button-floating-chat"
+        aria-label="Abrir chat da Dra. Clarice"
+        title="Falar com a Dra. Clarice"
+      >
+        <img 
+          src="/assets/clarice-hero.png" 
+          alt="Dra. Clarice" 
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            objectFit: 'cover', 
+            borderRadius: '50%' 
+          }}
+        />
+      </button>
+
+      {/* Floating Chat Panel */}
+      {chatOpen && (
+        <div className="floating-chat-panel" data-testid="panel-floating-chat">
+          {/* Header */}
+          <div className="floating-chat-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <img 
+                src="/assets/clarice-hero.png" 
+                alt="Dra. Clarice" 
+                style={{ 
+                  width: '40px', 
+                  height: '40px', 
+                  borderRadius: '50%', 
+                  objectFit: 'cover' 
+                }}
+              />
+              <div>
+                <div style={{ fontWeight: 700, lineHeight: 1 }}>Dra. Clarice</div>
+                <div style={{ fontSize: '12px', opacity: 0.85 }}>Assistente virtual do MédicoHelp</div>
+              </div>
+            </div>
+            <button 
+              onClick={() => setChatOpen(false)}
+              className="floating-chat-close"
+              data-testid="button-close-chat"
+              aria-label="Fechar chat"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Messages */}
+          <div className="floating-chat-messages">
+            {messages.map((msg, idx) => (
+              <div 
+                key={idx} 
+                className={`floating-chat-message ${msg.sender}`}
+                dangerouslySetInnerHTML={{ __html: msg.text }}
+              />
+            ))}
+          </div>
+
+          {/* Input */}
+          <div className="floating-chat-input">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+              placeholder="Digite sua mensagem..."
+              data-testid="input-chat-message"
+            />
+            <button 
+              onClick={handleSendMessage}
+              data-testid="button-send-message"
+              className="floating-chat-send"
+            >
+              <Send size={18} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

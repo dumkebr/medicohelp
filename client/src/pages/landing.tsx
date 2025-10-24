@@ -97,13 +97,18 @@ export default function Landing() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const ROUTES: Record<string, string> = {
+        home: '/',
         history: '/',
         voice: '/',
         medprime: '/medprime',
         calculators: '/medprime',
         upload: '/',
         evidence: '/',
-        avancado: '/avancado'
+        avancado: '/avancado',
+        recursos: '/',
+        prenatal: '/',
+        posologia: '/medprime',
+        admin: '/admin-api.html'
       };
 
       (window as any).MedicoHelp = {
@@ -145,6 +150,23 @@ export default function Landing() {
         
         openMedPrime: () => {
           setLocation('/medprime');
+        },
+        
+        // Novos atalhos
+        openRecursos: () => {
+          setLocation('/');
+        },
+        
+        openPreNatal: () => {
+          setLocation('/');
+        },
+        
+        openPosologia: () => {
+          setLocation('/medprime');
+        },
+        
+        openAdmin: () => {
+          window.open('/admin-api.html', '_blank', 'noopener,noreferrer');
         }
       };
 

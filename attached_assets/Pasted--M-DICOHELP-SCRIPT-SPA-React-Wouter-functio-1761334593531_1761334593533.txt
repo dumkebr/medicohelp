@@ -1,0 +1,115 @@
+/* ===================== MÉDICOHELP - SCRIPT (SPA React + Wouter) ===================== */
+(function () {
+  // ---- Rotas canônicas -----------------------------------------------------
+  const ROUTES = {
+    home: "/",
+    history: "/history",          // História Clínica
+    voice: "/voice",              // Modo Voz
+    upload: "/upload",            // Upload de exames
+    calculators: "/calculadoras", // Calculadoras
+    evidence: "/evidencias",      // Fundamentação teórica
+    medprime: "/medprime",        // Posologia integrada
+    // ---- Atalhos extras recomendados ----
+    recursos: "/recursos",
+    prenatal: "/prenatal",
+    posologia: "/posologia",
+    admin: "/admin"
+  };
+
+  // WhatsApp (Brasil)
+  const WHATSAPP_NUMBER = "554491065757";
+  const WHATSAPP_DEFAULT_MSG =
+    "Olá, Dra. Clarice! Sou médico e quero testar o Modo Voz do MédicoHelp.";
+
+  // ---- Utils ---------------------------------------------------------------
+  function ensureNamespace() { if (!window.MedicoHelp) window.MedicoHelp = {}; return window.MedicoHelp; }
+  function canUse(fn) { return typeof fn === "function"; }
+  function openWhatsApp(message = WHATSAPP_DEFAULT_MSG) {
+    const link = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    window.open(link, "_blank", "noopener,noreferrer");
+  }
+
+  // ---- API pública (integra com Wouter via API global) ---------------------
+  const api = ensureNamespace();
+
+  // Navegação SPA principal
+  api.navigate = function (routeKeyOrUrl) {
+    const url = ROUTES[routeKeyOrUrl] || routeKeyOrUrl || "/";
+    if (canUse(window.MedicoHelp.navigate)) {
+      try { return window.MedicoHelp.navigate(url); } catch { window.location.href = url; }
+    } else { window.location.href = url; }
+  };
+
+  // História clínica
+  api.createHistory = function ({ mode = "SOAP" } = {}) {
+    if (canUse(window.__OPEN_HISTORY__)) return window.__OPEN_HISTORY__({ mode });
+    api.navigate(`${ROUTES.history}#mode=${encodeURIComponent(mode)}`);
+  };
+
+  // Modo voz
+  api.openVoice = function () {
+    if (canUse(window.__OPEN_VOICE__)) return window.__OPEN_VOICE__();
+    openWhatsApp("Olá, Dra. Clarice! Quero iniciar o Modo Voz agora.");
+  };
+
+  // Upload
+  api.openUploader = function () {
+    if (canUse(window.__OPEN_UPLOADER__)) return window.__OPEN_UPLOADER__();
+    api.navigate(ROUTES.upload);
+  };
+
+  // Acessos rápidos
+  api.openCalculators = function () { api.navigate(ROUTES.calculators); };
+  api.openEvidence    = function () { api.navigate(ROUTES.evidence);    };
+  api.openMedPrime    = function () { api.navigate(ROUTES.medprime);     };
+
+  // ---- Novos atalhos prontos ----------------------------------------------
+  api.openRecursos  = function () { api.navigate(ROUTES.recursos);  };
+  api.openPreNatal  = function () { api.navigate(ROUTES.prenatal);  };
+  api.openPosologia = function () { api.navigate(ROUTES.posologia); };
+  api.openAdmin     = function () { api.navigate(ROUTES.admin);     };
+
+  // ---- Auto-bind por data-attributes --------------------------------------
+  function bindButtons() {
+    // data-mh-action aceita:
+    // history | voice | upload | calculators | evidence | medprime | whatsapp
+    // recursos | prenatal | posologia | admin  (novos)
+    document.querySelectorAll("[data-mh-action]").forEach((el) => {
+      const action = (el.getAttribute("data-mh-action") || "").toLowerCase().trim();
+      el.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        switch (action) {
+          case "history":     return api.createHistory({ mode: el.getAttribute("data-mode") || "SOAP" });
+          case "voice":       return api.openVoice();
+          case "upload":      return api.openUploader();
+          case "calculators": return api.openCalculators();
+          case "evidence":    return api.openEvidence();
+          case "medprime":    return api.openMedPrime();
+          case "recursos":    return api.openRecursos();
+          case "prenatal":    return api.openPreNatal();
+          case "posologia":   return api.openPosologia();
+          case "admin":       return api.openAdmin();
+          case "whatsapp":    return openWhatsApp();
+          default:            if (action) return api.navigate(action);
+        }
+      });
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bindButtons);
+  } else {
+    bindButtons();
+  }
+
+  try { console.debug("[MédicoHelp] script.js (SPA React + Wouter) OK. Rotas:", ROUTES); } catch {}
+})();
+Se quiser ativar no HTML, já fica assim (opcionais — cola onde preferir):
+
+html
+Copiar código
+<!-- Botões/links opcionais de atalho -->
+<button data-mh-action="recursos">Ver Recursos</button>
+<button data-mh-action="prenatal">Pré-Natal</button>
+<button data-mh-action="posologia">PosologiaCerta</button>
+<button data-mh-action="admin">Painel do Admin</button>

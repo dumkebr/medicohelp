@@ -5,6 +5,59 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== MÉDICOHELP LANDING SITE STYLES ===== */
+.mh-landing-root {
+  --mh-bg:#0d3b3a; 
+  --mh-panel:#0f4a47; 
+  --mh-panel-2:#0e4441; 
+  --mh-chip:#123f3d;
+  --mh-accent:#19c29e; 
+  --mh-txt:#e8fffb; 
+  --mh-muted:#a7d6cd; 
+  --mh-radius:18px;
+  --mh-shadow:0 10px 30px rgba(0,0,0,.25), inset 0 0 0 1px rgba(25,194,158,.18);
+}
+.mh-landing-root .mh-header{position:sticky;top:0;backdrop-filter:blur(8px);background:rgba(11,51,50,.7);border-bottom:1px solid rgba(25,194,158,.18);z-index:20}
+.mh-landing-root .mh-container{max-width:1100px;margin:0 auto;padding:16px}
+.mh-landing-root .mh-flex-between{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mh-landing-root .mh-logo .mh-pill{background:var(--mh-chip);border:1px solid rgba(25,194,158,.25);padding:6px 10px;border-radius:999px}
+.mh-landing-root .mh-logo .mh-powered{color:var(--mh-muted);margin-left:8px}
+.mh-landing-root .mh-nav a{margin:0 8px;color:var(--mh-txt);opacity:.84}
+.mh-landing-root .mh-nav a.is-active,.mh-landing-root .mh-nav a:hover{opacity:1;color:var(--mh-accent)}
+.mh-landing-root .mh-hero{padding:32px 0 8px}
+.mh-landing-root .mh-hero-grid{display:grid;gap:24px;grid-template-columns:1fr}
+.mh-landing-root .mh-hero-copy h1{font-size:clamp(26px,4vw,40px);margin:8px 0}
+.mh-landing-root .mh-lead{color:var(--mh-muted)}
+.mh-landing-root .mh-chip{display:inline-flex;gap:8px;align-items:center;background:var(--mh-chip);color:var(--mh-accent);padding:6px 10px;border-radius:999px;border:1px solid rgba(25,194,158,.25);font-weight:700;font-size:12px}
+.mh-landing-root .mh-cta{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 6px}
+.mh-landing-root .mh-btn{background:var(--mh-accent);color:#042e2c;border:none;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:10px}
+.mh-landing-root .mh-btn.ghost{background:transparent;color:var(--mh-accent);border:1px solid rgba(25,194,158,.4)}
+.mh-landing-root .mh-hero-clarice img{width:min(360px,80vw);border-radius:24px;box-shadow:var(--mh-shadow)}
+.mh-landing-root .mh-hero-points{color:var(--mh-muted);padding-left:18px}
+.mh-landing-root .mh-section{padding:8px 0 28px}
+.mh-landing-root .mh-title{font-size:clamp(22px,3vw,34px);font-weight:800;margin:0 0 6px}
+.mh-landing-root .center{text-align:center}
+.mh-landing-root .mh-grid{display:grid;gap:14px;grid-template-columns:repeat(12,1fr)}
+.mh-landing-root .mh-card{grid-column:span 12;background:var(--mh-panel);border-radius:var(--mh-radius);padding:16px;box-shadow:var(--mh-shadow);transition:.18s;position:relative;overflow:hidden;cursor:pointer}
+.mh-landing-root .mh-card:hover{background:var(--mh-panel-2);transform:translateY(-1px)}
+.mh-landing-root .mh-card h4{margin:0 0 6px}
+.mh-landing-root .mh-bullets{margin:8px 0 0;color:var(--mh-muted);padding-left:18px}
+.mh-landing-root .mh-price{margin-top:12px;font-weight:800;color:var(--mh-accent)}
+@media(min-width:880px){.mh-landing-root .mh-hero-grid{grid-template-columns:1.1fr .9fr} .mh-landing-root .mh-card{grid-column:span 6}}
+.mh-landing-root .mh-footer{border-top:1px solid rgba(25,194,158,.18);padding:18px 0;color:var(--mh-muted)}
+.mh-landing-root .mh-modal{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.5);z-index:100}
+.mh-landing-root .mh-modal[hidden]{display:none}
+.mh-landing-root .mh-modal-box{background:var(--mh-panel);border-radius:16px;padding:18px;min-width:min(520px,92vw);box-shadow:var(--mh-shadow)}
+.mh-landing-root .mh-modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+.mh-landing-root .mh-wrap{background:linear-gradient(180deg,#0b3332,var(--mh-bg)); color:var(--mh-txt); padding:32px 20px; border-radius:24px; box-shadow:var(--mh-shadow);}
+.mh-landing-root .mh-sub{font-size:clamp(14px,2vw,18px); color:var(--mh-muted); margin:0 0 20px}
+.mh-landing-root .mh-section-title{font-size:16px; letter-spacing:.18em; color:var(--mh-muted); margin:4px 0 12px; text-transform:uppercase}
+.mh-landing-root .mh-kicker{font-size:clamp(18px,2.4vw,22px); font-weight:700; margin:0 0 14px}
+.mh-landing-root .mh-ico{width:18px;height:18px;color:var(--mh-accent);flex:0 0 18px}
+.mh-landing-root .mh-hr{height:1px;background:linear-gradient(90deg,transparent, rgba(26,165,142,.4), transparent); margin:24px 0}
+.mh-landing-root .span-6{grid-column:span 6}
+/* ===== FIM MÉDICOHELP LANDING STYLES ===== */
+
 /* 🎨 FORÇAR FUNDO ESCURO ÚNICO EM TUDO */
 body,
 html,

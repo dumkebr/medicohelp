@@ -1,0 +1,130 @@
+import { useLocation } from 'wouter';
+
+declare global {
+  interface Window {
+    MedicoHelp?: {
+      navigate?: (route: string) => void;
+      openVoice?: () => void;
+      openUploader?: () => void;
+      createHistory?: (o?: { mode?: string }) => void;
+    };
+  }
+}
+
+export default function FeaturesSection() {
+  const [, setLocation] = useLocation();
+
+  const go = (route: string) => {
+    if (window.MedicoHelp?.navigate) return window.MedicoHelp.navigate(route);
+    setLocation(route);
+  };
+
+  return (
+    <section className="mh-section" id="features">
+      <div className="mh-container mh-wrap">
+        <div className="mh-chip">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="mh-ico">
+            <path d="M12 2v6M7 4.5A9 9 0 1 0 21 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          POWERED BY GPT-5
+        </div>
+
+        <h2 className="mh-title">Plataforma médica inteligente — direta, confiável e pronta para o plantão</h2>
+        <p className="mh-sub">Condutas objetivas, evidências clínicas e ferramentas práticas para o dia a dia do médico.</p>
+
+        <div className="mh-section-title">O QUE É</div>
+        <div className="mh-grid" role="list">
+          <article className="mh-card" role="listitem" data-testid="card-modo-clinico">
+            <h4>Modo Clínico</h4>
+            <p>Respostas passo a passo, linguagem médica tradicional. Protocolos de PS (dor torácica, dispneia, febre, convulsão, dor abdominal etc.).</p>
+          </article>
+
+          <article className="mh-card" role="listitem" data-testid="card-evidencias">
+            <h4>Evidências Clínicas</h4>
+            <p>Explicações com base científica, raciocínio terapêutico e referências atualizadas. Ideal para registrar fundamentação teórica.</p>
+          </article>
+
+          <article className="mh-card" role="listitem" onClick={() => go('/medprime')} data-testid="card-medprime">
+            <h4>MedPrime (Calculadoras)</h4>
+            <p>Dose mg/kg, ajustes renal/gestante, conversões para mL/comprimidos, limites por dose/dia. Rápido, preciso e auditável.</p>
+          </article>
+        </div>
+
+        <div className="mh-hr" aria-hidden />
+
+        <div className="mh-section-title">RECURSOS</div>
+        <h3 className="mh-kicker">Ferramentas que resolvem na prática</h3>
+
+        <div className="mh-grid" role="list">
+          <article 
+            className="mh-card span-6" 
+            onClick={() => (window.MedicoHelp?.openUploader ? window.MedicoHelp.openUploader() : go('/'))}
+            data-testid="card-anexos"
+          >
+            <h4>Anexos: foto, áudio e PDF</h4>
+            <p>Envie imagens de exames ou lesões de pele — a IA descreve automaticamente (cor, bordas, tamanho, padrão) e gera texto clínico pronto. PDFs/laudos são interpretados e liberados digitados para colar na história clínica.</p>
+          </article>
+
+          <article 
+            className="mh-card span-6" 
+            onClick={() => (window.MedicoHelp?.openVoice ? window.MedicoHelp.openVoice() : go('/'))}
+            data-testid="card-modo-voz"
+          >
+            <h4>Modo Voz "Ligar para a Dra. Clarice"</h4>
+            <p>Converse por voz e tire dúvidas de conduta, posologia e interpretação em tempo real.</p>
+          </article>
+
+          <article 
+            className="mh-card span-6" 
+            onClick={() => go('/imagens')}
+            data-testid="card-imagens"
+          >
+            <h4>Interpretação de Imagens Médicas</h4>
+            <p>RX, USG, TC, RM e Dermatologia. Leitura e correlação clínica, com resumo estruturado pronto para a anamnese.</p>
+          </article>
+
+          <article 
+            className="mh-card span-6" 
+            onClick={() => (window.MedicoHelp?.createHistory ? window.MedicoHelp.createHistory({ mode: 'SOAP' }) : go('/'))}
+            data-testid="card-historia-clinica"
+          >
+            <h4>Histórias Clínicas Automáticas (SOAP ou Personalizada)</h4>
+            <p>Gere SOAP tradicional ou modelo personalizado. Limpo, objetivo e pronto para o prontuário.</p>
+          </article>
+
+          <article 
+            className="mh-card span-6" 
+            onClick={() => go('/medprime')}
+            data-testid="card-calculadoras"
+          >
+            <h4>Calculadoras Inteligentes</h4>
+            <p>Peça cálculos pela IA (doses, correções, scores) ou abra o módulo MedPrime com todas as calculadoras.</p>
+          </article>
+
+          <article className="mh-card span-6" data-testid="card-seguranca">
+            <h4>Segurança e LGPD</h4>
+            <p>Cadastro controlado (CRM/UF ou Aluno 6º ano), termo de confidencialidade e verificação por e-mail/WhatsApp.</p>
+          </article>
+        </div>
+
+        <div className="mh-hr" aria-hidden />
+
+        <div className="mh-section-title">EM BREVE</div>
+        <div className="mh-grid">
+          <article className="mh-card span-6" data-testid="card-especialidades">
+            <h4>Especialidades Avançadas</h4>
+            <p>Condutas personalizadas para gestantes e lactantes, pediatria, cardiologia e mais — com alertas e ajustes.</p>
+          </article>
+          <article className="mh-card span-6" data-testid="card-prenatal">
+            <h4>Módulo Pré-natal Inteligente</h4>
+            <p>IG automática, acompanhamento de exames, relatórios e alertas de risco gestacional.</p>
+          </article>
+          <article className="mh-card span-6" data-testid="card-atendimentos">
+            <h4>Atendimentos Digitais</h4>
+            <p>Consultas por vídeo, receitas, laudos e pedidos — com validação via Memed (roadmap).</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  );
+}

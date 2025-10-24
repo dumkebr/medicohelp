@@ -3,6 +3,8 @@ import { useLocation } from "wouter";
 import { FaWhatsapp } from "react-icons/fa";
 import { Mail, X, Send } from "lucide-react";
 import { loadAllKB, findAnswer, handleAction, logQuestion, type KBItem } from "@/lib/clarice-brain";
+import HeroClarice from "@/components/HeroClarice";
+import FeaturesSection from "@/components/FeaturesSection";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
@@ -176,10 +178,10 @@ export default function Landing() {
   }, [setLocation]);
 
   return (
-    <div style={{ 
+    <div className="mh-landing-root" style={{ 
       fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif',
       color: '#f3f7f6',
-      background: '#043c37',
+      background: 'linear-gradient(180deg, #0b3332, #0d3b3a)',
       minHeight: '100vh'
     }}>
       <style>{`
@@ -489,6 +491,12 @@ export default function Landing() {
           </button>
         </nav>
       </header>
+
+      {/* New Hero Section with Clarice */}
+      <HeroClarice />
+      
+      {/* Features Section */}
+      <FeaturesSection />
 
       {/* Main Content */}
       <main className="landing-container">

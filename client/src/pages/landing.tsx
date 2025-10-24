@@ -13,7 +13,6 @@ export default function Landing() {
       setAudioButtonText("📞 Conversando com Dra. Clarice");
       
       if (audioRef.current) {
-        audioRef.current.src = "/audio/alo_doutor.mp3";
         audioRef.current.load();
         audioRef.current.play().catch(() => {
           // Audio autoplay blocked - expected in some browsers
@@ -181,7 +180,7 @@ export default function Landing() {
           
           {/* Hidden audio element */}
           <audio ref={audioRef} preload="auto">
-            <source src="/audio/alo_doutor.mp3" type="audio/mpeg" />
+            <source src="/audio/clarice_ligacao.mp3?v=2" type="audio/mpeg" />
             Seu navegador não suporta áudio.
           </audio>
         </section>

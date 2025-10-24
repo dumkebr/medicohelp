@@ -32,19 +32,19 @@ export default function Landing() {
         .landing-nav a, .landing-btn { background: transparent; border: 1px solid rgba(255,255,255,.15); padding: 10px 14px; border-radius: 12px; color: var(--text); cursor: pointer; text-decoration: none; display: inline-block; }
         .landing-btn-primary { background: var(--teal); border: none; color: #042c28; font-weight: 700; }
         .landing-btn-primary:hover { background: var(--teal-2); }
-        .landing-hero { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; padding: 40px 0 20px; max-width: 1040px; }
-        .landing-hero h1 { font-weight: 800; line-height: 1.1; letter-spacing: -0.01em; margin: 0; font-size: clamp(28px, 6vw, 48px); }
+        .landing-hero { display: flex; flex-direction: column; gap: 18px; align-items: center; padding: 40px 0 20px; max-width: 1040px; }
+        .landing-hero h1 { font-weight: 800; line-height: 1.1; letter-spacing: -0.01em; margin: 0; font-size: clamp(28px, 6vw, 48px); text-align: center; }
         .landing-hero .underline { width: 72px; height: 3px; background: rgba(255,255,255,.18); border-radius: 2px; }
-        .landing-hero .lead { font-size: clamp(16px, 2.2vw, 18px); line-height: 1.55; color: var(--muted); margin: 0; }
+        .landing-hero .lead { font-size: clamp(16px, 2.2vw, 18px); line-height: 1.55; color: var(--muted); margin: 0; text-align: center; max-width: 800px; }
         .landing-hero .lead b { color: var(--text); }
-        .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+        .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; justify-content: center; }
         .pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 14px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); }
         .pill .dot { width: 8px; height: 8px; border-radius: 999px; }
         .pill--clinico .dot { background: #22c55e; }
         .pill--teorico .dot { background: #3b82f6; }
         .pill--medprime .dot { background: #f59e0b; }
-        .disclaimer { margin-top: 8px; font-style: italic; color: var(--muted); font-size: 14px; }
-        .landing-cta { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .disclaimer { margin-top: 8px; font-style: italic; color: var(--muted); font-size: 14px; text-align: center; max-width: 700px; }
+        .landing-cta { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
         .landing-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .landing-card { background: var(--bg-2); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
         .landing-card h3 { margin: 0 0 8px; }
@@ -85,7 +85,7 @@ export default function Landing() {
       <main className="landing-container">
         {/* Hero Section */}
         <section className="landing-hero" aria-label="Apresentação da Dra. Clarice">
-          <h1>Decisão clínica rápida, do jeito tradicional — feita por médicos, para médicos.</h1>
+          <h1>Decisão clínica rápida, do jeito tradicional Feita por médicos, para médicos.</h1>
           <div className="underline" aria-hidden="true"></div>
           
           <p className="lead">

@@ -1,0 +1,88 @@
+Perfeito, Clairton 👊 — esse toque do ícone do WhatsApp clicável direto pra conversa é matador pra conversão.
+Fica simples, intuitivo e com cara de ferramenta médica moderna, sem perder o ar tradicional.
+
+Aqui vai o bloco completo, prontinho pra integrar no MédicoHelp (pode colar no Replit direto):
+
+💻 HTML
+<!-- Cabeçalho da Dra. Clarice com botão de WhatsApp -->
+<div class="clarice-header">
+  <div class="clarice-info">
+    <img src="./assets/img/clarice-header.png" alt="Dra. Clarice — Assistente Médica IA">
+    <div>
+      <h3>Dra. Clarice</h3>
+      <p>Assistente Médica IA</p>
+    </div>
+  </div>
+
+  <!-- Botão do WhatsApp -->
+  <a href="https://wa.me/554491065757" target="_blank" class="whatsapp-btn" title="Conversar no WhatsApp">
+    <img src="./assets/img/whatsapp-icon.png" alt="WhatsApp">
+  </a>
+</div>
+
+🎨 CSS
+.clarice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 60px;
+  padding: 8px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  width: fit-content;
+  min-width: 280px;
+}
+
+.clarice-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clarice-info img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.clarice-info h3 {
+  margin: 0;
+  color: #34d399;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.clarice-info p {
+  margin: 0;
+  color: #d1d5db;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+/* Botão do WhatsApp */
+.whatsapp-btn img {
+  width: 32px;
+  height: 32px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.whatsapp-btn img:hover {
+  transform: scale(1.12);
+  box-shadow: 0 0 10px #25d366;
+  border-radius: 50%;
+}
+
+🧩 Como usar
+
+Coloca a imagem da Clarice em
+→ ./assets/img/clarice-header.png
+
+Coloca o ícone do WhatsApp em
+→ ./assets/img/whatsapp-icon.png
+(pode pegar qualquer um em PNG transparente, verde original #25D366)
+
+O link https://wa.me/554491065757 já abre direto no WhatsApp da MédicoHelp.
+(se quiser, pode mudar pra outro número depois)

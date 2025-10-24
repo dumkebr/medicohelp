@@ -26,32 +26,25 @@ export default function Landing() {
   };
 
   const handleAudioCall = () => {
-    console.log("[AUDIO CALL] Button clicked at", Date.now());
     setAudioButtonText("🔔 Ligando para a Dra. Clarice...");
-    console.log("[AUDIO CALL] State set to 'Ligando...'");
     
-    // Change to "Conversando" after simulated dial time
-    const timer1 = setTimeout(() => {
-      console.log("[AUDIO CALL] Timeout 1 fired (1800ms) - setting to 'Conversando'");
+    setTimeout(() => {
       setAudioButtonText("📞 Conversando com Dra. Clarice");
       
       // Try to play audio (best effort - may be blocked by browser)
       if (audioRef.current) {
         audioRef.current.src = "/audio/alo_doutor.mp3";
         audioRef.current.load();
-        audioRef.current.play().catch((error) => {
-          console.log("Audio autoplay blocked (expected in browsers):", error.message);
+        audioRef.current.play().catch(() => {
+          // Audio autoplay blocked - expected in some browsers
         });
       }
       
       // Reset button after conversation duration (6 seconds)
-      const timer2 = setTimeout(() => {
-        console.log("[AUDIO CALL] Timeout 2 fired (6000ms) - resetting to 'Ligar'");
+      setTimeout(() => {
         setAudioButtonText("📞 Ligar para a Dra. Clarice");
       }, 6000);
-      console.log("[AUDIO CALL] Timer 2 set (ID:", timer2, ")");
     }, 1800);
-    console.log("[AUDIO CALL] Timer 1 set (ID:", timer1, ")");
   };
 
   return (
@@ -106,6 +99,16 @@ export default function Landing() {
         .landing-badge { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #0f2f2b; border: 1px solid rgba(255,255,255,.12); color: var(--muted); font-size: 12px; margin-right: 6px; }
         .landing-list { margin: 0; padding-left: 18px; color: var(--muted); }
         .landing-notice { background: #0e2623; border-left: 4px solid var(--teal); padding: 12px 14px; border-radius: 8px; color: var(--muted); }
+        
+        .clarice-header { display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 60px; padding: 8px 16px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px); width: fit-content; min-width: 280px; margin-bottom: 16px; }
+        .clarice-info { display: flex; align-items: center; gap: 10px; }
+        .clarice-info img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; }
+        .clarice-info h3 { margin: 0; color: #34d399; font-size: 15px; font-weight: 700; }
+        .clarice-info p { margin: 0; color: #d1d5db; font-size: 13px; line-height: 1.2; }
+        .whatsapp-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: #25d366; border-radius: 50%; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .whatsapp-btn:hover { transform: scale(1.12); box-shadow: 0 0 12px #25d366; }
+        .whatsapp-btn img { width: 24px; height: 24px; filter: brightness(0) invert(1); }
+        
         @media (max-width: 900px) {
           .landing-hero { grid-template-columns: 1fr; }
           .landing-grid-3 { grid-template-columns: 1fr; }
@@ -140,6 +143,27 @@ export default function Landing() {
         {/* Hero Section */}
         <section className="landing-hero">
           <div className="landing-hero-card">
+            {/* Cabeçalho da Dra. Clarice com botão de WhatsApp */}
+            <div className="clarice-header">
+              <div className="clarice-info">
+                <img src="/assets/clarice-header.png" alt="Dra. Clarice — Assistente Médica IA" />
+                <div>
+                  <h3>Dra. Clarice</h3>
+                  <p>Assistente Médica IA</p>
+                </div>
+              </div>
+              <a 
+                href="https://wa.me/554491065757" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="whatsapp-btn" 
+                title="Conversar no WhatsApp"
+                data-testid="button-whatsapp"
+              >
+                <img src="/assets/whatsapp-icon.svg" alt="WhatsApp" />
+              </a>
+            </div>
+            
             <span className="landing-kicker">Apresentamos a Dra. Clarice</span>
             <h1>Decisão clínica rápida, do jeito tradicional — feita por médicos, para médicos.</h1>
             <p style={{ marginBottom: '12px' }}>A Dra. Clarice apoia sua conduta com respostas objetivas (<strong>Modo Clínico</strong>), explicações baseadas em evidências e ferramentas práticas (<strong>MedPrime</strong>: calculadoras e posologia). Clareza, segurança e medicina de verdade — do jeito que sempre funcionou.</p>

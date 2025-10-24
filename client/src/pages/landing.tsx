@@ -57,6 +57,7 @@ export default function Landing() {
         .landing-btn-primary:hover { background: var(--teal-2); }
         .landing-hero { display: flex; flex-direction: column; gap: 18px; align-items: center; padding: 40px 0 20px; max-width: 1040px; }
         .landing-hero h1 { font-weight: 800; line-height: 1.1; letter-spacing: -0.01em; margin: 0; font-size: clamp(28px, 6vw, 48px); text-align: center; }
+        .landing-hero h1 .subtitle { display: block; font-size: clamp(20px, 4vw, 32px); font-weight: 600; margin-top: 8px; }
         .landing-hero .underline { width: 72px; height: 3px; background: rgba(255,255,255,.18); border-radius: 2px; }
         .landing-hero .lead { font-size: clamp(16px, 2.2vw, 18px); line-height: 1.55; color: var(--muted); margin: 0; text-align: center; max-width: 800px; }
         .landing-hero .lead b { color: var(--text); }
@@ -123,7 +124,10 @@ export default function Landing() {
       <main className="landing-container">
         {/* Hero Section */}
         <section className="landing-hero" aria-label="Apresentação da Dra. Clarice">
-          <h1>Decisão clínica rápida, do jeito tradicional Feita por médicos, para médicos.</h1>
+          <h1>
+            Decisão clínica rápida, do jeito tradicional
+            <span className="subtitle">"Feita por médicos, para médicos."</span>
+          </h1>
           <div className="underline" aria-hidden="true"></div>
           
           <p className="lead">

@@ -10,6 +10,7 @@ export default function Landing() {
   const [, setLocation] = useLocation();
   const [audioButtonText, setAudioButtonText] = useState("📞 Ligar para a Dra. Clarice");
   const [chatOpen, setChatOpen] = useState(false);
+  const [recursosModalOpen, setRecursosModalOpen] = useState(false);
   const [messages, setMessages] = useState<Array<{text: string, sender: 'clarice' | 'user'}>>([
     { text: 'Olá! Eu sou a <b>Dra. Clarice</b>, assistente virtual do MédicoHelp. Como posso te ajudar hoje?', sender: 'clarice' }
   ]);
@@ -447,6 +448,78 @@ export default function Landing() {
           background: #1affb8;
         }
         
+        /* Modal Recursos */
+        .recursos-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.85);
+          z-index: 10001;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          animation: fadeIn 0.2s ease;
+        }
+        
+        .recursos-modal-content {
+          position: relative;
+          width: 100%;
+          max-width: 1200px;
+          max-height: 90vh;
+          background: linear-gradient(180deg, #0b3332, #0d3b3a);
+          border-radius: 24px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+          overflow: hidden;
+          animation: slideUp 0.3s ease;
+        }
+        
+        .recursos-modal-scroll {
+          max-height: 90vh;
+          overflow-y: auto;
+          padding: 20px;
+        }
+        
+        .recursos-modal-close {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          background: rgba(0, 0, 0, 0.4);
+          border: 2px solid rgba(25, 194, 158, 0.3);
+          color: #19c29e;
+          border-radius: 50%;
+          width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          z-index: 10;
+          backdrop-filter: blur(8px);
+        }
+        
+        .recursos-modal-close:hover {
+          background: rgba(25, 194, 158, 0.2);
+          border-color: #19c29e;
+          transform: rotate(90deg);
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+          from { 
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to { 
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
         @media (max-width: 900px) {
           .landing-grid-3 { grid-template-columns: 1fr; }
           .landing-hero h1 { font-size: clamp(24px, 5vw, 40px); }
@@ -468,6 +541,18 @@ export default function Landing() {
             right: 12px;
             bottom: 90px;
             width: auto;
+          }
+          
+          .recursos-modal-content {
+            max-width: 100%;
+            border-radius: 16px;
+          }
+          
+          .recursos-modal-close {
+            width: 40px;
+            height: 40px;
+            top: 12px;
+            right: 12px;
           }
         }
       `}</style>
@@ -491,12 +576,6 @@ export default function Landing() {
           </button>
         </nav>
       </header>
-
-      {/* New Hero Section with Clarice */}
-      <HeroClarice />
-      
-      {/* Features Section */}
-      <FeaturesSection />
 
       {/* Main Content */}
       <main className="landing-container">
@@ -549,7 +628,13 @@ export default function Landing() {
             >
               Começar agora
             </button>
-            <a className="landing-btn" href="#recursos" data-testid="link-recursos">Conhecer recursos</a>
+            <button 
+              className="landing-btn" 
+              onClick={() => setRecursosModalOpen(true)}
+              data-testid="button-conhecer-recursos"
+            >
+              Conhecer recursos
+            </button>
           </div>
           
           {/* Hidden audio element */}
@@ -815,6 +900,33 @@ export default function Landing() {
             >
               <Send size={18} />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Conhecer Recursos */}
+      {recursosModalOpen && (
+        <div 
+          className="recursos-modal-overlay"
+          onClick={() => setRecursosModalOpen(false)}
+        >
+          <div 
+            className="recursos-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              className="recursos-modal-close"
+              onClick={() => setRecursosModalOpen(false)}
+              data-testid="button-close-recursos"
+              aria-label="Fechar modal de recursos"
+            >
+              <X size={28} />
+            </button>
+            
+            <div className="recursos-modal-scroll">
+              <HeroClarice />
+              <FeaturesSection />
+            </div>
           </div>
         </div>
       )}

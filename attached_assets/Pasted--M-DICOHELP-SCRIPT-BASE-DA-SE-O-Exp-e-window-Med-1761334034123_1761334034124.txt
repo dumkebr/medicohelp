@@ -1,0 +1,158 @@
+===================== MÉDICOHELP - SCRIPT BASE DA SEÇÃO =====================
+   - Expõe window.MedicoHelp com ganchos simples e fallback seguro
+   - Integra botões "Abrir História Clínica" e "Falar com a Dra. Clarice"
+   - Rotas padrão + WhatsApp da plataforma (Brasil)
+   ========================================================================== */
+
+(function () {
+  // ---- Configurações -------------------------------------------------------
+  const ROUTES = {
+    history: "/history",          // página/rota da História Clínica
+    voice: "/voice",              // página/rota do Modo Voz (chamada)
+    upload: "/upload",            // uploads de exames/laudos
+    calculators: "/calculadoras", // calculadoras clínicas
+    evidence: "/evidencias",      // fundamentação teórica
+    medprime: "/medprime"         // posologia
+  };
+
+  // WhatsApp (Brasil) — número informado pelo Clairton
+  const WHATSAPP_NUMBER = "554491065757"; // 55 + DDD + número, sem símbolos
+  const WHATSAPP_DEFAULT_MSG = "Olá, Dra. Clarice! Sou médico e quero testar o Modo Voz do MédicoHelp.";
+
+  // ---- Utilidades ----------------------------------------------------------
+  function ensureNamespace() {
+    if (!window.MedicoHelp) window.MedicoHelp = {};
+    return window.MedicoHelp;
+  }
+
+  function canUse(fn) {
+    return typeof fn === "function";
+  }
+
+  function go(url) {
+    try {
+      if (window.history && window.history.pushState && !/^https?:\/\//.test(url)) {
+        window.history.pushState({}, "", url);
+        // Dispara evento de navegação SPA (se houver roteador ouvindo)
+        window.dispatchEvent(new Event("popstate"));
+      } else {
+        window.location.href = url;
+      }
+    } catch {
+      window.location.href = url;
+    }
+  }
+
+  function openWhatsApp(message = WHATSAPP_DEFAULT_MSG) {
+    const link = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    window.open(link, "_blank", "noopener,noreferrer");
+  }
+
+  // ---- API pública ---------------------------------------------------------
+  const api = ensureNamespace();
+
+  // Navegação genérica
+  api.navigate = function (routeKeyOrUrl) {
+    if (canUse(window.__APP_NAVIGATE__)) {
+      // Se seu app expõe um roteador próprio
+      return window.__APP_NAVIGATE__(routeKeyOrUrl);
+    }
+    const url = ROUTES[routeKeyOrUrl] || routeKeyOrUrl || "/";
+    go(url);
+  };
+
+  // Abre História Clínica (modo SOAP por padrão)
+  api.createHistory = function ({ mode = "SOAP" } = {}) {
+    // Se sua app já tem um handler, usa ele
+    if (canUse(window.__OPEN_HISTORY__)) return window.__OPEN_HISTORY__({ mode });
+
+    // Fallback: navega pra rota de history com hash de modo
+    const url = `${ROUTES.history}#mode=${encodeURIComponent(mode)}`;
+    go(url);
+  };
+
+  // Abre o Modo Voz / “ligar para a Dra. Clarice”
+  api.openVoice = function () {
+    // Handler nativo do app?
+    if (canUse(window.__OPEN_VOICE__)) return window.__OPEN_VOICE__();
+
+    // Se não tem, oferece WhatsApp como canal imediato (tradicional, prático)
+    openWhatsApp("Olá, Dra. Clarice! Quero iniciar o Modo Voz agora.");
+  };
+
+  // Upload de exames (se existir)
+  api.openUploader = function () {
+    if (canUse(window.__OPEN_UPLOADER__)) return window.__OPEN_UPLOADER__();
+    go(ROUTES.upload);
+  };
+
+  // Acessos rápidos (se você quiser usar pelos data-attributes)
+  api.openCalculators = function () { api.navigate("calculators"); };
+  api.openEvidence    = function () { api.navigate("evidence"); };
+  api.openMedPrime    = function () { api.navigate("medprime");  };
+
+  // ---- Auto-bind de botões (progressive enhancement) -----------------------
+  function bindButtons() {
+    // Suporte a data-mh-action="history|voice|upload|calculators|evidence|medprime"
+    document.querySelectorAll("[data-mh-action]").forEach((el) => {
+      const action = (el.getAttribute("data-mh-action") || "").toLowerCase().trim();
+
+      el.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        switch (action) {
+          case "history":
+            api.createHistory({ mode: el.getAttribute("data-mode") || "SOAP" });
+            break;
+          case "voice":
+            api.openVoice();
+            break;
+          case "upload":
+            api.openUploader();
+            break;
+          case "calculators":
+            api.openCalculators();
+            break;
+          case "evidence":
+            api.openEvidence();
+            break;
+          case "medprime":
+            api.openMedPrime();
+            break;
+          case "whatsapp":
+            openWhatsApp();
+            break;
+          default:
+            if (action) api.navigate(action);
+        }
+      });
+    });
+  }
+
+  // ---- Inicialização -------------------------------------------------------
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bindButtons);
+  } else {
+    bindButtons();
+  }
+
+  // Log discreto pra depuração
+  try {
+    console.debug("[MédicoHelp] script.js carregado. Rotas:", ROUTES);
+  } catch {}
+})();
+Como usar (rapidinho):
+
+Salva como script.js.
+
+Garante que esteja importado depois do HTML da seção:
+
+html
+Copiar código
+<script src="/script.js"></script>
+Se quiser “data-attributes” sem mexer no HTML, pode usar assim:
+
+html
+Copiar código
+<a data-mh-action="whatsapp">Falar no WhatsApp</a>
+<button data-mh-action="history" data-mode="SOAP">Abrir História Clínica</button>
+<button data-mh-action="voice">Falar com a Dra. Clarice</button>

@@ -169,6 +169,29 @@ export default function Landing() {
         .contact-btn-email:hover { background: rgba(255,255,255,.15); transform: translateY(-2px); }
         .contact-btn svg { width: 20px; height: 20px; }
         
+        /* MédicoHelp Section Styles */
+        .mh-wrap { max-width: 1200px; margin: 50px auto; padding: 32px 20px; border-radius: 24px; background: linear-gradient(180deg, #0b3332, #043c37); box-shadow: 0 10px 30px rgba(0,0,0,.25), inset 0 0 0 1px rgba(25,194,158,.18); }
+        .mh-title { font-size: clamp(22px, 3vw, 34px); font-weight: 800; letter-spacing: .2px; margin: 0 0 6px; text-align: center; }
+        .mh-sub { font-size: clamp(14px, 2vw, 18px); color: var(--muted); margin: 0 0 20px; text-align: center; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .mh-chip { display: inline-flex; gap: 8px; align-items: center; background: #123f3d; color: #19c29e; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(25,194,158,.25); font-weight: 700; font-size: 12px; margin-bottom: 10px; }
+        .mh-grid { display: grid; gap: 14px; grid-template-columns: repeat(12, 1fr); }
+        .mh-card { grid-column: span 12; background: #0f4a47; border-radius: 18px; padding: 16px 16px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25), inset 0 0 0 1px rgba(25,194,158,.18); transition: .18s ease; position: relative; overflow: hidden; cursor: pointer; }
+        .mh-card:hover { background: #0e4441; transform: translateY(-1px); }
+        .mh-card h4 { display: flex; align-items: center; gap: 10px; font-size: 18px; margin: 0 0 6px; }
+        .mh-card p { margin: 0; color: var(--muted); line-height: 1.5; }
+        .mh-hr { height: 1px; background: linear-gradient(90deg, transparent, rgba(26,165,142,.4), transparent); margin: 24px 0; }
+        .mh-section-title { font-size: 16px; letter-spacing: .18em; color: var(--muted); margin: 4px 0 12px; text-transform: uppercase; text-align: center; }
+        .mh-kicker { font-size: clamp(18px, 2.4vw, 22px); font-weight: 700; margin: 0 0 14px; }
+        .mh-ico { width: 18px; height: 18px; color: #19c29e; flex: 0 0 18px; }
+        .mh-card.span-6 { grid-column: span 12; }
+        .mh-card.span-8 { grid-column: span 12; }
+        @media (min-width: 720px) {
+          .mh-card { grid-column: span 4; }
+          .mh-card.span-6 { grid-column: span 6; }
+          .mh-card.span-8 { grid-column: span 8; }
+        }
+        .mh-card:focus { outline: 2px solid #19c29e; outline-offset: 2px; }
+        
         /* Floating Chat Styles */
         .floating-chat-fab {
           position: fixed;
@@ -442,6 +465,165 @@ export default function Landing() {
             <source src="/audio/clarice_ligacao.mp3?v=2" type="audio/mpeg" />
             Seu navegador não suporta áudio.
           </audio>
+        </section>
+
+        {/* ===================== MÉDICOHELP - SEÇÃO DESTAQUE ===================== */}
+        <section className="mh-wrap" aria-label="O que é MédicoHelp">
+          <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+            <div className="mh-chip">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="mh-ico">
+                <path d="M12 2v6M7 4.5A9 9 0 1 0 21 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              POWERED BY GPT-5
+            </div>
+          </div>
+
+          <h2 className="mh-title">Plataforma médica inteligente — direta, confiável e pronta para o plantão</h2>
+          <p className="mh-sub">Condutas objetivas, evidências clínicas e ferramentas práticas para o dia a dia do médico.</p>
+
+          <div className="mh-section-title">O QUE É</div>
+          <div className="mh-grid" role="list">
+            <article className="mh-card" role="listitem" tabIndex={0}>
+              <h4>
+                <svg className="mh-ico" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 7h16M7 4v6m5 5v5m0-5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Modo Clínico
+              </h4>
+              <p>Respostas passo a passo, linguagem médica tradicional. Protocolos de PS (dor torácica, dispneia, febre, convulsão, dor abdominal etc.).</p>
+            </article>
+
+            <article className="mh-card" role="listitem" tabIndex={0}>
+              <h4>
+                <svg className="mh-ico" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 4h14v14H5zM9 8h6m-6 4h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M7 20h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Evidências Clínicas
+              </h4>
+              <p>Explicações com base científica, raciocínio terapêutico e referências atualizadas. Ideal para registrar fundamentação teórica.</p>
+            </article>
+
+            <article 
+              className="mh-card" 
+              role="listitem" 
+              tabIndex={0}
+              onClick={() => setLocation("/medprime")}
+              data-testid="card-medprime"
+            >
+              <h4>
+                <svg className="mh-ico" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 12h8m4 0h4M8 8v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                MedPrime (Calculadoras)
+              </h4>
+              <p>Dose mg/kg, ajustes renal/gestante, conversões para mL/comprimidos, limites por dose/dia. Rápido, preciso e auditável.</p>
+            </article>
+          </div>
+
+          <div className="mh-hr" role="separator" aria-hidden="true"></div>
+
+          <div className="mh-section-title">RECURSOS</div>
+          <h3 className="mh-kicker" style={{ textAlign: 'center' }}>Ferramentas que resolvem na prática</h3>
+
+          <div className="mh-grid" role="list">
+            <article className="mh-card span-6" role="listitem" tabIndex={0} data-testid="card-anexos">
+              <h4>
+                <svg className="mh-ico" viewBox="0 0 24 24" fill="none">
+                  <path d="M8 12v5a4 4 0 0 0 8 0v-7a3 3 0 1 0-6 0v7a2 2 0 1 0 4 0v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Anexos: foto, áudio e PDF
+              </h4>
+              <p>Envie imagens de exames ou lesões de pele — a IA descreve automaticamente (cor, bordas, tamanho, padrão) e gera texto clínico pronto. PDFs/laudos são interpretados e liberados digitados para colar na história clínica.</p>
+            </article>
+
+            <article className="mh-card span-6" role="listitem" tabIndex={0} onClick={handleAudioCall} data-testid="card-voz">
+              <h4>
+                <svg className="mh-ico" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 1 1-6 0V6a3 3 0 0 1 3-3Zm8 9a8 8 0 0 1-16 0m8 8v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Modo Voz "Ligar para a Dra. Clarice"
+              </h4>
+              <p>Ícone de telefone inicia a chamada simulada. Tire dúvidas de conduta, posologia e interpretação por voz, em tempo real.</p>
+            </article>
+
+            <article className="mh-card span-6" role="listitem" tabIndex={0} data-testid="card-imagens">
+              <h4>
+                <svg className="mh-ico" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 5h16v14H4zM7 14l3-3 3 3 3-4 1 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Interpretação de Imagens Médicas
+              </h4>
+              <p>RX, USG, TC, RM e Dermatologia. Ajuda na leitura e correlação clínica, com resumo estruturado pronto para a anamnese.</p>
+            </article>
+
+            <article className="mh-card span-6" role="listitem" tabIndex={0} data-testid="card-soap">
+              <h4>
+                <svg className="mh-ico" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Histórias Clínicas Automáticas (SOAP ou Personalizada)
+              </h4>
+              <p>Gere SOAP tradicional ou um modelo personalizado ao seu estilo. Tudo limpo, objetivo e pronto para o prontuário.</p>
+            </article>
+
+            <article className="mh-card span-6" role="listitem" tabIndex={0} onClick={() => setLocation("/medprime")} data-testid="card-calc">
+              <h4>
+                <svg className="mh-ico" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 4h16v16H4zM8 8h8M8 12h8M8 16h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Calculadoras Inteligentes
+              </h4>
+              <p>Peça os cálculos pela IA (doses, correções, scores) ou acesse direto o módulo <strong>MedPrime</strong> com todas as calculadoras.</p>
+            </article>
+
+            <article className="mh-card span-6" role="listitem" tabIndex={0}>
+              <h4>
+                <svg className="mh-ico" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2a6 6 0 0 0-6 6v3H4v7h16v-7h-2V8a6 6 0 0 0-6-6Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M10 15l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Segurança e LGPD
+              </h4>
+              <p>Cadastro controlado (CRM/UF ou Aluno 6º ano com universidade), termo de confidencialidade e verificação por e-mail/WhatsApp.</p>
+            </article>
+          </div>
+
+          <div className="mh-hr" role="separator" aria-hidden="true"></div>
+
+          <div className="mh-section-title">EM BREVE</div>
+          <div className="mh-grid" role="list">
+            <article className="mh-card span-8" role="listitem" tabIndex={0}>
+              <h4>
+                <svg className="mh-ico" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 7v10m-5-5h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Especialidades Avançadas
+              </h4>
+              <p>Condutas personalizadas para gestantes e lactantes, pediatria, cardiologia e mais — incluindo alertas e ajustes de tratamento.</p>
+            </article>
+
+            <article className="mh-card span-6" role="listitem" tabIndex={0}>
+              <h4>
+                <svg className="mh-ico" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 11a5 5 0 1 1 10 0v3a5 5 0 1 1-10 0v-3Z" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M12 4v3m0 10v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Módulo Pré-natal Inteligente
+              </h4>
+              <p>IG automática, acompanhamento de exames, relatórios e alertas de risco gestacional para agilizar o pré-natal.</p>
+            </article>
+
+            <article className="mh-card span-6" role="listitem" tabIndex={0}>
+              <h4>
+                <svg className="mh-ico" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 6h18v12H3zM8 18v3h8v-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Atendimentos Digitais
+              </h4>
+              <p>Consultas por vídeo integradas, emissão de receitas, laudos e pedidos — com validação via Memed (roadmap).</p>
+            </article>
+          </div>
         </section>
 
         {/* AI Assistant Badge - Revolutionary */}

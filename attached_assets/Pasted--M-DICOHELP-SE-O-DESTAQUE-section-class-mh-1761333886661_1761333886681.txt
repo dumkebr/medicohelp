@@ -1,0 +1,56 @@
+<!-- ===================== MÉDICOHELP - SEÇÃO DESTAQUE ===================== -->
+<section class="mh-wrap">
+  <div class="mh-container">
+    
+    <h2 class="mh-title">O QUE É O <span>MédicoHelp</span></h2>
+    <p class="mh-desc">
+      Plataforma médica feita por médicos, para médicos. 
+      Centraliza o atendimento, auxilia em decisões clínicas e agiliza seu trabalho.
+    </p>
+
+    <div class="mh-blocks">
+      <div class="mh-block">
+        <h3>🩺 Modo Clínico</h3>
+        <p>História clínica estruturada (SOAP ou personalizada), interpretação de exames e geração automática de relatórios.</p>
+      </div>
+      <div class="mh-block">
+        <h3>📚 Evidências</h3>
+        <p>Base científica integrada — diretrizes, protocolos e fundamentos teóricos revisados para cada decisão médica.</p>
+      </div>
+      <div class="mh-block">
+        <h3>💊 MedPrime</h3>
+        <p>Acesso rápido à posologia segura, cálculo automático de dose e alertas de gestação, pediatria e função renal.</p>
+      </div>
+    </div>
+
+    <h2 class="mh-subtitle">🧩 RECURSOS PRINCIPAIS</h2>
+    <ul class="mh-list">
+      <li>📋 História Clínica Automatizada</li>
+      <li>🗣️ Modo Voz — converse diretamente com a Dra. Clarice</li>
+      <li>📎 Upload de exames e laudos com leitura automática</li>
+      <li>💬 Geração de condutas e prescrições com validação Memed</li>
+      <li>🧠 Calculadoras clínicas integradas</li>
+      <li>👩‍⚕️ Modo avançado com fundamentação teórica</li>
+    </ul>
+
+    <h2 class="mh-subtitle">🚀 EM BREVE</h2>
+    <p class="mh-desc">
+      Especialidades avançadas (gestantes, lactantes, pediatria e emergência),
+      vídeoatendimento médico pela plataforma, geração de relatórios inteligentes e integração completa com o PosologiaCerta.
+    </p>
+
+    <div class="mh-cta">
+      <button onclick="window.MedicoHelp.createHistory({mode:'SOAP'})">Abrir História Clínica</button>
+      <button onclick="window.MedicoHelp.openVoice()">Falar com a Dra. Clarice</button>
+    </div>
+
+  </div>
+</section>
+<!-- ===================== FIM DA SEÇÃO MÉDICOHELP ===================== -->
+📎 Como o Replit deve fazer:
+
+Inserir esse trecho logo após o <section> do Hero.
+
+Garantir que os arquivos style.css e script.js do pacote estejam importados.
+
+Se sua SPA já tem hooks (tipo window.MedicoHelp.navigate ou window.MedicoHelp.createHistory), o JS já vai conectar automaticamente.

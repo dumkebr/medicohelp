@@ -1,0 +1,123 @@
+Aqui tá o CSS base (style.css) que combina com aquele HTML que te mandei — o Replit entende bem assim:
+
+/* ===================== MÉDICOHELP - BLOCO PRINCIPAL ===================== */
+.mh-wrap {
+  background: #f7fdf9;
+  padding: 80px 20px;
+  font-family: "Inter", Arial, sans-serif;
+  color: #1a1a1a;
+}
+
+.mh-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.mh-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #007a4d;
+  margin-bottom: 10px;
+}
+
+.mh-title span {
+  color: #009e5a;
+}
+
+.mh-desc {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 800px;
+  margin: 0 auto 40px;
+}
+
+.mh-blocks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 60px;
+}
+
+.mh-block {
+  background: #ffffff;
+  border: 1px solid #d9f2e2;
+  border-radius: 12px;
+  padding: 25px 20px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mh-block:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+.mh-block h3 {
+  color: #007a4d;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.mh-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto 40px;
+  max-width: 600px;
+  text-align: left;
+}
+
+.mh-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #d9f2e2;
+  font-size: 1rem;
+}
+
+.mh-subtitle {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #007a4d;
+  margin: 50px 0 15px;
+}
+
+.mh-cta {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+
+.mh-cta button {
+  background: #009e5a;
+  color: #fff;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.mh-cta button:hover {
+  background: #007a4d;
+}
+
+/* ===================== RESPONSIVIDADE ===================== */
+@media (max-width: 768px) {
+  .mh-title {
+    font-size: 1.8rem;
+  }
+  .mh-subtitle {
+    font-size: 1.4rem;
+  }
+  .mh-desc {
+    font-size: 1rem;
+  }
+}
+
+
+👉 Coloca ele como style.css (ou importa no seu global).
+👉 O HTML que te passei antes usa essas classes (mh-wrap, mh-block, mh-cta, etc.).
+👉 Esse estilo segue a identidade verde e branca do MédicoHelp.

@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MédicoHelp — Sua aliada inteligente na decisão clínica</title>
+<meta name="description" content="Plataforma médica inteligente: apoio clínico, evidências, calculadoras e posologia.">
+<link rel="icon" href="assets/logo_main.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="container header">
+    <div class="brand">
+      <img src="assets/logo_main.png" alt="MédicoHelp logo">
+      <div>
+        <div class="title">MédicoHelp</div>
+        <div class="subtitle">Sua aliada inteligente na decisão clínica</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="index.html">Início</a>
+      <a href="cadastro.html">Cadastro</a>
+      <a href="#recursos">Recursos</a>
+      <a href="termo-confidencialidade.html">Confidencialidade</a>
+      <a class="btn btn-primary" href="cadastro.html">Entrar</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <span class="kicker">Apresentamos a Dra. Clarice</span>
+        <h1>Decisão clínica rápida, do jeito tradicional — com segurança e evidência.</h1>
+        <p>A Dra. Clarice apoia sua conduta com respostas objetivas (Modo Clínico), explicações embasadas (Evidências) e ferramentas práticas (MedPrime: calculadoras e posologia).</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="cadastro.html">Começar agora</a>
+          <a class="btn" href="#como-funciona">Como funciona</a>
+        </div>
+        <div class="chatbox" style="margin-top:18px">
+          <input id="userInput" placeholder="Digite sua mensagem…">
+          <button id="micBtn" class="icon-btn" title="Falar com a Dra. Clarice (transcrever)">
+            🎙️
+          </button>
+          <button id="phoneBtn" class="icon-btn" title="Ligar para a Dra. Clarice (modo voz)">
+            📞
+          </button>
+        </div>
+        <div class="notice" style="margin-top:10px">
+          Dica: Modo voz mostra um painel de ligação para a Dra. Clarice (simulação). Integração real pode ser acoplada depois.
+        </div>
+      </div>
+      <div class="hero-mini">
+        <img src="assets/clarice_png.png" alt="Dra. Clarice">
+        <div class="bubble">
+          <strong>Olá, eu sou a Dra. Clarice!</strong><br>
+          Bem-vindo ao MédicoHelp. Como posso ajudar você hoje?
+          <div style="margin-top:10px">
+            <span class="badge">Modo Clínico</span>
+            <span class="badge">Evidências Clínicas</span>
+            <span class="badge">MedPrime</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="como-funciona" class="section">
+      <span class="kicker">O que é</span>
+      <h2>Plataforma médica inteligente — direta, confiável e pronta para o plantão</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>🩺 Modo Clínico</h3>
+          <p class="bullets">
+            Respostas objetivas, passo a passo, linguagem médica tradicional. Protocolos de pronto-socorro (dor torácica, dispneia, febre etc.).
+          </p>
+        </div>
+        <div class="card">
+          <h3>📚 Evidências Clínicas</h3>
+          <p class="bullets">
+            Explicações com base científica, racional terapêutico e referências. Bom para discutir caso e registrar fundamentação.
+          </p>
+        </div>
+        <div class="card">
+          <h3>⚕️ MedPrime (Calculadoras)</h3>
+          <p class="bullets">
+            Dose mg/kg, ajustes renal/gestante, conversão para mL/comprimidos, máximos por dose/dia. Tudo rápido e auditável.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="recursos" class="section">
+      <span class="kicker">Recursos</span>
+      <h2>Ferramentas que resolvem na prática</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>📎 Anexos: foto, áudio e PDF</h3>
+          <p class="bullets">Envie imagem do exame, áudio do relato ou PDF do laudo para contextualizar o atendimento.</p>
+        </div>
+        <div class="card">
+          <h3>🎙️ Modo Voz &quot;Ligar para a Dra. Clarice&quot;</h3>
+          <p class="bullets">Ícone de telefone inicia a chamada simulada; integração real pode usar WebRTC/SDK conforme necessidade.</p>
+        </div>
+        <div class="card">
+          <h3>🛡️ Segurança e LGPD</h3>
+          <p class="bullets">Cadastro controlado (CRM/UF ou Aluno 6º ano com universidade), termo de confidencialidade e verificação por e-mail/WhatsApp.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <span class="kicker">Para quem é</span>
+      <h2>Médicos e alunos do 6º ano</h2>
+      <ul class="list">
+        <li>Médicos: CRM e UF obrigatórios.</li>
+        <li>Alunos 6º ano: informar universidade e aceitar termo.</li>
+        <li>Login por e-mail; aprovação administrativa para ativação completa.</li>
+      </ul>
+      <div class="cta" style="margin-top:14px">
+        <a class="btn btn-primary" href="cadastro.html">Fazer cadastro</a>
+        <a class="btn" href="termo-confidencialidade.html">Ler termo</a>
+      </div>
+    </section>
+
+    <section class="section">
+      <span class="kicker">Contato</span>
+      <h2>Fale com a equipe
+
+<!-- Chat de recepção da Dra Clarice (Opção 2) -->
+<div id="clarice-chat" class="clarice-chatbox">
+  <div class="clarice-header">
+    <img src="./assets/img/clarice.png" alt="Dra Clarice" class="clarice-avatar" onerror="this.style.display='none'">
+    <div>
+      <div class="clarice-title">Dra Clarice</div>
+      <div class="clarice-sub">Assistente virtual do MédicoHelp</div>
+    </div>
+  </div>
+  <div class="clarice-messages"></div>
+  <div class="clarice-input">
+    <input type="text" id="clarice-input-text" placeholder="Digite aqui..." />
+    <button id="clarice-send">Enviar</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const chat = document.querySelector('.clarice-messages');
+  const input = document.querySelector('#clarice-input-text');
+  const send = document.querySelector('#clarice-send');
+  if(!chat||!input||!send) return;
+
+  function addMessage(text, sender='clarice'){
+    const div = document.createElement('div');
+    div.className = 'msg ' + sender;
+    div.innerHTML = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  addMessage('Olá, <b>Dr. Clairton</b>! Eu sou a <b>Dra Clarice</b>, assistente virtual do MédicoHelp. Como posso te ajudar hoje?');
+
+  function botReply(userText){
+    const t = userText.toLowerCase();
+    if(t.includes('contato') || t.includes('equipe') || t.includes('atendimento')){
+      addMessage('Perfeito! Posso te encaminhar agora para a equipe pelo WhatsApp.');
+    } else if(t.includes('preço') || t.includes('plano') || t.includes('assinatura')){
+      addMessage('Sobre planos e preços eu posso te orientar e, se preferir, encaminho você para a equipe no WhatsApp.');
+    } else {
+      addMessage('Entendi. Posso tentar te ajudar por aqui, ou te encaminhar à nossa equipe no WhatsApp.');
+    }
+    setTimeout(()=>{
+      addMessage('👉 <a class="clarice-whats" href="https://wa.me/554491065757?text=Ol%C3%A1%2C%20sou%20o%20Dr.%20Clairton.%20Gostaria%20de%20falar%20com%20a%20equipe%20do%20M%C3%A9dicoHelp." target="_blank" rel="noopener">Falar com a equipe no WhatsApp</a>');
+    }, 900);
+  }
+
+  function handleSend(){
+    const text = input.value.trim();
+    if(!text) return;
+    addMessage(text, 'user');
+    input.value='';
+    setTimeout(()=>botReply(text), 700);
+  }
+
+  send.addEventListener('click', handleSend);
+  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') handleSend(); });
+})();
+</script>
+
+<style>
+#clarice-chat.clarice-chatbox {
+  background:#003c3c; color:#fff; padding:16px; border-radius:16px;
+  max-width:460px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15); margin-top:12px;
+}
+#clarice-chat .clarice-header{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+#clarice-chat .clarice-avatar{ width:40px; height:40px; border-radius:50%; object-fit:cover; }
+#clarice-chat .clarice-title{ font-weight:700; line-height:1; }
+#clarice-chat .clarice-sub{ font-size:12px; opacity:.85; }
+#clarice-chat .clarice-messages{
+  min-height:200px; max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-right:4px;
+}
+#clarice-chat .msg{ padding:10px 12px; border-radius:12px; max-width:82%; word-wrap:break-word; }
+#clarice-chat .msg.clarice{ background:#025b52; align-self:flex-start; }
+#clarice-chat .msg.user{ background:#056162; align-self:flex-end; }
+#clarice-chat .clarice-input{ display:flex; gap:8px; margin-top:10px; }
+#clarice-chat .clarice-input input{
+  flex:1; border:none; padding:10px 14px; border-radius:999px; background:#ffffff; color:#002b2b;
+}
+#clarice-chat .clarice-input button{
+  background:#00b37e; border:none; color:#fff; padding:10px 16px; border-radius:999px; cursor:pointer;
+}
+#clarice-chat .clarice-input button:hover{ filter:brightness(0.95); }
+#clarice-chat a.clarice-whats{ color:#00e8a4; text-decoration:none; font-weight:600; }
+.mh-whats-removed{ display:none; }
+</style>
+</h2>
+      <p class="bullets">
+        WhatsApp:&nbsp;<span class="mh-whats-removed"></span><strong>+55 44 9106-5757</strong> · E-mail: <strong>sic@medicohelp.com.br</strong>
+      </p>
+    </section>
+  </main>
+
+  <div id="callModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(2px)">
+    <div style="max-width:520px;margin:8% auto;background:#0c2b27;border-radius:16px;box-shadow:var(--shadow);padding:18px">
+      <div style="display:flex;gap:16px;align-items:center">
+        <img src="assets/clarice_png.png" alt="Dra. Clarice" style="height:96px;border-radius:12px">
+        <div>
+          <div style="font-weight:700">Ligando para Dra. Clarice…</div>
+          <div id="callStatus" class="bullets">Ligando para Dra. Clarice…</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px">
+        <button id="closeCall" class="btn">Encerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="container footer">
+    © 2025 MédicoHelp · Desenvolvido por Dr. Clairton Luis Dumke (CRM PR 53866) · <a href="privacidade.html">Privacidade</a>
+  </footer>
+  <script src="script.js"></script>
+
+<!-- Botão flutuante da Dra Clarice -->
+<div id="clarice-fab" aria-label="Abrir chat da Dra Clarice" title="Falar com a Dra Clarice">
+  <img src="./assets/img/clarice.png" alt="Dra Clarice" onerror="this.src=''; this.parentElement.classList.add('clarice-fallback');" />
+</div>
+<style>
+#clarice-fab{
+  position:fixed; bottom:16px; right:16px; width:68px; height:68px; border-radius:50%;
+  background:#ffffff; box-shadow:0 6px 20px rgba(0,0,0,.25); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; z-index:10000; border:3px solid #00b37e;
+}
+#clarice-fab img{ width:100%; height:100%; object-fit:cover; border-radius:50%; }
+#clarice-fab:hover{ transform:translateY(-1px); transition:transform .12s ease-out; }
+#clarice-fab.clarice-fallback{ background:#00b37e; color:#fff; font-weight:700; }
+#clarice-fab.clarice-fallback::after{ content:'CL'; }
+#clarice-chat.clarice-chatbox{ position:fixed; bottom:100px; right:16px; z-index:9999; display:none; max-width:380px; }
+@media (max-width: 520px){
+  #clarice-chat.clarice-chatbox{ right:10px; left:10px; max-width:unset; }
+  #clarice-fab{ width:60px; height:60px; bottom:12px; right:12px; }
+}
+</style>
+<script>
+(function(){
+  const fab = document.getElementById('clarice-fab');
+  const panel = document.getElementById('clarice-chat');
+  if(!fab || !panel) return;
+  function toggle(){ panel.style.display = (panel.style.display === 'none' || !panel.style.display) ? 'block' : 'none'; }
+  fab.addEventListener('click', toggle);
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') panel.style.display='none'; });
+})();
+</script>
+
+</body>
+</html>

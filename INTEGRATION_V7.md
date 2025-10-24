@@ -1,13 +1,82 @@
 # MédicoHelp V7 - Integração Completa ✅
 
+## 📦 Estrutura de Rotas
+
+### ✅ Aplicação Principal (React SPA)
+```
+http://localhost:5000/
+→ MédicoHelp completo (Dra. Clarice, chat, login, painel)
+```
+
+### ✅ Site Institucional (HTML Estático)
+```
+http://localhost:5000/site/
+→ Páginas institucionais:
+  - /site/index.html (landing institucional)
+  - /site/cadastro.html
+  - /site/termo-confidencialidade.html
+  - /site/privacidade.html
+  - /site/admin.html
+  - /site/admin-api.html
+```
+
+## 🏗️ Estrutura de Arquivos
+
+```
+medicohelp/
+├── client/
+│   ├── public/
+│   │   ├── site/                    ⭐ NOVO
+│   │   │   ├── index.html           (institucional)
+│   │   │   ├── cadastro.html
+│   │   │   ├── termo-confidencialidade.html
+│   │   │   ├── privacidade.html
+│   │   │   ├── admin.html
+│   │   │   └── admin-api.html
+│   │   ├── assets/
+│   │   │   ├── hero1.png
+│   │   │   ├── chat1.png
+│   │   │   ├── logo_main.png
+│   │   │   └── clarice_png.png
+│   │   └── kb/
+│   │       ├── index.json
+│   │       ├── geral.json
+│   │       ├── assinatura.json
+│   │       ├── conta.json
+│   │       └── tecnico.json
+│   └── src/
+│       ├── components/
+│       │   ├── HeroClarice.tsx      ⭐ NOVO
+│       │   └── FeaturesSection.tsx  ⭐ NOVO
+│       └── lib/
+│           └── clarice-brain.ts     ⭐ ATUALIZADO V7
+│
+└── server/
+    ├── kb/ (same as client/public/kb/)
+    └── clarice_brain.js             ⭐ NOVO
+```
+
+## 🎯 URLs de Acesso
+
+| URL | Descrição |
+|-----|-----------|
+| `/` | **App Principal** - MédicoHelp React SPA |
+| `/site/` | Site Institucional HTML |
+| `/site/cadastro.html` | Página de Cadastro |
+| `/site/admin.html` | Admin Local |
+| `/site/admin-api.html` | Admin com Backend |
+| `/medprime` | Ferramentas Médicas Avançadas |
+| `/avancado` | Hub de Calculadoras |
+
 ## 📦 Arquivos Integrados
 
-### 🌐 Site Estático (client/public/)
-- ✅ index.html
+### 🌐 Site Estático (client/public/site/)
+- ✅ index.html (institucional)
 - ✅ cadastro.html  
 - ✅ termo-confidencialidade.html
 - ✅ privacidade.html
 - ✅ admin.html
+- ✅ admin-api.html
 
 ### 🎨 Assets (client/public/assets/)
 - ✅ hero1.png (1.7MB)
@@ -16,7 +85,7 @@
 - ✅ clarice_png.png (1.8MB)
 - ✅ clarice.png (12KB)
 
-### 🧠 Knowledge Base V5 Modular
+### 🧠 Knowledge Base V7 Modular
 **Backend:** server/kb/
 - geral.json (29 linhas)
 - assinatura.json (21 linhas)
@@ -31,54 +100,27 @@
 - ✅ server/clarice_brain.js
 - ✅ client/src/lib/clarice-brain.ts (atualizado V7)
 
-## 🏗️ Estrutura Final
-
-```
-medicohelp/
-├── client/
-│   ├── public/
-│   │   ├── index.html
-│   │   ├── cadastro.html
-│   │   ├── termo-confidencialidade.html
-│   │   ├── privacidade.html
-│   │   ├── admin.html
-│   │   ├── admin-api.html
-│   │   ├── assets/
-│   │   │   ├── hero1.png
-│   │   │   ├── chat1.png
-│   │   │   ├── logo_main.png
-│   │   │   └── clarice_png.png
-│   │   └── kb/
-│   │       ├── index.json
-│   │       ├── geral.json
-│   │       ├── assinatura.json
-│   │       ├── conta.json
-│   │       └── tecnico.json
-│   └── src/
-│       ├── components/
-│       │   ├── HeroClarice.tsx ⭐ NOVO
-│       │   └── FeaturesSection.tsx ⭐ NOVO
-│       └── lib/
-│           └── clarice-brain.ts ⭐ ATUALIZADO V7
-│
-└── server/
-    ├── kb/ (same as client/public/kb/)
-    └── clarice_brain.js ⭐ NOVO
-```
-
 ## 🎯 Funcionalidades Integradas
 
+### ✅ React SPA na Raiz `/`
+- Login/Autenticação
+- Chat com Dra. Clarice (GPT-5)
+- Histórico de Atendimentos
+- Gerenciamento de Pacientes
+- MedPrime (Calculadoras)
+- Ferramentas Avançadas
+- Voice Calls em tempo real
+
 ### ✅ Modal "Conhecer Recursos"
-- Botão "Conhecer recursos" na landing page
+- Botão na landing page
 - Abre modal fullscreen com:
   - **HeroClarice**: Hero com imagem Dra. Clarice + 3 CTAs
   - **FeaturesSection**: 12 cards organizados (O QUE É / RECURSOS / EM BREVE)
 - Animações: fade-in + slide-up
 - Botão X com hover rotate
 - Click fora para fechar
-- Scroll interno suave
 
-### ✅ Knowledge Base V5 Modular
+### ✅ Knowledge Base V7 Modular
 - **Sistema baseado em index.json**
 - **4 categorias** separadas por arquivo
 - **Scoring algorithm**: 
@@ -89,47 +131,36 @@ medicohelp/
 - **Ações interativas** via botões HTML
 - **Analytics** via localStorage
 
-### ✅ Páginas Estáticas
-Acessíveis diretamente:
-- `/index.html` - Site institucional
-- `/cadastro.html` - Página de cadastro
-- `/termo-confidencialidade.html` - Termos
-- `/privacidade.html` - Política de privacidade
-- `/admin.html` - Admin local
-- `/admin-api.html` - Admin com API backend
-
-### ✅ Assets Profissionais
-- Logos high-res
-- Hero images
-- Chat screenshots
-- Clarice mascot (múltiplas versões)
+### ✅ Site Institucional em `/site/`
+Acessível via:
+- `/site/index.html` - Landing institucional
+- `/site/cadastro.html` - Página de cadastro
+- `/site/termo-confidencialidade.html` - Termos
+- `/site/privacidade.html` - Política de privacidade
+- `/site/admin.html` - Admin local
+- `/site/admin-api.html` - Admin com API backend
 
 ## 🚀 Como Usar
 
 ### Desenvolvimento
 ```bash
-# O servidor já está rodando em:
+# Servidor já rodando em:
 http://localhost:5000
 ```
 
-### Acessar URLs
-- **App Principal:** http://localhost:5000/
-- **Site Institucional:** http://localhost:5000/index.html
-- **Cadastro:** http://localhost:5000/cadastro.html
-- **Admin:** http://localhost:5000/admin.html
-- **Admin API:** http://localhost:5000/admin-api.html
+### Testar App Principal
+1. Acesse `http://localhost:5000/`
+2. Você verá o MédicoHelp completo (React SPA)
+3. Login, chat, ferramentas, etc.
+
+### Testar Site Institucional
+1. Acesse `http://localhost:5000/site/`
+2. Navegue pelas páginas estáticas
 
 ### Testar Modal Recursos
-1. Acesse http://localhost:5000/
+1. Na landing page React (`/`)
 2. Clique em "Conhecer recursos"
 3. Modal abre com Hero + Features
-4. Click X ou fora para fechar
-
-### Knowledge Base
-O KB V7 carrega automaticamente via:
-```typescript
-loadAllKB('/kb/')
-```
 
 ## 📊 Estatísticas
 
@@ -143,12 +174,12 @@ loadAllKB('/kb/')
 
 ## ✨ Features Implementadas
 
-✅ Modal "Conhecer Recursos" com Hero Clarice  
-✅ FeaturesSection com 12 cards clicáveis  
-✅ KB V5 modular com index.json  
+✅ React SPA na raiz `/`  
+✅ Site institucional em `/site/`  
+✅ Modal "Conhecer Recursos"  
+✅ KB V7 modular com index.json  
 ✅ Scoring algorithm inteligente  
-✅ Páginas estáticas integradas  
-✅ Assets profissionais copiados  
+✅ Assets profissionais integrados  
 ✅ Clarice Brain atualizado  
 ✅ Sistema de navegação completo  
 ✅ Animações suaves  
@@ -172,8 +203,9 @@ Se `index.json` falhar:
 
 ## 📝 Notas Técnicas
 
-- ✅ Express serve arquivos estáticos automaticamente
-- ✅ Vite HMR funcionando normalmente
+- ✅ Express serve arquivos estáticos de `client/public/`
+- ✅ Vite serve React SPA na raiz `/`
+- ✅ HTMLs estáticos em `/site/` para separação clara
 - ✅ TypeScript compilando sem erros
 - ✅ Estrutura monorepo mantida
 - ✅ Backward compatible com V6
@@ -186,12 +218,15 @@ Se `index.json` falhar:
 - Text: #e8fffb (texto claro)
 - Animations: 0.2s fade-in, 0.3s slide-up
 
+**App Principal:**
+- Tema: Teal profissional (#00A79D)
+- Dark/Light mode suportado
+- Design moderno e clean
+
 ## 🔜 Próximos Passos (Opcional)
 
-1. ⚙️ Configurar variáveis:
-   - ADMIN_EMAIL
-   - ADMIN_PASSWORD
-2. 🎨 Personalizar páginas HTML
+1. ⚙️ Configurar variáveis de ambiente
+2. 🎨 Personalizar páginas HTML em `/site/`
 3. 📊 Integrar analytics KB com backend
 4. 🚀 Deploy quando pronto
 
@@ -199,6 +234,6 @@ Se `index.json` falhar:
 
 **Status:** ✅ INTEGRAÇÃO V7 COMPLETA  
 **Data:** 24 Outubro 2025  
-**Versão:** medicohelp_site_with_chat_v7_admin_backend  
+**Versão:** medicohelp_v7_react_root  
 **Projeto:** C.J.Dumke Tecnologia e Saúde LTDA  
 **CNPJ:** 63.354.382/0001-71

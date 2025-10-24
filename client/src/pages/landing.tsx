@@ -70,15 +70,18 @@ export default function Landing() {
         .disclaimer { margin-top: 8px; font-style: italic; color: var(--muted); font-size: 14px; text-align: center; max-width: 700px; }
         .landing-cta { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
         
-        /* Clarice Card */
-        .clarice-card { display: flex; align-items: center; gap: 32px; background: linear-gradient(135deg, #0a3834 0%, #0c4540 100%); border-radius: 24px; padding: 40px; margin: 60px auto; max-width: 900px; box-shadow: 0 20px 60px rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.08); position: relative; overflow: hidden; }
-        .clarice-card::before { content: ''; position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(31,183,166,0.15) 0%, transparent 70%); border-radius: 50%; }
-        .clarice-card-image { width: 280px; height: 280px; border-radius: 50%; object-fit: cover; border: 4px solid var(--teal); box-shadow: 0 10px 40px rgba(31,183,166,.3); flex-shrink: 0; background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%); }
-        .clarice-card-content { flex: 1; z-index: 1; }
-        .clarice-card-badge { display: inline-block; background: rgba(31,183,166,.2); border: 1px solid var(--teal); color: var(--teal); padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
-        .clarice-card h2 { font-size: 32px; font-weight: 800; margin: 0 0 12px; line-height: 1.2; }
-        .clarice-card p { font-size: 17px; line-height: 1.6; color: var(--muted); margin: 0 0 10px; }
-        .clarice-card-highlight { color: var(--teal); font-weight: 700; }
+        /* AI Assistant Badge - Revolutionary Style */
+        .ai-badge-container { margin: 60px auto; max-width: 680px; }
+        .ai-badge { background: linear-gradient(135deg, #0c4540 0%, #084842 100%); border: 3px solid var(--teal); border-radius: 28px; padding: 32px 40px; position: relative; box-shadow: 0 8px 32px rgba(31,183,166,.25), 0 0 0 1px rgba(255,255,255,.05) inset; }
+        .ai-badge::before { content: ''; position: absolute; top: 12px; right: 12px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(31,183,166,0.2) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+        .ai-badge-header { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
+        .ai-badge-avatar { width: 88px; height: 88px; border-radius: 50%; border: 3px solid var(--teal); box-shadow: 0 4px 16px rgba(31,183,166,.4); background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%); object-fit: cover; flex-shrink: 0; }
+        .ai-badge-title-area { flex: 1; }
+        .ai-badge-powered { display: inline-flex; align-items: center; gap: 6px; background: rgba(31,183,166,.15); border: 1.5px solid var(--teal); color: var(--teal); padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+        .ai-badge h2 { font-size: 26px; font-weight: 800; margin: 0; line-height: 1.2; color: var(--text); }
+        .ai-badge-content p { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0 0 12px; }
+        .ai-badge-highlight { color: var(--teal); font-weight: 700; }
+        .ai-badge-quote { margin-top: 16px; padding: 14px 18px; background: rgba(0,0,0,.2); border-left: 3px solid var(--teal); border-radius: 8px; font-style: italic; font-size: 14px; line-height: 1.5; color: #b8ddd8; }
         
         .landing-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .landing-card { background: var(--bg-2); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
@@ -93,10 +96,12 @@ export default function Landing() {
         @media (max-width: 900px) {
           .landing-grid-3 { grid-template-columns: 1fr; }
           .landing-hero h1 { font-size: clamp(24px, 5vw, 40px); }
-          .clarice-card { flex-direction: column; text-align: center; padding: 30px 20px; }
-          .clarice-card-image { width: 200px; height: 200px; }
-          .clarice-card h2 { font-size: 26px; }
-          .clarice-card p { font-size: 16px; }
+          .ai-badge { padding: 24px 20px; }
+          .ai-badge-header { flex-direction: column; text-align: center; gap: 16px; }
+          .ai-badge-avatar { width: 72px; height: 72px; }
+          .ai-badge h2 { font-size: 22px; }
+          .ai-badge-content p { font-size: 14px; }
+          .ai-badge-quote { font-size: 13px; padding: 12px 14px; }
         }
       `}</style>
 
@@ -181,30 +186,31 @@ export default function Landing() {
           </audio>
         </section>
 
-        {/* Clarice Presentation Card */}
-        <div className="landing-container">
-          <div className="clarice-card">
-            <img 
-              src="/assets/clarice-hero.png" 
-              alt="Dra. Clarice - Assistente Médica IA" 
-              className="clarice-card-image"
-              data-testid="img-clarice-hero"
-            />
-            <div className="clarice-card-content">
-              <span className="clarice-card-badge">🤖 Powered by GPT-5</span>
-              <h2>Conheça a Dra. Clarice</h2>
+        {/* AI Assistant Badge - Revolutionary */}
+        <div className="landing-container ai-badge-container">
+          <div className="ai-badge">
+            <div className="ai-badge-header">
+              <img 
+                src="/assets/clarice-hero.png" 
+                alt="Dra. Clarice" 
+                className="ai-badge-avatar"
+                data-testid="img-clarice-badge"
+              />
+              <div className="ai-badge-title-area">
+                <span className="ai-badge-powered">🤖 POWERED BY GPT-5</span>
+                <h2>Conheça a Dra. Clarice</h2>
+              </div>
+            </div>
+            <div className="ai-badge-content">
               <p>
-                Sua <span className="clarice-card-highlight">assistente médica inteligente</span> disponível 24/7, 
-                treinada com conhecimento médico atualizado e pronta para apoiar suas decisões clínicas.
+                Sua <span className="ai-badge-highlight">assistente médica inteligente</span> disponível 24/7, treinada com conhecimento médico atualizado e pronta para apoiar suas decisões clínicas.
               </p>
               <p>
-                💡 <strong>Respostas em segundos</strong> — Condutas objetivas, evidências científicas e 
-                ferramentas práticas para o dia a dia médico.
+                💡 <strong>Respostas em segundos</strong> — Condutas objetivas, evidências científicas e ferramentas práticas para o dia a dia médico.
               </p>
-              <p style={{ marginTop: '16px', fontSize: '15px', fontStyle: 'italic' }}>
-                "Do plantão ao consultório, a Dra. Clarice está sempre ao seu lado — 
-                <span className="clarice-card-highlight"> sem julgamentos, sem pressa, com toda a medicina que você precisa.</span>"
-              </p>
+              <div className="ai-badge-quote">
+                "Do plantão ao consultório, a Dra. Clarice está sempre ao seu lado — <span className="ai-badge-highlight">sem julgamentos, sem pressa, com toda a medicina que você precisa.</span>"
+              </div>
             </div>
           </div>
         </div>

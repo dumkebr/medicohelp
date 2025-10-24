@@ -1,7 +1,30 @@
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
+  const [audioButtonText, setAudioButtonText] = useState("📞 Ligar para a Dra. Clarice");
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const handleAudioCall = () => {
+    setAudioButtonText("🔔 Ligando para a Dra. Clarice...");
+    
+    setTimeout(() => {
+      setAudioButtonText("📞 Conversando com Dra. Clarice");
+      
+      if (audioRef.current) {
+        audioRef.current.src = "/audio/alo_doutor.mp3";
+        audioRef.current.load();
+        audioRef.current.play().catch(() => {
+          // Audio autoplay blocked - expected in some browsers
+        });
+      }
+      
+      setTimeout(() => {
+        setAudioButtonText("📞 Ligar para a Dra. Clarice");
+      }, 6000);
+    }, 1800);
+  };
 
   return (
     <div style={{ 
@@ -109,7 +132,19 @@ export default function Landing() {
           
           <p className="disclaimer">Clareza, segurança e medicina de verdade — do jeito que sempre funcionou.</p>
           
+          <div style={{ marginTop: '20px', color: '#1affb8', fontWeight: '600', fontSize: '15px', textAlign: 'center' }}>
+            💬 Sabia que você pode até "ligar" para a Dra. Clarice?<br />
+            Clique abaixo e ela te atende pessoalmente!
+          </div>
+          
           <div className="landing-cta">
+            <button 
+              className="landing-btn landing-btn-primary" 
+              onClick={handleAudioCall}
+              data-testid="button-ligar-clarice"
+            >
+              {audioButtonText}
+            </button>
             <button 
               className="landing-btn landing-btn-primary" 
               onClick={() => setLocation("/register")}
@@ -119,6 +154,12 @@ export default function Landing() {
             </button>
             <a className="landing-btn" href="#recursos" data-testid="link-recursos">Conhecer recursos</a>
           </div>
+          
+          {/* Hidden audio element */}
+          <audio ref={audioRef} preload="auto">
+            <source src="/audio/alo_doutor.mp3" type="audio/mpeg" />
+            Seu navegador não suporta áudio.
+          </audio>
         </section>
 
         {/* Como Funciona */}

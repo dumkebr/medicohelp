@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadastro – MédicoHelp</title>
+<link rel="stylesheet" href="static/style.css">
+<script>
+function salvarConsentimento(e){
+  const ok = document.getElementById('aceite').checked;
+  if(!ok){alert('Você precisa aceitar o Termo de Uso.');e.preventDefault();return false;}
+  localStorage.setItem('mh_aceite_termo', new Date().toISOString());
+  alert('Cadastro enviado com aceite registrado.');
+}
+</script>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Cadastro</h1>
+      <p>Campos obrigatórios: CRM e UF (médicos); Universidade (alunos).</p>
+      <form onsubmit="salvarConsentimento(event)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <label>Nome completo<input required></label>
+          <label>E-mail<input required type="email"></label>
+          <label>Telefone<input required value="+55 44 9106-5757"></label>
+          <label>CRM<input></label>
+          <label>UF<input maxlength="2"></label>
+          <label>Universidade<input></label>
+        </div>
+        <hr>
+        <p><input id="aceite" type="checkbox" required> Declaro que <a href="legal/termo.html" target="_blank">li e aceito o Termo de Uso</a> e a <a href="legal/privacidade.html" target="_blank">Política de Privacidade</a>.</p>
+        <button class="btn" type="submit">Enviar</button>
+      </form>
+      <div class="footer-box">
+        <p><strong>C.J.Dumke Tecnologia e Saúde LTDA / MEI</strong></p>
+        <p>Avenida James Patrick Clark, 41 – Pôr do Sol, Terra Rica/PR – CEP 87890-000</p>
+        <p>Contato: +55 44 9106-5757 · sic@medicohelp.com.br</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

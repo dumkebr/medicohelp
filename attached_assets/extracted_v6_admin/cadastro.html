@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadastro — MédicoHelp</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="container header">
+  <div class="brand">
+    <img src="assets/logo_main.png" alt="Logo" onerror="this.style.display='none'">
+    <div>
+      <div class="title">MédicoHelp</div>
+      <div class="subtitle">Sua aliada inteligente na decisão clínica</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <a href="index.html">Início</a>
+    <a class="btn btn-primary" href="cadastro.html">Entrar</a>
+  </nav>
+</header>
+
+<main class="container">
+  <section class="section">
+    <span class="kicker">Acesso controlado</span>
+    <h2>Cadastro</h2>
+    <p class="bullets">Preencha com atenção. Campos obrigatórios marcados com *</p>
+
+    <form class="form" onsubmit="event.preventDefault(); alert('Cadastro enviado (placeholder). Integração de backend necessária.');">
+      <div class="row">
+        <div>
+          <label>Nome completo *</label>
+          <input class="input" required>
+        </div>
+        <div>
+          <label>E-mail (será seu login) *</label>
+          <input class="input" type="email" required>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>WhatsApp (Brasil) *</label>
+          <input class="input" placeholder="+554491065757" required>
+        </div>
+        <div>
+          <label>Perfil *</label>
+          <select class="input" id="perfil" required onchange="document.getElementById('uniBox').style.display = (this.value==='ALUNO6')?'block':'none';">
+            <option value="MEDICO">Médico</option>
+            <option value="ALUNO6">Aluno 6º ano</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>CRM *</label>
+          <input class="input" required>
+        </div>
+        <div>
+          <label>UF do CRM *</label>
+          <select class="input" required>
+            <option>PR</option><option>SP</option><option>RJ</option><option>SC</option><option>RS</option><option>MG</option><option>ES</option><option>BA</option><option>PE</option><option>CE</option><option>GO</option><option>DF</option><option>MT</option><option>MS</option><option>PA</option><option>AM</option><option>RR</option><option>RO</option><option>AC</option><option>AP</option><option>MA</option><option>PI</option><option>PB</option><option>RN</option><option>AL</option><option>SE</option><option>TO</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="uniBox" style="display:none">
+        <label>Universidade (se Aluno 6º ano) *</label>
+        <input class="input">
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Senha *</label>
+          <input class="input" type="password" minlength="8" required>
+        </div>
+        <div>
+          <label>Confirmar senha *</label>
+          <input class="input" type="password" minlength="8" required>
+        </div>
+      </div>
+
+      <div class="terms">
+        <input type="checkbox" id="termo" required> Eu li e concordo com o <a href="termo-confidencialidade.html">Termo de Confidencialidade</a> *
+      </div>
+
+      <button class="btn btn-primary" type="submit">Criar conta</button>
+    </form>
+  </section>
+
+  <section class="section">
+    <span class="kicker">Verificação</span>
+    <h2>Digite o código que enviamos ao seu e-mail</h2>
+    <form id="otpForm" class="form">
+      <div class="row">
+        <div>
+          <label>Código de verificação (6 dígitos)</label>
+          <input class="input" maxlength="6" pattern="\d{6}" required>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button class="btn" type="submit">Validar</button>
+        </div>
+      </div>
+      <div class="notice">Após verificação, sua conta segue para aprovação administrativa.</div>
+    </form>
+  </section>
+</main>
+
+<footer class="container footer">
+  © 2025 MédicoHelp · <a href="privacidade.html">Privacidade</a>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>

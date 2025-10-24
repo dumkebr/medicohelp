@@ -1,0 +1,24 @@
+[
+  {
+    "id": "termos",
+    "perguntas": [
+      "termo de confidencialidade",
+      "termos",
+      "privacidade",
+      "lgpd",
+      "dados"
+    ],
+    "resposta_html": "Tratamos dados conforme o <a href='/termo-confidencialidade.html' target='_blank'>Termo</a> e a <a href='/privacidade.html' target='_blank'>Política de Privacidade</a>."
+  },
+  {
+    "id": "whatsapp_contato",
+    "perguntas": [
+      "contato",
+      "falar com a equipe",
+      "suporte",
+      "atendimento humano",
+      "whatsapp"
+    ],
+    "resposta_html": "Encaminho você para nossa equipe no WhatsApp:<br><a class='clarice-whats' href='https://wa.me/554491065757?text=Ol%C3%A1%2C%20sou%20o%20Dr.%20Clairton.%20Gostaria%20de%20falar%20com%20a%20equipe%20do%20M%C3%A9dicoHelp.' target='_blank' rel='noopener'>Falar com a equipe</a>"
+  }
+]

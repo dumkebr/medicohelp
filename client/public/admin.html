@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MédicoHelp — Admin</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:20px;background:#052d2b;color:#e6fff9}
+  .card{background:#003c3c;padding:16px;border-radius:10px;margin-bottom:12px;box-shadow:0 4px 18px rgba(0,0,0,.3)}
+  input,textarea,select,button{font:inherit}
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:12px}
+  .monos{font-family:monospace;background:#022a27;padding:10px;border-radius:6px;overflow:auto}
+  .small{font-size:13px;color:#cfeee6}
+  .btn{background:#00b37e;color:#00302c;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+  .danger{background:#d9534f}
+</style>
+</head>
+<body>
+  <h1>MédicoHelp — Painel Admin (local)</h1>
+  <div class="card">
+    <strong>Atenção</strong> — Este painel é local e para administração básica. Não acessa e-mails reais. Para integração segura com Gmail/relatórios, é necessário um servidor com OAuth e permissões. Veja instruções abaixo.
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Login rápido</h2>
+        <p class="small">Login administrativo local (senha padrão: <code>medicohelp-admin</code>). Para produção, implemente backend seguro.</p>
+        <input type="password" id="admin-pass" placeholder="Senha" style="width:100%;padding:8px;border-radius:8px;border:1px solid #044" />
+        <div style="margin-top:8px">
+          <button class="btn" id="btn-login">Entrar</button>
+          <button class="btn danger" id="btn-logout" style="display:none">Sair</button>
+        </div>
+      </div>
+
+      <div class="card" id="panel-actions" style="display:none">
+        <h2>KB — Gerenciar FAQ</h2>
+        <p class="small">Você pode fazer upload de arquivos JSON para /kb ou editar abaixo e salvar.</p>
+        <label>Arquivo KB (usar o nome ex: <code>novotema.json</code>)</label><br/>
+        <input id="kb-name" placeholder="nome.json" style="width:60%;padding:6px;border-radius:6px;border:1px solid #044" />
+        <input type="file" id="kb-file" accept=".json" style="margin-left:8px" />
+        <button class="btn" id="btn-upload">Upload</button>
+        <hr style="border-color:#034">
+        <h3>Editar KB existente</h3>
+        <select id="kb-list" style="width:100%;padding:8px;border-radius:6px;border:1px solid #044"></select>
+        <textarea id="kb-editor" rows="10" style="width:100%;margin-top:8px;padding:8px;border-radius:6px;border:1px solid #044;background:#022a27;color:#e6fff9"></textarea>
+        <div style="margin-top:8px">
+          <button class="btn" id="btn-save-kb">Salvar</button>
+          <button class="btn" id="btn-delete-kb" style="background:#c94d4d">Apagar</button>
+        </div>
+      </div>
+
+      <div class="card" id="panel-logs" style="display:none">
+        <h2>Logs — Perguntas da Clarice</h2>
+        <p class="small">Logs são salvos no <code>localStorage</code> do navegador. Você pode baixar um JSON com as perguntas.</p>
+        <button class="btn" id="btn-export-logs">Exportar logs</button>
+        <button class="btn" id="btn-clear-logs" style="background:#c94d4d">Limpar logs</button>
+        <div style="margin-top:8px">
+          <h4>Preview</h4>
+          <pre id="logs-preview" class="monos" style="height:160px"></pre>
+        </div>
+      </div>
+
+      <div class="card" id="panel-sales" style="display:none">
+        <h2>Relatórios — Vendas (upload CSV)</h2>
+        <p class="small">Faça upload de um CSV de vendas para gerar resumo rápido (colunas: date,product,amount).</p>
+        <input type="file" id="sales-file" accept=".csv" />
+        <button class="btn" id="btn-parse-sales">Processar CSV</button>
+        <div id="sales-out" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card">
+        <h2>Conectar e-mail (nota)</h2>
+        <p class="small">Por segurança e políticas, este painel não acessa e-mails. Para integrar e extrair relatórios de vendas / tickets via e-mail, você precisa:</p>
+        <ol class="small">
+          <li>Criar um pequeno backend (Node/Python) hospedado em servidor ou cloud.</li>
+          <li>Implementar OAuth2 (Gmail) ou IMAP autenticado com credenciais seguras.</li>
+          <li>Expor endpoints que o painel admin consome (ex.: /api/emails, /api/sales).</li>
+        </ol>
+        <p class="small">Se quiser, eu te forneço o código do backend para coletar e-mails e gerar relatórios — depois integro ao painel.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Resumo</h3>
+        <div id="admin-summary" class="small"></div>
+      </div>
+
+      <div class="card">
+        <h3>KB files</h3>
+        <ul id="kb-files-list" class="small"></ul>
+      </div>
+
+      <div class="card">
+        <h3>Ajuda rápida</h3>
+        <p class="small">1) Faça login → 2) Edite ou envie novos arquivos JSON para /kb → 3) Use Exportar logs para analisar perguntas frequentes.</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+// Admin UI logic (client-side only)
+const PASS = 'medicohelp-admin'; // senha local padrão (troque em produção)
+const panelActions = document.getElementById('panel-actions');
+const panelLogs = document.getElementById('panel-logs');
+const panelSales = document.getElementById('panel-sales');
+const btnLogin = document.getElementById('btn-login');
+const btnLogout = document.getElementById('btn-logout');
+const adminPass = document.getElementById('admin-pass');
+const kbList = document.getElementById('kb-list');
+const kbEditor = document.getElementById('kb-editor');
+const kbFilesList = document.getElementById('kb-files-list');
+const logsPreview = document.getElementById('logs-preview');
+
+function setLogged(inState){
+  if(inState){
+    panelActions.style.display='block'; panelLogs.style.display='block'; panelSales.style.display='block';
+    btnLogout.style.display='inline-block'; btnLogin.style.display='none';
+    loadSummary(); loadKBList();
+  } else {
+    panelActions.style.display='none'; panelLogs.style.display='none'; panelSales.style.display='none';
+    btnLogout.style.display='none'; btnLogin.style.display='inline-block';
+  }
+}
+
+btnLogin.addEventListener('click', ()=>{
+  if(adminPass.value === PASS){ localStorage.setItem('mh_admin','1'); setLogged(true); } else { alert('Senha incorreta'); }
+});
+btnLogout.addEventListener('click', ()=>{ localStorage.removeItem('mh_admin'); setLogged(false); });
+
+function loadSummary(){
+  const logs = JSON.parse(localStorage.getItem('clarice_logs')||'[]');
+  const byDay = {};
+  logs.forEach(l => { const d = (new Date(l.at)).toISOString().slice(0,10); byDay[d]=(byDay[d]||0)+1; });
+  const total = logs.length;
+  document.getElementById('admin-summary').innerHTML = `<p>Total perguntas: <strong>${total}</strong></p><p>Últimos dias: ${Object.entries(byDay).slice(-5).map(e=>e.join(':')).join(', ')}</p>`;
+  logsPreview.textContent = JSON.stringify(logs.slice(-50), null, 2);
+}
+
+async function loadKBList(){
+  try{
+    const idx = await fetch('/kb/index.json').then(r=>r.ok? r.json() : {files:[]});
+    kbList.innerHTML=''; kbFilesList.innerHTML='';
+    idx.files.forEach(f => {
+      const o=document.createElement('option'); o.value=f; o.textContent=f; kbList.appendChild(o);
+      const li=document.createElement('li'); li.textContent=f; kbFilesList.appendChild(li);
+    });
+    if(idx.files[0]) loadKBFile(idx.files[0]);
+  }catch(e){ console.warn(e); }
+}
+
+async function loadKBFile(name){
+  try{
+    const r = await fetch('/kb/' + name);
+    if(!r.ok) return;
+    const j = await r.text(); kbEditor.value = j; kbList.value = name;
+  }catch(e){ console.warn(e); }
+}
+
+kbList.addEventListener('change', ()=> loadKBFile(kbList.value));
+
+document.getElementById('btn-save-kb').addEventListener('click', async ()=>{
+  const name = kbList.value;
+  if(!name) return alert('Selecione um arquivo na lista');
+  try{
+    // For static hosting, we cannot write files server-side. So instead provide the edited content for download.
+    const blob = new Blob([kbEditor.value], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+    alert('Arquivo preparado para download. Faça upload para o servidor/hosting para atualizar o KB.');
+  }catch(e){ alert('Erro ao preparar o arquivo'); }
+});
+
+document.getElementById('btn-delete-kb').addEventListener('click', ()=>{
+  const name = kbList.value;
+  if(!name) return alert('Selecione um arquivo');
+  if(!confirm('Apagar localmente não é possível neste painel estático. Você pode excluir no servidor/hosting. Deseja preparar um "delete note" para o time?')) return;
+  const note = { action:'delete_kb', file:name, by:'admin', at:new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(note, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'delete-'+name+'.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+  alert('Nota de exclusão preparada para envio ao time infra.');
+});
+
+document.getElementById('btn-upload').addEventListener('click', ()=>{
+  const finput = document.getElementById('kb-file');
+  const nameInput = document.getElementById('kb-name');
+  const file = finput.files[0];
+  const name = nameInput.value.trim();
+  if(!file || !name) return alert('Escolha um arquivo e informe o nome (ex: novo.json)');
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    // Prepare file for download to be uploaded to hosting by infra
+    const blob = new Blob([reader.result], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+    alert('Arquivo preparado para upload no servidor. Faça o deploy para que a Clarice carregue o novo KB.');
+  };
+  reader.readAsText(file);
+});
+
+// Logs export/clear
+document.getElementById('btn-export-logs').addEventListener('click', ()=>{
+  const data = localStorage.getItem('clarice_logs')||'[]';
+  const blob = new Blob([data], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'clarice_logs.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+});
+document.getElementById('btn-clear-logs').addEventListener('click', ()=>{
+  if(confirm('Limpar logs localmente?')){ localStorage.removeItem('clarice_logs'); loadSummary(); alert('Logs limpos no navegador.'); }
+});
+
+// Sales CSV parsing (simple)
+document.getElementById('btn-parse-sales').addEventListener('click', ()=>{
+  const f = document.getElementById('sales-file').files[0];
+  if(!f) return alert('Escolha um CSV com colunas: date,product,amount');
+  const r = new FileReader();
+  r.onload = ()=>{
+    const txt = r.result;
+    const lines = txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+    const rows = lines.map(l => l.split(','));
+    const header = rows.shift().map(h=>h.toLowerCase().trim());
+    const dateIdx = header.indexOf('date'), prodIdx = header.indexOf('product'), amtIdx = header.indexOf('amount');
+    if(dateIdx<0 || prodIdx<0 || amtIdx<0) return alert('Cabeçalho inválido. Use: date,product,amount');
+    const summary={total:0, byProduct:{}};
+    rows.forEach(rw=>{
+      const amt = parseFloat((rw[amtIdx]||'0').replace(/[^0-9\.\-]/g,'')) || 0;
+      summary.total += amt;
+      const p = rw[prodIdx]||'unknown';
+      summary.byProduct[p] = (summary.byProduct[p]||0) + amt;
+    });
+    document.getElementById('sales-out').innerHTML = '<pre class="monos">'+JSON.stringify(summary, null, 2)+'</pre>';
+  };
+  r.readAsText(f);
+});
+
+// Initialize
+if(localStorage.getItem('mh_admin')) setLogged(true); else setLogged(false);
+loadKBList();
+loadSummary();
+</script>
+</body>
+</html>

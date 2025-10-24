@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MédicoHelp — Admin API</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:20px;background:#052d2b;color:#e6fff9}
+  .card{background:#003c3c;padding:16px;border-radius:10px;margin-bottom:12px;box-shadow:0 4px 18px rgba(0,0,0,.3)}
+  input,textarea,select,button{font:inherit}
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:12px}
+  .monos{font-family:monospace;background:#022a27;padding:10px;border-radius:6px;overflow:auto;max-height:300px}
+  .small{font-size:13px;color:#cfeee6}
+  .btn{background:#00b37e;color:#00302c;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;margin-right:8px}
+  .btn:hover{background:#00c98f}
+  .danger{background:#d9534f}
+  .status{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+  .status.on{background:#0f0}
+  .status.off{background:#f00}
+</style>
+</head>
+<body>
+  <h1>🛡️ MédicoHelp — Admin (API Mode)</h1>
+  
+  <div class="card">
+    <h3>⚙️ Configuração Backend</h3>
+    <label class="small">Backend URL:</label><br/>
+    <input type="text" id="api-url" value="http://localhost:3001" style="width:300px;padding:6px;border-radius:6px;border:1px solid #044" />
+    <button class="btn" id="btn-test-connection">Testar Conexão</button>
+    <div id="connection-status" style="margin-top:8px"></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>🔐 Login</h2>
+        <input type="email" id="admin-email" placeholder="Email" style="width:100%;padding:8px;border-radius:8px;border:1px solid #044;margin-bottom:8px" />
+        <input type="password" id="admin-pass" placeholder="Senha" style="width:100%;padding:8px;border-radius:8px;border:1px solid #044" />
+        <div style="margin-top:8px">
+          <button class="btn" id="btn-login">Entrar</button>
+          <button class="btn danger" id="btn-logout" style="display:none">Sair</button>
+        </div>
+        <p class="small" style="margin-top:8px">Credenciais padrão: admin@medicohelp.com.br / medicohelp-admin</p>
+      </div>
+
+      <div class="card" id="panel-kb" style="display:none">
+        <h2>📚 KB — Knowledge Base</h2>
+        <select id="kb-list" style="width:100%;padding:8px;border-radius:6px;border:1px solid #044;margin-bottom:8px"></select>
+        <textarea id="kb-editor" rows="12" style="width:100%;padding:8px;border-radius:6px;border:1px solid #044;background:#022a27;color:#e6fff9;font-family:monospace"></textarea>
+        <div style="margin-top:8px">
+          <button class="btn" id="btn-save-kb">💾 Salvar</button>
+          <button class="btn danger" id="btn-delete-kb">🗑️ Apagar</button>
+          <button class="btn" id="btn-reload-kb">🔄 Recarregar</button>
+        </div>
+      </div>
+
+      <div class="card" id="panel-logs" style="display:none">
+        <h2>📊 Analytics — Logs</h2>
+        <button class="btn" id="btn-load-logs">Carregar Logs</button>
+        <button class="btn" id="btn-export-csv">📥 Exportar CSV</button>
+        <button class="btn danger" id="btn-clear-logs-db">Limpar DB</button>
+        <div style="margin-top:12px">
+          <h4>Preview (últimos 50)</h4>
+          <pre id="logs-preview" class="monos"></pre>
+        </div>
+      </div>
+
+      <div class="card" id="panel-sales" style="display:none">
+        <h2>💰 Vendas — Upload CSV</h2>
+        <input type="file" id="sales-file" accept=".csv" />
+        <button class="btn" id="btn-upload-sales">📤 Upload</button>
+        <button class="btn" id="btn-load-summary">📊 Ver Resumo</button>
+        <div id="sales-out" style="margin-top:12px" class="monos"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>ℹ️ Status</h3>
+        <div id="admin-info" class="small"></div>
+      </div>
+
+      <div class="card">
+        <h3>📁 KB Files</h3>
+        <ul id="kb-files-list" class="small"></ul>
+      </div>
+
+      <div class="card">
+        <h3>💡 Instruções</h3>
+        <ol class="small">
+          <li>Configure URL do backend</li>
+          <li>Teste conexão</li>
+          <li>Faça login</li>
+          <li>Gerencie KB, logs e vendas</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+<script>
+let API_URL = localStorage.getItem('mh_api_url') || 'http://localhost:3001';
+let AUTH_TOKEN = localStorage.getItem('mh_api_token') || '';
+let USER_EMAIL = localStorage.getItem('mh_api_email') || '';
+
+document.getElementById('api-url').value = API_URL;
+
+const $ = id => document.getElementById(id);
+
+// Update API URL
+$('api-url').addEventListener('change', e => {
+  API_URL = e.target.value;
+  localStorage.setItem('mh_api_url', API_URL);
+});
+
+// Test connection
+$('btn-test-connection').addEventListener('click', async () => {
+  try {
+    const res = await fetch(`${API_URL}/health`);
+    const data = await res.json();
+    $('connection-status').innerHTML = data.ok 
+      ? '<span class="status on"></span>Backend online ✅' 
+      : '<span class="status off"></span>Backend offline ❌';
+  } catch(e) {
+    $('connection-status').innerHTML = '<span class="status off"></span>Erro: ' + e.message;
+  }
+});
+
+// Login
+$('btn-login').addEventListener('click', async () => {
+  const email = $('admin-email').value;
+  const password = $('admin-pass').value;
+  
+  try {
+    const res = await fetch(`${API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    
+    if (!res.ok) throw new Error('Login falhou');
+    
+    const data = await res.json();
+    AUTH_TOKEN = data.token;
+    USER_EMAIL = data.email;
+    localStorage.setItem('mh_api_token', AUTH_TOKEN);
+    localStorage.setItem('mh_api_email', USER_EMAIL);
+    
+    setLogged(true);
+    alert('Login OK! Role: ' + data.role);
+  } catch(e) {
+    alert('Erro no login: ' + e.message);
+  }
+});
+
+// Logout
+$('btn-logout').addEventListener('click', () => {
+  AUTH_TOKEN = '';
+  USER_EMAIL = '';
+  localStorage.removeItem('mh_api_token');
+  localStorage.removeItem('mh_api_email');
+  setLogged(false);
+});
+
+function setLogged(state) {
+  $('panel-kb').style.display = state ? 'block' : 'none';
+  $('panel-logs').style.display = state ? 'block' : 'none';
+  $('panel-sales').style.display = state ? 'block' : 'none';
+  $('btn-login').style.display = state ? 'none' : 'inline-block';
+  $('btn-logout').style.display = state ? 'inline-block' : 'none';
+  
+  if (state) {
+    loadKBList();
+    loadInfo();
+  }
+}
+
+function loadInfo() {
+  $('admin-info').innerHTML = `
+    <p><strong>Email:</strong> ${USER_EMAIL}</p>
+    <p><strong>Backend:</strong> ${API_URL}</p>
+    <p><strong>Token:</strong> ${AUTH_TOKEN.slice(0, 20)}...</p>
+  `;
+}
+
+// KB Management
+async function loadKBList() {
+  try {
+    const res = await fetch(`${API_URL}/api/kb`, {
+      headers: { 'x-auth': AUTH_TOKEN }
+    });
+    const data = await res.json();
+    
+    $('kb-list').innerHTML = '';
+    $('kb-files-list').innerHTML = '';
+    
+    data.files.forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f;
+      opt.textContent = f;
+      $('kb-list').appendChild(opt);
+      
+      const li = document.createElement('li');
+      li.textContent = f;
+      $('kb-files-list').appendChild(li);
+    });
+    
+    if (data.files[0]) loadKBFile(data.files[0]);
+  } catch(e) {
+    alert('Erro ao carregar KB: ' + e.message);
+  }
+}
+
+async function loadKBFile(filename) {
+  try {
+    const res = await fetch(`${API_URL}/api/kb/${filename}`, {
+      headers: { 'x-auth': AUTH_TOKEN }
+    });
+    const text = await res.text();
+    $('kb-editor').value = text;
+  } catch(e) {
+    alert('Erro ao carregar arquivo: ' + e.message);
+  }
+}
+
+$('kb-list').addEventListener('change', e => loadKBFile(e.target.value));
+
+$('btn-save-kb').addEventListener('click', async () => {
+  const filename = $('kb-list').value;
+  if (!filename) return alert('Selecione um arquivo');
+  
+  try {
+    const json = JSON.parse($('kb-editor').value);
+    const res = await fetch(`${API_URL}/api/kb/${filename}`, {
+      method: 'POST',
+      headers: { 
+        'x-auth': AUTH_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(json)
+    });
+    
+    if (!res.ok) throw new Error('Falha ao salvar');
+    alert('✅ KB salvo!');
+  } catch(e) {
+    alert('Erro: ' + e.message);
+  }
+});
+
+$('btn-delete-kb').addEventListener('click', async () => {
+  const filename = $('kb-list').value;
+  if (!filename) return alert('Selecione um arquivo');
+  if (!confirm(`Apagar ${filename}?`)) return;
+  
+  try {
+    const res = await fetch(`${API_URL}/api/kb/${filename}`, {
+      method: 'DELETE',
+      headers: { 'x-auth': AUTH_TOKEN }
+    });
+    
+    if (!res.ok) throw new Error('Falha ao apagar');
+    alert('✅ KB apagado!');
+    loadKBList();
+  } catch(e) {
+    alert('Erro: ' + e.message);
+  }
+});
+
+$('btn-reload-kb').addEventListener('click', () => loadKBList());
+
+// Logs
+$('btn-load-logs').addEventListener('click', async () => {
+  try {
+    const res = await fetch(`${API_URL}/api/logs`, {
+      headers: { 'x-auth': AUTH_TOKEN }
+    });
+    const data = await res.json();
+    $('logs-preview').textContent = JSON.stringify(data.slice(0, 50), null, 2);
+  } catch(e) {
+    alert('Erro: ' + e.message);
+  }
+});
+
+$('btn-export-csv').addEventListener('click', async () => {
+  try {
+    const res = await fetch(`${API_URL}/api/logs/csv`, {
+      headers: { 'x-auth': AUTH_TOKEN }
+    });
+    const csv = await res.text();
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'logs.csv';
+    a.click();
+  } catch(e) {
+    alert('Erro: ' + e.message);
+  }
+});
+
+// Sales
+$('btn-upload-sales').addEventListener('click', async () => {
+  const file = $('sales-file').files[0];
+  if (!file) return alert('Escolha um arquivo CSV');
+  
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const res = await fetch(`${API_URL}/api/sales/upload`, {
+      method: 'POST',
+      headers: { 'x-auth': AUTH_TOKEN },
+      body: formData
+    });
+    
+    const data = await res.json();
+    alert(`✅ ${data.inserted} linhas inseridas!`);
+  } catch(e) {
+    alert('Erro: ' + e.message);
+  }
+});
+
+$('btn-load-summary').addEventListener('click', async () => {
+  try {
+    const res = await fetch(`${API_URL}/api/sales/summary`, {
+      headers: { 'x-auth': AUTH_TOKEN }
+    });
+    const data = await res.json();
+    $('sales-out').textContent = JSON.stringify(data, null, 2);
+  } catch(e) {
+    alert('Erro: ' + e.message);
+  }
+});
+
+// Initialize
+if (AUTH_TOKEN) {
+  setLogged(true);
+  $('btn-test-connection').click();
+}
+</script>
+</body>
+</html>

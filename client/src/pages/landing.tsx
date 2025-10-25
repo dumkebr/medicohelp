@@ -254,52 +254,50 @@ export default function Landing() {
         .contact-btn-email:hover { background: rgba(255,255,255,.15); transform: translateY(-2px); }
         .contact-btn svg { width: 20px; height: 20px; }
         
-        /* MédicoHelp Section Styles - ULTRA HIGH CONTRAST */
-        .mh-wrap { background: #0d3b3a; padding: 60px 20px; font-family: Inter, system-ui, Arial, sans-serif; }
+        /* MédicoHelp Section Styles - Green & White Theme */
+        .mh-wrap { background: #f7fdf9; padding: 80px 20px; font-family: Inter, system-ui, Arial, sans-serif; color: #1a1a1a; }
         .mh-container { max-width: 1100px; margin: 0 auto; text-align: center; }
-        .mh-title { font-size: 2.2rem; font-weight: 700; color: #ffffff; margin-bottom: 10px; }
-        .mh-title span { color: #19c29e; }
-        .mh-sub { font-size: 1.1rem; line-height: 1.6; max-width: 800px; margin: 0 auto 40px; color: #ffffff; }
-        .mh-section-title { font-size: 1.8rem; font-weight: 800; color: #19c29e; margin: 50px 0 30px; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; }
-        .mh-kicker { font-size: 1.1rem; color: #ffffff; margin-bottom: 30px; text-align: center; font-weight: 500; }
-        .mh-hr { height: 1px; background: rgba(25, 194, 158, 0.2); margin: 50px auto; max-width: 600px; }
-        .mh-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 40px; }
+        .mh-title { font-size: 2.2rem; font-weight: 700; color: #007a4d; margin-bottom: 10px; }
+        .mh-title span { color: #009e5a; }
+        .mh-sub { font-size: 1.1rem; line-height: 1.6; max-width: 800px; margin: 0 auto 40px; color: #1a1a1a; }
+        .mh-section-title { font-size: 1.6rem; font-weight: 600; color: #007a4d; margin: 50px 0 20px; text-align: center; text-transform: uppercase; letter-spacing: 0.1em; }
+        .mh-kicker { font-size: 1.1rem; color: #333; margin-bottom: 30px; text-align: center; font-weight: 500; }
+        .mh-hr { height: 1px; background: #d9f2e2; margin: 50px auto; max-width: 600px; }
+        .mh-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 40px; }
         .mh-card { 
-          background: #ffffff !important; 
-          border: 4px solid #19c29e !important; 
-          border-radius: 16px; 
-          padding: 28px !important; 
-          box-shadow: 0 8px 32px rgba(0,0,0,.6); 
+          background: #ffffff; 
+          border: 1px solid #d9f2e2; 
+          border-radius: 12px; 
+          padding: 25px 20px; 
+          box-shadow: 0 3px 10px rgba(0,0,0,.04); 
           transition: transform 0.2s ease, box-shadow 0.2s ease; 
-          cursor: pointer; 
+          cursor: pointer;
           text-align: left;
         }
         .mh-card:hover { 
-          transform: translateY(-6px); 
-          box-shadow: 0 12px 40px rgba(0,0,0,.7); 
-          border-color: #15a085 !important;
+          transform: translateY(-5px); 
+          box-shadow: 0 6px 15px rgba(0,0,0,.08); 
         }
         .mh-card h4 { 
           color: #000000 !important; 
-          font-weight: 900; 
-          margin-bottom: 14px; 
-          font-size: 1.3rem; 
+          font-weight: 700; 
+          margin-bottom: 12px; 
+          font-size: 1.2rem; 
           line-height: 1.3;
         }
         .mh-card p { 
           color: #000000 !important; 
-          line-height: 1.7; 
+          line-height: 1.6; 
           margin: 0; 
           font-size: 1rem;
-          font-weight: 500;
+          font-weight: 400;
         }
-        .mh-chip { display: inline-flex; gap: 8px; align-items: center; background: rgba(25,194,158,.15); color: #19c29e; padding: 8px 14px; border-radius: 999px; border: 1.5px solid #19c29e; font-weight: 700; font-size: 12px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .mh-ico { width: 14px; height: 14px; flex: 0 0 14px; }
+        .mh-chip { display: inline-flex; gap: 8px; align-items: center; background: #e8f8f0; color: #007a4d; padding: 6px 12px; border-radius: 999px; border: 1px solid #d9f2e2; font-weight: 700; font-size: 12px; margin-bottom: 10px; }
+        .mh-ico { width: 18px; height: 18px; color: #007a4d; flex: 0 0 18px; }
         @media (max-width: 768px) {
           .mh-title { font-size: 1.8rem; }
-          .mh-section-title { font-size: 1.5rem; }
+          .mh-section-title { font-size: 1.4rem; }
           .mh-sub { font-size: 1rem; }
-          .mh-grid { grid-template-columns: 1fr; }
         }
         
         /* Floating Chat Styles */

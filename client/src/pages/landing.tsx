@@ -259,15 +259,15 @@ export default function Landing() {
         .mh-container { max-width: 1100px; margin: 0 auto; text-align: center; }
         .mh-title { font-size: 2.2rem; font-weight: 700; color: #007a4d; margin-bottom: 10px; }
         .mh-title span { color: #009e5a; }
-        .mh-desc { font-size: 1.1rem; line-height: 1.6; max-width: 800px; margin: 0 auto 40px; color: #1a1a1a; }
-        .mh-sub { font-size: 1.1rem; line-height: 1.6; max-width: 800px; margin: 0 auto 40px; color: #1a1a1a; }
+        .mh-desc { font-size: 1.1rem; line-height: 1.6; max-width: 800px; margin: 0 auto 40px; color: #ffffff !important; }
+        .mh-sub { font-size: 1.1rem; line-height: 1.6; max-width: 800px; margin: 0 auto 40px; color: #ffffff !important; }
         .mh-blocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 60px; }
         .mh-block { background: #ffffff; border: 1px solid #d9f2e2; border-radius: 12px; padding: 25px 20px; box-shadow: 0 3px 10px rgba(0,0,0,.04); transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer; }
         .mh-block:hover { transform: translateY(-5px); box-shadow: 0 6px 15px rgba(0,0,0,.08); }
         .mh-block h3 { color: #000000 !important; font-weight: 600; margin-bottom: 10px; font-size: 1.1rem; }
         .mh-block p { color: #000000 !important; line-height: 1.6; margin: 0; }
         .mh-list { list-style: none; padding: 0; margin: 0 auto 40px; max-width: 600px; text-align: left; }
-        .mh-list li { padding: 8px 0; border-bottom: 1px solid #d9f2e2; font-size: 1rem; color: #000000 !important; }
+        .mh-list li { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.2); font-size: 1rem; color: #ffffff !important; }
         .mh-subtitle { font-size: 1.6rem; font-weight: 600; color: #007a4d; margin: 50px 0 15px; text-align: center; }
         .mh-section-title { font-size: 1.6rem; font-weight: 600; color: #007a4d; margin: 50px 0 20px; text-align: center; text-transform: uppercase; letter-spacing: 0.1em; }
         .mh-kicker { font-size: 1.1rem; color: #333; margin-bottom: 30px; text-align: center; font-weight: 500; }

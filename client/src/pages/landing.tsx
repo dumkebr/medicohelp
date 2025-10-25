@@ -259,44 +259,36 @@ export default function Landing() {
         .mh-container { max-width: 1100px; margin: 0 auto; text-align: center; }
         .mh-title { font-size: 2.2rem; font-weight: 700; color: #007a4d; margin-bottom: 10px; }
         .mh-title span { color: #009e5a; }
+        .mh-desc { font-size: 1.1rem; line-height: 1.6; max-width: 800px; margin: 0 auto 40px; color: #1a1a1a; }
         .mh-sub { font-size: 1.1rem; line-height: 1.6; max-width: 800px; margin: 0 auto 40px; color: #1a1a1a; }
+        .mh-blocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 60px; }
+        .mh-block { background: #ffffff; border: 1px solid #d9f2e2; border-radius: 12px; padding: 25px 20px; box-shadow: 0 3px 10px rgba(0,0,0,.04); transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer; }
+        .mh-block:hover { transform: translateY(-5px); box-shadow: 0 6px 15px rgba(0,0,0,.08); }
+        .mh-block h3 { color: #000000 !important; font-weight: 600; margin-bottom: 10px; font-size: 1.1rem; }
+        .mh-block p { color: #000000 !important; line-height: 1.6; margin: 0; }
+        .mh-list { list-style: none; padding: 0; margin: 0 auto 40px; max-width: 600px; text-align: left; }
+        .mh-list li { padding: 8px 0; border-bottom: 1px solid #d9f2e2; font-size: 1rem; color: #000000 !important; }
+        .mh-subtitle { font-size: 1.6rem; font-weight: 600; color: #007a4d; margin: 50px 0 15px; text-align: center; }
         .mh-section-title { font-size: 1.6rem; font-weight: 600; color: #007a4d; margin: 50px 0 20px; text-align: center; text-transform: uppercase; letter-spacing: 0.1em; }
         .mh-kicker { font-size: 1.1rem; color: #333; margin-bottom: 30px; text-align: center; font-weight: 500; }
         .mh-hr { height: 1px; background: #d9f2e2; margin: 50px auto; max-width: 600px; }
         .mh-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 40px; }
-        .mh-card { 
-          background: #ffffff; 
-          border: 1px solid #d9f2e2; 
-          border-radius: 12px; 
-          padding: 25px 20px; 
-          box-shadow: 0 3px 10px rgba(0,0,0,.04); 
-          transition: transform 0.2s ease, box-shadow 0.2s ease; 
-          cursor: pointer;
-          text-align: left;
-        }
-        .mh-card:hover { 
-          transform: translateY(-5px); 
-          box-shadow: 0 6px 15px rgba(0,0,0,.08); 
-        }
-        .mh-card h4 { 
-          color: #000000 !important; 
-          font-weight: 700; 
-          margin-bottom: 12px; 
-          font-size: 1.2rem; 
-          line-height: 1.3;
-        }
-        .mh-card p { 
-          color: #000000 !important; 
-          line-height: 1.6; 
-          margin: 0; 
-          font-size: 1rem;
-          font-weight: 400;
-        }
+        .mh-card { background: #ffffff; border: 1px solid #d9f2e2; border-radius: 12px; padding: 25px 20px; box-shadow: 0 3px 10px rgba(0,0,0,.04); transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer; text-align: left; }
+        .mh-card:hover { transform: translateY(-5px); box-shadow: 0 6px 15px rgba(0,0,0,.08); }
+        .mh-card h4 { color: #000000 !important; font-weight: 700; margin-bottom: 12px; font-size: 1.2rem; line-height: 1.3; }
+        .mh-card p { color: #000000 !important; line-height: 1.6; margin: 0; font-size: 1rem; font-weight: 400; }
+        .mh-cta { display: flex; justify-content: center; gap: 16px; margin-top: 40px; flex-wrap: wrap; }
+        .mh-cta button { background: #009e5a; color: #fff; border: none; padding: 14px 28px; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: 600; transition: background 0.2s ease; }
+        .mh-cta button:hover { background: #007a4d; }
         .mh-chip { display: inline-flex; gap: 8px; align-items: center; background: #e8f8f0; color: #007a4d; padding: 6px 12px; border-radius: 999px; border: 1px solid #d9f2e2; font-weight: 700; font-size: 12px; margin-bottom: 10px; }
+        .mh-chip-green { display: inline-flex; gap: 8px; align-items: center; background: #e8f8f0; color: #007a4d; padding: 6px 12px; border-radius: 999px; border: 1px solid #d9f2e2; font-weight: 700; font-size: 12px; margin-bottom: 10px; }
         .mh-ico { width: 18px; height: 18px; color: #007a4d; flex: 0 0 18px; }
+        .mh-ico-green { width: 18px; height: 18px; color: #007a4d; flex: 0 0 18px; }
         @media (max-width: 768px) {
           .mh-title { font-size: 1.8rem; }
+          .mh-subtitle { font-size: 1.4rem; }
           .mh-section-title { font-size: 1.4rem; }
+          .mh-desc { font-size: 1rem; }
           .mh-sub { font-size: 1rem; }
         }
         

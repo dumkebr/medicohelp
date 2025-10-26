@@ -29,7 +29,7 @@ jobs:
           NODE_ENV: production
       
       - name: 📝 List build files
-        run: ls -la dist/
+        run: ls -la dist/public/
       
       - name: 🚀 Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -37,7 +37,7 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./dist/
+          local-dir: ./dist/public/
           server-dir: /public_html/
           dangerous-clean-slate: true
       

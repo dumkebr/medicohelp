@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { AuthProvider } from "@/lib/auth";
 import { UserMenu } from "@/components/user-menu";
 import ClariceAvatar from "@/components/ClariceAvatar";
+import InstallPWAPrompt from "@/components/InstallPWAPrompt";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import NovoPaciente from "@/pages/novo-paciente";
@@ -151,6 +152,7 @@ function AppLayout() {
     return (
       <>
         <Router />
+        <InstallPWAPrompt />
         <Toaster />
       </>
     );
@@ -184,6 +186,7 @@ function AppLayout() {
         </div>
       </SidebarProvider>
       <ClariceAvatar />
+      <InstallPWAPrompt />
       <Toaster />
     </>
   );

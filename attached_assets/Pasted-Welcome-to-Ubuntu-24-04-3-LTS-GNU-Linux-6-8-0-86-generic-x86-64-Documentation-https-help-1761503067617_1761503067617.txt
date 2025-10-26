@@ -1,0 +1,280 @@
+Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-86-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sun Oct 26 18:16:22 UTC 2025
+
+  System load:  0.0                Processes:             135
+  Usage of /:   2.7% of 192.69GB   Users logged in:       0
+  Memory usage: 2%                 IPv4 address for eth0: 72.61.219.66
+  Swap usage:   0%                 IPv6 address for eth0: 2a02:4780:66:5aeb::1
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+
+Last login: Sun Oct 26 18:12:28 2025 from 169.254.0.1
+root@srv1084057:~# cd /var/www/medicohelp/dist/public && rm -rf !(public)
+root@srv1084057:/var/www/medicohelp/dist/public# mv public/* . && rmdir public
+rmdir: failed to remove 'public': Directory not empty
+root@srv1084057:/var/www/medicohelp/dist/public# systemctl restart nginx
+root@srv1084057:/var/www/medicohelp/dist/public# rm -rf /var/www/medicohelp/dist/public/public
+root@srv1084057:/var/www/medicohelp/dist/public# ls -lah /var/www/medicohelp/dist/public/ | head -20
+total 3.8M
+drwxr-xr-x 8 www-data www-data 4.0K Oct 26 18:17 .
+drwxr-xr-x 3 www-data www-data 4.0K Oct 26 01:14 ..
+-rwxr-xr-x 1 www-data www-data  949 Oct 26 18:03 README.txt
+drwxr-xr-x 2 www-data www-data 4.0K Oct 26 18:03 assets
+drwxr-xr-x 2 www-data www-data 4.0K Oct 26 18:03 audio
+-rwxr-xr-x 1 www-data www-data 1.1M Oct 26 18:03 clarice.png
+-rwxr-xr-x 1 www-data www-data  379 Oct 26 18:03 config.js
+-rwxr-xr-x 1 www-data www-data 1.2M Oct 26 18:03 favicon.png
+-rwxr-xr-x 1 www-data www-data 351K Oct 26 18:04 heart-icon.png
+-rwxr-xr-x 1 www-data www-data 1.5K Oct 26 18:03 index.html
+drwxr-xr-x 2 www-data www-data 4.0K Oct 26 18:04 kb
+drwxr-xr-x 3 www-data www-data 4.0K Oct 26 18:04 legal
+-rwxr-xr-x 1 www-data www-data 1.2M Oct 26 18:03 logo-medicohelp.png
+-rwxr-xr-x 1 www-data www-data 4.4K Oct 26 18:03 script.js
+drwxr-xr-x 6 www-data www-data 4.0K Oct 26 18:04 site
+drwxr-xr-x 2 www-data www-data 4.0K Oct 26 18:03 static
+-rwxr-xr-x 1 www-data www-data  963 Oct 26 18:04 teste.html
+root@srv1084057:/var/www/medicohelp/dist/public# cat /var/www/medicohelp/dist/public/index.html | grep -i "landing\|register\|criar conta"
+root@srv1084057:/var/www/medicohelp/dist/public# nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+root@srv1084057:/var/www/medicohelp/dist/public# cat /var/www/medicohelp/dist/public/index.html
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>MédicoHelp — Dra. Clarice</title>
+    <meta name="description" content="Sua aliada inteligente na decisão clínica. Plataforma médica profissional com assistente de IA para consultas clínicas, análise de exames e gestão de pacientes." />
+    <link rel="icon" type="image/png" href="/favicon.png?v=2025-10-23-NEW">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=2025-10-23-BRANDING">
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png?v=2025-10-23-BRANDING">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script type="module" crossorigin src="/assets/index-DQoJKyBL.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Bm0hDMEF.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="/config.js"></script>
+    <script src="/script.js"></script>
+  </body>
+</html>root@srv1084057:/var/www/medicohelp/dist/public# ls -la /var/www/medicohelp/dist/public/site/
+total 108
+drwxr-xr-x 6 www-data www-data  4096 Oct 26 18:04 .
+drwxr-xr-x 8 www-data www-data  4096 Oct 26 18:17 ..
+-rwxr-xr-x 1 www-data www-data   417 Oct 26 18:03 README.txt
+-rwxr-xr-x 1 www-data www-data 10862 Oct 26 18:04 admin-api.html
+-rwxr-xr-x 1 www-data www-data 10535 Oct 26 18:04 admin.html
+drwxr-xr-x 2 www-data www-data  4096 Oct 26 18:04 assets
+-rwxr-xr-x 1 www-data www-data  4154 Oct 26 18:03 cadastro.html
+drwxr-xr-x 2 www-data www-data  4096 Oct 26 18:04 css
+-rwxr-xr-x 1 www-data www-data  6847 Oct 26 18:04 final.html
+-rwxr-xr-x 1 www-data www-data  4705 Oct 26 18:04 index-old-backup.html
+-rwxr-xr-x 1 www-data www-data  6847 Oct 26 18:03 index.html
+drwxr-xr-x 2 www-data www-data  4096 Oct 26 18:04 js
+-rwxr-xr-x 1 www-data www-data  5568 Oct 26 18:04 novo.html
+drwxr-xr-x 2 www-data www-data  4096 Oct 26 18:03 partials
+-rwxr-xr-x 1 www-data www-data  1347 Oct 26 18:04 privacidade.html
+-rwxr-xr-x 1 www-data www-data  1504 Oct 26 18:03 termo-confidencialidade.html
+-rwxr-xr-x 1 www-data www-data  4794 Oct 26 18:04 teste-branco.html
+root@srv1084057:/var/www/medicohelp/dist/public# ls -la /var/www/medicohelp/dist/public/site/cd /var/www/medicohelp/dist/public
+mv index.html app.html
+cp site/index.html index.html
+systemctl restart nginx
+ls: cannot access '/var/www/medicohelp/dist/public/site/cd': No such file or directory
+/var/www/medicohelp/dist/public:
+total 3864
+drwxr-xr-x 8 www-data www-data    4096 Oct 26 18:17 .
+drwxr-xr-x 3 www-data www-data    4096 Oct 26 01:14 ..
+-rwxr-xr-x 1 www-data www-data     949 Oct 26 18:03 README.txt
+drwxr-xr-x 2 www-data www-data    4096 Oct 26 18:03 assets
+drwxr-xr-x 2 www-data www-data    4096 Oct 26 18:03 audio
+-rwxr-xr-x 1 www-data www-data 1070019 Oct 26 18:03 clarice.png
+-rwxr-xr-x 1 www-data www-data     379 Oct 26 18:03 config.js
+-rwxr-xr-x 1 www-data www-data 1230971 Oct 26 18:03 favicon.png
+-rwxr-xr-x 1 www-data www-data  358515 Oct 26 18:04 heart-icon.png
+-rwxr-xr-x 1 www-data www-data    1467 Oct 26 18:03 index.html
+drwxr-xr-x 2 www-data www-data    4096 Oct 26 18:04 kb
+drwxr-xr-x 3 www-data www-data    4096 Oct 26 18:04 legal
+-rwxr-xr-x 1 www-data www-data 1230971 Oct 26 18:03 logo-medicohelp.png
+-rwxr-xr-x 1 www-data www-data    4503 Oct 26 18:03 script.js
+drwxr-xr-x 6 www-data www-data    4096 Oct 26 18:04 site
+drwxr-xr-x 2 www-data www-data    4096 Oct 26 18:03 static
+-rwxr-xr-x 1 www-data www-data     963 Oct 26 18:04 teste.html
+root@srv1084057:/var/www/medicohelp/dist/public# cat /var/www/medicohelp/dist/public/index.html | head -50
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MédicoHelp - Plataforma Médica IA</title>
+  <style>
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+    
+    body {
+      background: #0d3b3a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #ffffff;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #ffffff;
+      font-size: 42px;
+      margin-bottom: 50px;
+      text-align: center;
+      font-weight: 900;
+    }
+    
+    .section-title {
+      font-size: 28px;
+      letter-spacing: 0.15em;
+      color: #19c29e;
+      margin: 60px 0 35px;
+      text-transform: uppercase;
+      font-weight: 900;
+      text-align: center;
+    }
+    
+    .grid {
+      display: grid;
+      gap: 28px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      margin-bottom: 60px;
+    }
+root@srv1084057:/var/www/medicohelp/dist/public# cat /var/www/medicohelp/dist/public/index.html | head -50
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MédicoHelp - Plataforma Médica IA</title>
+  <style>
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+    
+    body {
+      background: #0d3b3a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #ffffff;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #ffffff;
+      font-size: 42px;
+      margin-bottom: 50px;
+      text-align: center;
+      font-weight: 900;
+    }
+    
+    .section-title {
+      font-size: 28px;
+      letter-spacing: 0.15em;
+      color: #19c29e;
+      margin: 60px 0 35px;
+      text-transform: uppercase;
+      font-weight: 900;
+      text-align: center;
+    }
+    
+    .grid {
+      display: grid;
+      gap: 28px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      margin-bottom: 60px;
+    }
+root@srv1084057:/var/www/medicohelp/dist/public# cat /var/www/medicohelp/dist/public/index.html | head -50
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MédicoHelp - Plataforma Médica IA</title>
+  <style>
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+    
+    body {
+      background: #0d3b3a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #ffffff;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #ffffff;
+      font-size: 42px;
+      margin-bottom: 50px;
+      text-align: center;
+      font-weight: 900;
+    }
+    
+    .section-title {
+      font-size: 28px;
+      letter-spacing: 0.15em;
+      color: #19c29e;
+      margin: 60px 0 35px;
+      text-transform: uppercase;
+      font-weight: 900;
+      text-align: center;
+    }
+    
+    .grid {
+      display: grid;
+      gap: 28px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      margin-bottom: 60px;
+    }
+root@srv1084057:/var/www/medicohelp/dist/public# 

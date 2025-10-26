@@ -8,6 +8,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>MédicoHelp — Dra. Clarice</title>
     <meta name="description" content="Sua aliada inteligente na decisão clínica. Plataforma médica profissional com assistente de IA para consultas clínicas, análise de exames e gestão de pacientes." />
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00A79D">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MédicoHelp">
+    <link rel="apple-touch-icon" href="/clarice.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/logo-medicohelp.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
+    
     <link rel="icon" type="image/png" href="/favicon.png?v=2025-10-23-NEW">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=2025-10-23-BRANDING">
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png?v=2025-10-23-BRANDING">
@@ -20,5 +31,14 @@
     <script src="/config.js"></script>
     <script type="module" src="/src/main.tsx?cachekill=V4-COMPLETE&t=1761238800000"></script>
     <script src="/script.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log('✅ PWA: Service Worker registrado!', reg))
+            .catch(err => console.log('❌ PWA: Erro ao registrar Service Worker', err));
+        });
+      }
+    </script>
   </body>
 </html>

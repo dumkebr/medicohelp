@@ -1,0 +1,56 @@
+{
+  "name": "MédicoHelp - Dra. Clarice",
+  "short_name": "MédicoHelp",
+  "description": "Plataforma médica profissional com assistente de IA para consultas clínicas, análise de exames e gestão de pacientes",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a2f2e",
+  "theme_color": "#00A79D",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-medicohelp.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/clarice.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["medical", "health", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Nova Consulta",
+      "short_name": "Consulta",
+      "description": "Iniciar nova consulta com a Dra. Clarice",
+      "url": "/",
+      "icons": [{ "src": "/clarice.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "MedPrime",
+      "short_name": "Calculadoras",
+      "description": "Calculadoras médicas e ferramentas avançadas",
+      "url": "/medprime",
+      "icons": [{ "src": "/heart-icon.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/clarice.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+}

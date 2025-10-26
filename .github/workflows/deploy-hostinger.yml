@@ -31,6 +31,17 @@ jobs:
       - name: 📝 List build files
         run: ls -la dist/public/
       
+      - name: 📁 Create remote directory if not exists
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASS }}
+          port: ${{ secrets.SFTP_PORT }}
+          script: |
+            mkdir -p ${{ secrets.SERVER_DIR }}
+            chmod 755 ${{ secrets.SERVER_DIR }}
+      
       - name: 🚀 Deploy to Hostinger VPS via SFTP
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:

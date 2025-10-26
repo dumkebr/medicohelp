@@ -48,4 +48,3 @@ jobs:
           echo "🎉 Deploy concluído com sucesso!"
           echo "🌐 Acesse: www.medicohelp.com.br"
           echo "🖥️ VPS: ${{ secrets.SFTP_HOST }}"
-          echo "📅 Deploy: $(date)"

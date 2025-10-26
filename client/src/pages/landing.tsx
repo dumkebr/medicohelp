@@ -183,7 +183,9 @@ export default function Landing() {
       fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif',
       color: '#f3f7f6',
       background: 'linear-gradient(180deg, #0b3332, #0d3b3a)',
-      minHeight: '100vh'
+      minHeight: '100vh',
+      overflowX: 'hidden',
+      maxWidth: '100vw'
     }}>
       <style>{`
         :root {
@@ -321,7 +323,7 @@ export default function Landing() {
           position: fixed;
           bottom: 100px;
           right: 20px;
-          width: 380px;
+          width: min(380px, calc(100vw - 40px));
           max-height: 550px;
           background: #052828;
           border-radius: 16px;

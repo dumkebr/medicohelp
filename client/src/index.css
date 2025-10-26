@@ -66,6 +66,22 @@ html,
   color: #e8f4f8 !important;
 }
 
+/* 📱 MOBILE: Prevenir scroll horizontal */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+}
+
+/* Garantir que elementos não quebrem a página no mobile */
+* {
+  box-sizing: border-box;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 /* Sidebar e Header no tom verde petróleo bem escuro */
 [data-sidebar],
 header {

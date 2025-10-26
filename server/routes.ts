@@ -118,6 +118,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // (IMPORTANT) Auth middleware from blueprint:javascript_log_in_with_replit
   await setupAuth(app);
 
+  // ===== TEMPORARY: Download compiled assets =====
+  app.get("/download-assets/:filename", (req, res) => {
+    const { filename } = req.params;
+    const allowedFiles = ["index-_ro_bY9G.js", "index-bGKNXLV6.css", "medprime-heart-icon-BGqBsiMu.png"];
+    
+    if (!allowedFiles.includes(filename)) {
+      return res.status(404).send("File not found");
+    }
+    
+    const filePath = path.join(import.meta.dirname, "..", "dist", "public", "assets", filename);
+    res.sendFile(filePath);
+  });
+
   // ===== ENDPOINT: Get authenticated user (Replit Auth - Legacy) =====
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {

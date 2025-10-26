@@ -62,6 +62,15 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 
 ## Recent Updates
 
+### PWA - Progressive Web App (Oct 26, 2025)
+-   **Installable Mobile App**: Full PWA configuration with manifest.json, service-worker.js, and iOS meta tags
+-   **Offline Support**: Service Worker with cache-first strategy for offline functionality
+-   **Mobile Installation**: "Add to Home Screen" support for Android (Chrome/Edge) and iOS (Safari)
+-   **App Features**: Standalone display mode, teal theme color (#00A79D), custom app shortcuts (Nova Consulta, MedPrime)
+-   **iOS Optimization**: Apple touch icons, status bar styling, and mobile-web-app-capable meta tags
+-   **Cache Strategy**: Precache static assets (index, favicon, logos, config) + runtime cache for dynamic content
+-   **Deployment**: VPS deployment at www.medicohelp.com.br (72.61.219.66) via GitHub Actions SFTP workflow
+
 ### V7 Integration (Oct 24, 2025)
 -   **Site Estático Completo**: 6 páginas HTML integradas (index, cadastro, termos, privacidade, admin, admin-api)
 -   **Assets Profissionais**: 7 imagens high-res (hero1, chat1, logos, Clarice mascot)

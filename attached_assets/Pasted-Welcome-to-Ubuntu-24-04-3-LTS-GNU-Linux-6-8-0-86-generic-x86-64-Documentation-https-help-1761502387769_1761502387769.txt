@@ -1,0 +1,74 @@
+Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-86-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sun Oct 26 18:12:27 UTC 2025
+
+  System load:  0.0                Processes:             135
+  Usage of /:   2.7% of 192.69GB   Users logged in:       0
+  Memory usage: 2%                 IPv4 address for eth0: 72.61.219.66
+  Swap usage:   0%                 IPv6 address for eth0: 2a02:4780:66:5aeb::1
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+
+Last login: Sun Oct 26 18:08:49 2025 from 169.254.0.1
+root@srv1084057:~# ls -lah /var/www/medicohelp/dist/public/ | head -20
+total 3.9M
+drwxr-xr-x 9 www-data www-data 4.0K Oct 26 18:03 .
+drwxr-xr-x 3 www-data www-data 4.0K Oct 26 01:14 ..
+-rwxr-xr-x 1 www-data www-data  949 Oct 26 01:18 README.txt
+drwxr-xr-x 2 www-data www-data 4.0K Oct 26 01:18 assets
+drwxr-xr-x 2 www-data www-data 4.0K Oct 26 01:18 audio
+-rwxr-xr-x 1 www-data www-data 1.1M Oct 26 01:18 clarice.png
+-rwxr-xr-x 1 www-data www-data 1.2M Oct 26 01:18 favicon.png
+-rwxr-xr-x 1 www-data www-data 351K Oct 26 01:18 heart-icon.png
+-rwxr-xr-x 1 www-data www-data 1.4K Oct 26 01:18 index.html
+drwxr-xr-x 2 www-data www-data 4.0K Oct 26 01:18 kb
+drwxr-xr-x 3 www-data www-data 4.0K Oct 26 01:18 legal
+-rwxr-xr-x 1 www-data www-data 1.2M Oct 26 01:18 logo-medicohelp.png
+drwxr-xr-x 8 www-data www-data 4.0K Oct 26 18:04 public
+-rwxr-xr-x 1 www-data www-data 4.4K Oct 26 01:18 script.js
+drwxr-xr-x 6 www-data www-data 4.0K Oct 26 01:18 site
+drwxr-xr-x 2 www-data www-data 4.0K Oct 26 01:18 static
+-rwxr-xr-x 1 www-data www-data  963 Oct 26 01:18 teste.html
+root@srv1084057:~# cat /var/www/medicohelp/dist/public/index.html | head -30
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>MédicoHelp — Dra. Clarice</title>
+    <meta name="description" content="Sua aliada inteligente na decisão clínica. Plataforma médica profissional com assistente de IA para consultas clínicas, análise de exames e gestão de pacientes." />
+    <link rel="icon" type="image/png" href="/favicon.png?v=2025-10-23-NEW">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=2025-10-23-BRANDING">
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png?v=2025-10-23-BRANDING">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script type="module" crossorigin src="/assets/index-JeR4R3GI.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-m_abszLi.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="/script.js"></script>
+  </body>
+</html>root@srv1084057:~# 

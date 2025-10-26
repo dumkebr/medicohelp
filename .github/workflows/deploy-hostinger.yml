@@ -39,8 +39,8 @@ jobs:
           password: ${{ secrets.SFTP_PASS }}
           port: ${{ secrets.SFTP_PORT }}
           script: |
-            mkdir -p ${{ secrets.SERVER_DIR }}
-            chmod 755 ${{ secrets.SERVER_DIR }}
+            mkdir -p /var/www/medicohelp/dist/public
+            chmod -R 755 /var/www/medicohelp
       
       - name: 🚀 Deploy to Hostinger VPS via SFTP
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
@@ -50,7 +50,7 @@ jobs:
           username: ${{ secrets.SFTP_USER }}
           password: ${{ secrets.SFTP_PASS }}
           local_path: ./dist/public/
-          remote_path: ${{ secrets.SERVER_DIR }}/
+          remote_path: /var/www/medicohelp/dist/public/
           sftp_only: true
           delete_remote_files: false
       

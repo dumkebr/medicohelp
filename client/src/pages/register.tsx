@@ -90,9 +90,14 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Criar Conta</CardTitle>
-          <CardDescription>Preencha os dados para criar sua conta</CardDescription>
+        <CardHeader className="space-y-4">
+          <div className="flex justify-center items-center gap-3">
+            <img src="/assets/heart-icon.png" alt="MédicoHelp" className="h-12 w-12 object-contain" />
+            <h1 className="text-3xl font-bold" style={{ color: '#00A79D' }}>
+              Médico<span style={{ color: '#00A79D', fontWeight: 800 }}>Help</span>
+            </h1>
+          </div>
+          <CardDescription className="text-center">Preencha os dados para criar sua conta</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">

@@ -12,8 +12,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { login } from "@/lib/authService";
 import { Loader2 } from "lucide-react";
-import logoImage from "@assets/logo_medicohelp.png";
-
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
@@ -64,8 +62,11 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4">
-          <div className="flex justify-center">
-            <img src={logoImage} alt="MédicoHelp - A plataforma médica inteligente" className="h-16 w-auto object-contain" />
+          <div className="flex justify-center items-center gap-3">
+            <img src="/assets/heart-icon.png" alt="MédicoHelp" className="h-12 w-12 object-contain" />
+            <h1 className="text-3xl font-bold" style={{ color: '#00A79D' }}>
+              Médico<span style={{ color: '#00A79D', fontWeight: 800 }}>Help</span>
+            </h1>
           </div>
           <CardDescription className="text-center">Entre com suas credenciais para acessar</CardDescription>
         </CardHeader>

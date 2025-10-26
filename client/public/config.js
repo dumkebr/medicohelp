@@ -6,7 +6,7 @@ window.MEDICOHELP_CONFIG = {
   API_URL: 'https://medico-help-dumkebr.replit.app',
   
   // Versão do build
-  VERSION: '1.0.1',
+  VERSION: '1.0.2',
   BUILD_DATE: new Date().toISOString()
 };
 

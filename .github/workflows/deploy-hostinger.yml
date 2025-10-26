@@ -1,4 +1,4 @@
-name: Deploy to Hostinger
+name: Deploy to Hostinger VPS
 
 on:
   push:
@@ -31,17 +31,20 @@ jobs:
       - name: 📝 List build files
         run: ls -la dist/public/
       
-      - name: 🚀 Deploy to Hostinger via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: 🚀 Deploy to Hostinger VPS via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./dist/public/
-          server-dir: /public_html/
-          dangerous-clean-slate: true
+          server: ${{ secrets.SFTP_HOST }}
+          port: ${{ secrets.SFTP_PORT }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASS }}
+          local_path: ./dist/public/*
+          remote_path: ${{ secrets.SERVER_DIR }}
+          sftp_only: true
+          delete_remote_files: true
       
       - name: ✅ Deployment complete
         run: |
           echo "🎉 Deploy concluído com sucesso!"
           echo "🌐 Acesse: www.medicohelp.com.br"
+          echo "🖥️ VPS: ${{ secrets.SFTP_HOST }}"

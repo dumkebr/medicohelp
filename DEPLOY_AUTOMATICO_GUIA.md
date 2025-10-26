@@ -1,17 +1,34 @@
-# 🚀 Deploy Automático - GitHub Actions + Hostinger
+# 🚀 Deploy Automático - GitHub Actions + Hostinger VPS
 
 ## ✅ O QUE FOI CONFIGURADO
 
-Agora o MédicoHelp tem **deploy automático**!
+Agora o MédicoHelp tem **deploy automático via SFTP**!
 
-### Como funciona:
+### Arquitetura:
+```
+┌─────────────────────────────────────────┐
+│  www.medicohelp.com.br (Hostinger VPS)  │
+│  Frontend: HTML + CSS + JS (React)      │
+│  IP: 72.61.219.66                       │
+└─────────────────┬───────────────────────┘
+                  │
+                  │ API calls via HTTPS
+                  │
+┌─────────────────▼───────────────────────┐
+│  API Replit (Backend)                   │
+│  Node.js + PostgreSQL + GPT-5           │
+│  Login, pacientes, chat com Dra Clarice │
+└─────────────────────────────────────────┘
+```
+
+### Fluxo de Deploy:
 ```
 1. Você edita código no Replit
 2. Faz commit e push para GitHub
 3. GitHub Actions:
    - Instala dependências
    - Faz build do frontend
-   - Envia automaticamente para Hostinger
+   - Envia via SFTP para VPS Hostinger
 4. www.medicohelp.com.br atualiza sozinho!
 ```
 
@@ -19,14 +36,14 @@ Agora o MédicoHelp tem **deploy automático**!
 
 ## 📋 CONFIGURAÇÃO NECESSÁRIA (UMA VEZ APENAS)
 
-### ETAPA 1: Obter credenciais FTP do Hostinger
+### ETAPA 1: Credenciais SFTP do VPS
 
-1. Acesse **hPanel** do Hostinger
-2. Vá em **Arquivos** → **Contas FTP**
-3. Anote 3 informações:
-   - **Servidor** (exemplo: `ftp.medicohelp.com.br`)
-   - **Nome de usuário** (exemplo: `u123456789`)
-   - **Senha** (clique em "Mostrar senha" ou crie uma nova)
+Você já tem as credenciais:
+- **Host:** `72.61.219.66`
+- **Port:** `22`
+- **User:** `root`
+- **Password:** (sua senha root)
+- **Dir:** `/var/www/html`
 
 ### ETAPA 2: Adicionar secrets no GitHub
 
@@ -35,21 +52,31 @@ Agora o MédicoHelp tem **deploy automático**!
 3. No menu lateral: **Secrets and variables** → **Actions**
 4. Clique em **"New repository secret"**
 
-**Adicione 3 secrets:**
+**Adicione 5 secrets:**
 
-#### Secret 1: FTP_HOST
-- **Name:** `FTP_HOST`
-- **Secret:** (exemplo: `ftp.medicohelp.com.br`)
+#### Secret 1: SFTP_HOST
+- **Name:** `SFTP_HOST`
+- **Secret:** `72.61.219.66`
 - Clique **"Add secret"**
 
-#### Secret 2: FTP_USERNAME
-- **Name:** `FTP_USERNAME`
-- **Secret:** (exemplo: `u123456789`)
+#### Secret 2: SFTP_PORT
+- **Name:** `SFTP_PORT`
+- **Secret:** `22`
 - Clique **"Add secret"**
 
-#### Secret 3: FTP_PASSWORD
-- **Name:** `FTP_PASSWORD`
-- **Secret:** (sua senha FTP)
+#### Secret 3: SFTP_USER
+- **Name:** `SFTP_USER`
+- **Secret:** `root`
+- Clique **"Add secret"**
+
+#### Secret 4: SFTP_PASS
+- **Name:** `SFTP_PASS`
+- **Secret:** (sua senha root do VPS)
+- Clique **"Add secret"**
+
+#### Secret 5: SERVER_DIR
+- **Name:** `SERVER_DIR`
+- **Secret:** `/var/www/html`
 - Clique **"Add secret"**
 
 ### ETAPA 3: Publicar API no Replit
@@ -105,13 +132,15 @@ Após configurar os secrets e fazer primeiro push:
 
 ## ⚠️ PROBLEMAS COMUNS
 
-### Workflow falha com "Error connecting to FTP"
-- **Causa:** Secrets configurados errados
-- **Solução:** Verifique FTP_HOST, FTP_USERNAME e FTP_PASSWORD
+### Workflow falha com "Error connecting to SFTP"
+- **Causa:** Secrets configurados errados ou firewall bloqueando
+- **Solução:** Verifique SFTP_HOST, SFTP_USER e SFTP_PASS
+- **Solução 2:** Verifique se porta 22 está aberta no VPS
 
 ### Workflow falha com "Permission denied"
-- **Causa:** Senha FTP incorreta
-- **Solução:** Gere nova senha FTP no Hostinger
+- **Causa:** Senha root incorreta ou usuário sem permissões
+- **Solução:** Verifique senha root do VPS
+- **Solução 2:** Verifique permissões do diretório `/var/www/html`
 
 ### Site não atualiza após deploy
 - **Causa:** Cache do navegador

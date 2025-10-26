@@ -1,0 +1,51 @@
+Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-86-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sun Oct 26 19:58:01 UTC 2025
+
+  System load:  0.0                Processes:             137
+  Usage of /:   2.7% of 192.69GB   Users logged in:       0
+  Memory usage: 4%                 IPv4 address for eth0: 72.61.219.66
+  Swap usage:   0%                 IPv6 address for eth0: 2a02:4780:66:5aeb::1
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+
+Last login: Sun Oct 26 19:42:12 2025 from 169.254.0.1
+root@srv1084057:~# systemctl status nginx
+● nginx.service - A high performance web server and a reverse proxy server
+     Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; preset: enabled)
+     Active: active (running) since Sun 2025-10-26 19:54:47 UTC; 3min 18s ago
+       Docs: man:nginx(8)
+    Process: 4333 ExecStartPre=/usr/sbin/nginx -t -q -g daemon on; master_process on; (code=exited, status=0/SUCCESS)
+    Process: 4338 ExecStart=/usr/sbin/nginx -g daemon on; master_process on; (code=exited, status=0/SUCCESS)
+   Main PID: 4339 (nginx)
+      Tasks: 5 (limit: 19144)
+     Memory: 6.0M (peak: 8.9M)
+        CPU: 96ms
+     CGroup: /system.slice/nginx.service
+             ├─4339 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;"
+             ├─4340 "nginx: worker process"
+             ├─4341 "nginx: worker process"
+             ├─4342 "nginx: worker process"
+             └─4344 "nginx: worker process"
+
+Oct 26 19:54:47 srv1084057 systemd[1]: Starting nginx.service - A high performance web server and a reverse proxy server...
+Oct 26 19:54:47 srv1084057 systemd[1]: Started nginx.service - A high performance web server and a reverse proxy server.
+root@srv1084057:~# 

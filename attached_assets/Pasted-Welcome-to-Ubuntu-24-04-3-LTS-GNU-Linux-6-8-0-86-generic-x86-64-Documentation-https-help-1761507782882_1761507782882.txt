@@ -1,0 +1,54 @@
+Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-86-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sun Oct 26 19:42:11 UTC 2025
+
+  System load:  0.0                Processes:             132
+  Usage of /:   2.7% of 192.69GB   Users logged in:       0
+  Memory usage: 2%                 IPv4 address for eth0: 72.61.219.66
+  Swap usage:   0%                 IPv6 address for eth0: 2a02:4780:66:5aeb::1
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+
+Last login: Sun Oct 26 19:24:58 2025 from 169.254.0.1
+root@srv1084057:~# cd /var/www/medicohelp/dist/public
+root@srv1084057:/var/www/medicohelp/dist/public# ls -la
+total 3868
+drwxr-xr-x 9 www-data www-data    4096 Oct 26 18:45 .
+drwxr-xr-x 3 www-data www-data    4096 Oct 26 01:14 ..
+-rwxr-xr-x 1 root     root         949 Oct 26 18:36 README.txt
+drwxr-xr-x 2 root     root        4096 Oct 26 18:36 assets
+drwxr-xr-x 2 root     root        4096 Oct 26 18:36 audio
+-rwxr-xr-x 1 root     root     1070019 Oct 26 18:36 clarice.png
+-rwxr-xr-x 1 root     root         379 Oct 26 18:36 config.js
+-rwxr-xr-x 1 root     root     1230971 Oct 26 18:36 favicon.png
+-rwxr-xr-x 1 root     root      358515 Oct 26 18:36 heart-icon.png
+-rwxr-xr-x 1 root     root        1467 Oct 26 18:36 index.html
+drwxr-xr-x 2 root     root        4096 Oct 26 18:36 kb
+drwxr-xr-x 3 root     root        4096 Oct 26 18:36 legal
+-rwxr-xr-x 1 root     root     1230971 Oct 26 18:36 logo-medicohelp.png
+drwxr-xr-x 8 root     root        4096 Oct 26 19:12 public
+-rwxr-xr-x 1 root     root        4503 Oct 26 18:36 script.js
+drwxr-xr-x 6 root     root        4096 Oct 26 18:36 site
+drwxr-xr-x 2 root     root        4096 Oct 26 18:36 static
+-rwxr-xr-x 1 root     root         963 Oct 26 18:36 teste.html
+root@srv1084057:/var/www/medicohelp/dist/public# rm -rf !(public) && mv public/* . && rmdir public && systemctl restart nginx
+rmdir: failed to remove 'public': Directory not empty
+root@srv1084057:/var/www/medicohelp/dist/public# 

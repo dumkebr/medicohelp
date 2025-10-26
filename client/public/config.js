@@ -2,8 +2,8 @@
 // Este arquivo define a URL base da API dependendo do ambiente
 
 window.MEDICOHELP_CONFIG = {
-  // URL da API no Replit (será atualizada após deploy)
-  API_URL: 'https://SEU-PROJETO.replit.app',
+  // URL da API no Replit
+  API_URL: 'https://medico-help-dumkebr.replit.app',
   
   // Versão do build
   VERSION: '1.0.0',

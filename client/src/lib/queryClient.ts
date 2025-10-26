@@ -2,6 +2,16 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 const TOKEN_KEY = "auth_token";
 
+// Get API base URL from config or fallback to relative paths
+function getApiBaseUrl(): string {
+  // Check if running in production (VPS Hostinger)
+  if (typeof window !== 'undefined' && (window as any).MEDICOHELP_CONFIG?.API_URL) {
+    return (window as any).MEDICOHELP_CONFIG.API_URL;
+  }
+  // Development or same-server: use relative paths
+  return '';
+}
+
 export function getAuthToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -32,6 +42,17 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Build full URL with API base
+function buildApiUrl(path: string): string {
+  const baseUrl = getApiBaseUrl();
+  // If path already starts with http, return as is
+  if (path.startsWith('http')) {
+    return path;
+  }
+  // Combine base URL with path
+  return baseUrl + path;
+}
+
 export async function apiRequest(
   method: string,
   url: string,
@@ -42,7 +63,9 @@ export async function apiRequest(
     ...(data ? { "Content-Type": "application/json" } : {}),
   };
 
-  const res = await fetch(url, {
+  const fullUrl = buildApiUrl(url);
+
+  const res = await fetch(fullUrl, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
@@ -59,7 +82,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const path = queryKey.join("/") as string;
+    const fullUrl = buildApiUrl(path);
+    
+    const res = await fetch(fullUrl, {
       headers: getAuthHeaders(),
       credentials: "include",
     });

@@ -54,6 +54,29 @@ jobs:
           sftp_only: true
           delete_remote_files: false
       
+      - name: 🔧 Fix duplicate public folder (auto-cleanup)
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASS }}
+          port: ${{ secrets.SFTP_PORT }}
+          script: |
+            cd /var/www/medicohelp/dist/public
+            if [ -d "public" ]; then
+              echo "📁 Pasta duplicada detectada, corrigindo..."
+              shopt -s dotglob
+              mv public/* . 2>/dev/null || true
+              rm -rf public
+              echo "✅ Pasta duplicada removida!"
+            else
+              echo "✅ Estrutura já está correta!"
+            fi
+            chown -R www-data:www-data /var/www/medicohelp
+            chmod -R 755 /var/www/medicohelp
+            systemctl restart nginx
+            echo "🎉 Deploy finalizado e Nginx reiniciado!"
+      
       - name: ✅ Deployment complete
         run: |
           echo "🎉 Deploy concluído com sucesso!"

@@ -29,7 +29,10 @@ jobs:
           NODE_ENV: production
       
       - name: 📝 List build files
-        run: ls -la dist/public/
+        run: |
+          ls -la dist/public/
+          echo "=== Assets folder ==="
+          ls -lh dist/public/assets/index-*.js dist/public/assets/index-*.css
       
       - name: 📁 Create remote directory if not exists
         uses: appleboy/ssh-action@master
@@ -55,6 +58,29 @@ jobs:
           remote_path: /var/www/medicohelp/dist/public/
           sftp_only: true
           delete_remote_files: false
+      
+      - name: 🔍 Verify assets uploaded
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASS }}
+          port: ${{ secrets.SFTP_PORT }}
+          script: |
+            echo "📁 Verificando arquivos enviados:"
+            ls -lh /var/www/medicohelp/dist/public/assets/index-*.js 2>/dev/null || echo "❌ Arquivos JS não encontrados!"
+            ls -lh /var/www/medicohelp/dist/public/assets/index-*.css 2>/dev/null || echo "❌ Arquivos CSS não encontrados!"
+      
+      - name: 📤 Upload critical assets via SCP (fallback)
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASS }}
+          port: ${{ secrets.SFTP_PORT }}
+          source: "dist/public/assets/index-_ro_bY9G.js,dist/public/assets/index-bGKNXLV6.css"
+          target: "/var/www/medicohelp/dist/public/assets/"
+          strip_components: 3
       
       - name: 🔧 Fix duplicate public folder (auto-cleanup)
         uses: appleboy/ssh-action@master

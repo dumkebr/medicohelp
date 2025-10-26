@@ -582,8 +582,8 @@ export default function Landing() {
           <a href="/legal/termo.html" target="_blank" rel="noopener noreferrer">Termo de Uso</a>
           <button 
             className="landing-btn landing-btn-primary" 
-            onClick={() => setLocation("/register")}
-            data-testid="button-cadastro"
+            onClick={() => setLocation("/login")}
+            data-testid="button-entrar"
           >
             Entrar
           </button>

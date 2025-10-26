@@ -1,0 +1,45 @@
+Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-86-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sun Oct 26 20:40:28 UTC 2025
+
+  System load:  0.07               Processes:             139
+  Usage of /:   2.7% of 192.69GB   Users logged in:       0
+  Memory usage: 4%                 IPv4 address for eth0: 72.61.219.66
+  Swap usage:   0%                 IPv6 address for eth0: 2a02:4780:66:5aeb::1
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+
+Last login: Sun Oct 26 20:28:46 2025 from 169.254.0.1
+root@srv1084057:~# cd /var/www/medicohelp/dist/public/assets
+rm -f index-_ro_bY9G.js index-bGKNXLV6.css
+wget http://medico-help-dumkebr.replit.dev:8000/index-_ro_bY9G.js -O index-_ro_bY9G.js
+wget http://medico-help-dumkebr.replit.dev:8000/index-bGKNXLV6.css -O index-bGKNXLV6.css
+chmod 755 index-_ro_bY9G.js index-bGKNXLV6.css
+systemctl restart nginx
+--2025-10-26 20:40:38--  http://medico-help-dumkebr.replit.dev:8000/index-_ro_bY9G.js
+Resolving medico-help-dumkebr.replit.dev (medico-help-dumkebr.replit.dev)... failed: No address associated with hostname.
+wget: unable to resolve host address ‘medico-help-dumkebr.replit.dev’
+--2025-10-26 20:40:38--  http://medico-help-dumkebr.replit.dev:8000/index-bGKNXLV6.css
+Resolving medico-help-dumkebr.replit.dev (medico-help-dumkebr.replit.dev)... failed: No address associated with hostname.
+wget: unable to resolve host address ‘medico-help-dumkebr.replit.dev’
+root@srv1084057:/var/www/medicohelp/dist/public/assets# ls -lh /var/www/medicohelp/dist/public/assets/index-*.js
+-rwxr-xr-x 1 root root 0 Oct 26 20:40 /var/www/medicohelp/dist/public/assets/index-_ro_bY9G.js
+root@srv1084057:/var/www/medicohelp/dist/public/assets# 

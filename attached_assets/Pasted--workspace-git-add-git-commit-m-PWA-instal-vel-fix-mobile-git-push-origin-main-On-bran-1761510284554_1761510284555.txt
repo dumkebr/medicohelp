@@ -1,0 +1,117 @@
+~/workspace$ git add .
+git commit -m "✨ PWA instalável + fix mobile"
+git push origin main
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+Everything up-to-date
+~/workspace$ git add .
+~/workspace$ git commit -m "✨ PWA: Banner automático + Header mobile responsivo"
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+~/workspace$ git push origin main
+Everything up-to-date
+~/workspace$ git add .
+git commit -m "🎨 Atualizar logo login/registro"
+git push origin main
+On branch main
+Your branch is ahead of 'origin/main' by 5 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+Enumerating objects: 32, done.
+Counting objects: 100% (32/32), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (25/25), done.
+Writing objects: 100% (25/25), 367.50 KiB | 19.34 MiB/s, done.
+Total 25 (delta 18), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (18/18), completed with 7 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/dumkebr/medicohelp.git
+To https://github.com/dumkebr/MedicoHelp.git
+   38c8f47..acfa2e4  main -> main
+~/workspace$ git add .
+git commit -m "🔧 Workflow automático: corrige pasta duplicada + novo branding"
+git push origin main
+On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+Enumerating objects: 9, done.
+Counting objects: 100% (9/9), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (5/5), 1.05 KiB | 1.05 MiB/s, done.
+Total 5 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/dumkebr/medicohelp.git
+To https://github.com/dumkebr/MedicoHelp.git
+   acfa2e4..82d03fa  main -> main
+~/workspace$ git add .
+git commit -m "🔧 Workflow automático + novo branding"
+git push origin main
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+Everything up-to-date
+~/workspace$ git add .
+git commit -m "✨ Build completo do app React + novo branding"
+git push origin main
+On branch main
+Your branch is ahead of 'origin/main' by 4 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+Enumerating objects: 19, done.
+Counting objects: 100% (19/19), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (17/17), done.
+Writing objects: 100% (17/17), 143.84 KiB | 9.59 MiB/s, done.
+Total 17 (delta 12), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (12/12), completed with 2 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/dumkebr/medicohelp.git
+To https://github.com/dumkebr/MedicoHelp.git
+   82d03fa..b5ece9b  main -> main
+~/workspace$ sshpass -p 'Dumke@2020' sftp -o StrictHostKeyChecking=no root@72.61.219.66 <<EOF
+cd /var/www/medicohelp/dist/public/assets/
+put dist/public/assets/index-_ro_bY9G.js
+put dist/public/assets/index-bGKNXLV6.css
+put dist/public/assets/medprime-heart-icon-BGqBsiMu.png
+bye
+EOF
+bash: sshpass: command not found
+~/workspace$ git add .github/workflows/deploy-hostinger.yml
+git commit -m "🔧 Fix: Limpar assets antigos antes do deploy"
+git push origin main
+On branch main
+Your branch is ahead of 'origin/main' by 2 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+Enumerating objects: 17, done.
+Counting objects: 100% (17/17), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (12/12), done.
+Writing objects: 100% (12/12), 3.28 KiB | 3.28 MiB/s, done.
+Total 12 (delta 9), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (9/9), completed with 4 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/dumkebr/medicohelp.git
+To https://github.com/dumkebr/MedicoHelp.git
+   b6261e1..5cbf4cd  main -> main
+~/workspace$ git add .github/workflows/deploy-hostinger.yml
+git commit -m "🔧 Fix: Limpar assets antigos antes do deploy"
+git push origin main
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+Everything up-to-date
+~/workspace$ 

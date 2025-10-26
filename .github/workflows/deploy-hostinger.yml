@@ -37,19 +37,6 @@ jobs:
           echo "=== Tamanho total dos assets ==="
           du -sh dist/public/assets/
       
-      - name: 🧹 Limpar VPS antes do deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SFTP_HOST }}
-          username: ${{ secrets.SFTP_USER }}
-          password: ${{ secrets.SFTP_PASS }}
-          port: ${{ secrets.SFTP_PORT }}
-          script: |
-            echo "🗑️ Removendo arquivos antigos..."
-            rm -rf /var/www/medicohelp/dist/public/*
-            mkdir -p /var/www/medicohelp/dist/public/assets
-            echo "✅ VPS limpo e pronto!"
-      
       - name: 🚀 Deploy via SCP (TODOS os arquivos)
         uses: appleboy/scp-action@master
         with:
@@ -62,54 +49,8 @@ jobs:
           strip_components: 1
           rm: false
           overwrite: true
-      
-      - name: 🔧 Configurar permissões e reiniciar Nginx
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SFTP_HOST }}
-          username: ${{ secrets.SFTP_USER }}
-          password: ${{ secrets.SFTP_PASS }}
-          port: ${{ secrets.SFTP_PORT }}
-          script: |
-            echo "🔒 Configurando permissões..."
-            chmod -R 755 /var/www/medicohelp
-            chown -R www-data:www-data /var/www/medicohelp
-            
-            echo "🔄 Reiniciando Nginx..."
-            systemctl restart nginx
-            
-            echo ""
-            echo "✅ Deploy automático concluído!"
-            echo "📅 Data: $(date)"
-      
-      - name: ✅ Verificar arquivos críticos no VPS
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SFTP_HOST }}
-          username: ${{ secrets.SFTP_USER }}
-          password: ${{ secrets.SFTP_PASS }}
-          port: ${{ secrets.SFTP_PORT }}
-          script: |
-            echo "📁 Verificando arquivos críticos no VPS:"
-            echo ""
-            JS_SIZE=$(ls -lh /var/www/medicohelp/dist/public/assets/index-*.js 2>/dev/null | awk '{print $5}')
-            CSS_SIZE=$(ls -lh /var/www/medicohelp/dist/public/assets/index-*.css 2>/dev/null | awk '{print $5}')
-            
-            if [ -n "$JS_SIZE" ]; then
-              echo "✅ JavaScript: $JS_SIZE"
-            else
-              echo "❌ JavaScript NÃO ENCONTRADO!"
-            fi
-            
-            if [ -n "$CSS_SIZE" ]; then
-              echo "✅ CSS: $CSS_SIZE"
-            else
-              echo "❌ CSS NÃO ENCONTRADO!"
-            fi
-            
-            echo ""
-            echo "📊 Total de arquivos em assets:"
-            ls -la /var/www/medicohelp/dist/public/assets/ | wc -l
+          timeout: 10m
+          command_timeout: 10m
       
       - name: 🎉 Deploy finalizado
         run: |

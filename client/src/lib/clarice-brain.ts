@@ -9,7 +9,9 @@ export interface KBItem {
 export async function loadAllKB(base = '/kb/'): Promise<KBItem[]> {
   try {
     // Load index first to get list of files
-    const indexRes = await fetch(base + 'index.json', { cache: 'no-store' });
+    // Use absolute URL to bypass API proxy
+    const kbUrl = window.location.origin + base;
+    const indexRes = await fetch(kbUrl + 'index.json', { cache: 'no-store' });
     if (!indexRes.ok) {
       console.warn('KB index not found, falling back to hardcoded list');
       return loadFallbackKB(base);
@@ -21,7 +23,7 @@ export async function loadAllKB(base = '/kb/'): Promise<KBItem[]> {
     const all: KBItem[] = [];
     for (const f of files) {
       try {
-        const res = await fetch(base + f, { cache: 'no-store' });
+        const res = await fetch(kbUrl + f, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           all.push(...data);
@@ -41,9 +43,10 @@ export async function loadAllKB(base = '/kb/'): Promise<KBItem[]> {
 async function loadFallbackKB(base: string): Promise<KBItem[]> {
   const KB_FILES = ['geral.json', 'assinatura.json', 'conta.json', 'tecnico.json'];
   const all: KBItem[] = [];
+  const kbUrl = window.location.origin + base;
   for (const f of KB_FILES) {
     try {
-      const res = await fetch(base + f, { cache: 'no-store' });
+      const res = await fetch(kbUrl + f, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         all.push(...data);

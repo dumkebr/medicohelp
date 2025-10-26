@@ -536,6 +536,12 @@ export default function Landing() {
         }
         
         @media (max-width: 900px) {
+          .landing-container { padding: 16px; }
+          .landing-header { flex-wrap: wrap; gap: 12px; }
+          .landing-brand .title { font-size: 20px; }
+          .landing-nav { flex-wrap: wrap; gap: 8px; width: 100%; justify-content: flex-end; }
+          .landing-nav a, .landing-btn { padding: 8px 12px; font-size: 13px; white-space: nowrap; }
+          
           .landing-grid-3 { grid-template-columns: 1fr; }
           .landing-hero h1 { font-size: clamp(24px, 5vw, 40px); }
           .ai-badge { padding: 24px 20px; }
@@ -569,6 +575,11 @@ export default function Landing() {
             top: 12px;
             right: 12px;
           }
+        }
+        
+        @media (max-width: 640px) {
+          .landing-nav a { display: none; }
+          .landing-nav { gap: 6px; }
         }
       `}</style>
 

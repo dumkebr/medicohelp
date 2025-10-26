@@ -1,4 +1,4 @@
-name: Deploy to Hostinger VPS
+name: Build Frontend para Deploy VPS
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     
     steps:
@@ -30,84 +30,33 @@ jobs:
       
       - name: 📝 List build files
         run: |
-          ls -la dist/public/
-          echo "=== Assets folder ==="
+          echo "=== Build completo ==="
+          ls -lh dist/public/
+          echo ""
+          echo "=== Arquivos críticos (JS/CSS) ==="
           ls -lh dist/public/assets/index-*.js dist/public/assets/index-*.css
+          echo ""
+          echo "=== Tamanho total dos assets ==="
+          du -sh dist/public/assets/
       
-      - name: 📁 Create remote directory if not exists
-        uses: appleboy/ssh-action@master
+      - name: 📦 Upload build artifact
+        uses: actions/upload-artifact@v4
         with:
-          host: ${{ secrets.SFTP_HOST }}
-          username: ${{ secrets.SFTP_USER }}
-          password: ${{ secrets.SFTP_PASS }}
-          port: ${{ secrets.SFTP_PORT }}
-          script: |
-            mkdir -p /var/www/medicohelp/dist/public/assets
-            rm -f /var/www/medicohelp/dist/public/assets/index-*.js
-            rm -f /var/www/medicohelp/dist/public/assets/index-*.css
-            chmod -R 755 /var/www/medicohelp
+          name: medicohelp-build
+          path: dist/public/
+          retention-days: 7
       
-      - name: 🚀 Deploy to Hostinger VPS via SFTP
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
-        with:
-          server: ${{ secrets.SFTP_HOST }}
-          port: ${{ secrets.SFTP_PORT }}
-          username: ${{ secrets.SFTP_USER }}
-          password: ${{ secrets.SFTP_PASS }}
-          local_path: ./dist/public/
-          remote_path: /var/www/medicohelp/dist/public/
-          sftp_only: true
-          delete_remote_files: false
-      
-      - name: 🔍 Verify assets uploaded
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SFTP_HOST }}
-          username: ${{ secrets.SFTP_USER }}
-          password: ${{ secrets.SFTP_PASS }}
-          port: ${{ secrets.SFTP_PORT }}
-          script: |
-            echo "📁 Verificando arquivos enviados:"
-            ls -lh /var/www/medicohelp/dist/public/assets/index-*.js 2>/dev/null || echo "❌ Arquivos JS não encontrados!"
-            ls -lh /var/www/medicohelp/dist/public/assets/index-*.css 2>/dev/null || echo "❌ Arquivos CSS não encontrados!"
-      
-      - name: 📤 Upload critical assets via SCP (fallback)
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SFTP_HOST }}
-          username: ${{ secrets.SFTP_USER }}
-          password: ${{ secrets.SFTP_PASS }}
-          port: ${{ secrets.SFTP_PORT }}
-          source: "dist/public/assets/index-_ro_bY9G.js,dist/public/assets/index-bGKNXLV6.css"
-          target: "/var/www/medicohelp/dist/public/assets/"
-          strip_components: 3
-      
-      - name: 🔧 Fix duplicate public folder (auto-cleanup)
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SFTP_HOST }}
-          username: ${{ secrets.SFTP_USER }}
-          password: ${{ secrets.SFTP_PASS }}
-          port: ${{ secrets.SFTP_PORT }}
-          script: |
-            cd /var/www/medicohelp/dist/public
-            if [ -d "public" ]; then
-              echo "📁 Pasta duplicada detectada, corrigindo..."
-              shopt -s dotglob
-              mv public/* . 2>/dev/null || true
-              rm -rf public
-              echo "✅ Pasta duplicada removida!"
-            else
-              echo "✅ Estrutura já está correta!"
-            fi
-            chown -R www-data:www-data /var/www/medicohelp
-            chmod -R 755 /var/www/medicohelp
-            systemctl restart nginx
-            echo "🎉 Deploy finalizado e Nginx reiniciado!"
-      
-      - name: ✅ Deployment complete
+      - name: ✅ Build complete
         run: |
-          echo "🎉 Deploy concluído com sucesso!"
-          echo "🌐 Acesse: www.medicohelp.com.br"
-          echo "🖥️ VPS: ${{ secrets.SFTP_HOST }}"
-          echo "📅 Deploy: $(date)"
+          echo "✅ Build concluído com sucesso!"
+          echo "📦 Artifact 'medicohelp-build' gerado para download"
+          echo ""
+          echo "📋 PRÓXIMO PASSO - DEPLOY MANUAL:"
+          echo "1. Acesse https://github.com/${{ github.repository }}/actions"
+          echo "2. Clique no workflow mais recente"
+          echo "3. Baixe o artifact 'medicohelp-build'"
+          echo "4. Extraia o ZIP e envie para VPS via SFTP/SCP:"
+          echo "   scp -r public/* root@72.61.219.66:/var/www/medicohelp/dist/public/"
+          echo "   ou use FileZilla: conecte em 72.61.219.66:22"
+          echo ""
+          echo "📅 Build: $(date)"

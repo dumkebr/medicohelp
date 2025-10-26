@@ -49,10 +49,24 @@ jobs:
           port: ${{ secrets.SFTP_PORT }}
           username: ${{ secrets.SFTP_USER }}
           password: ${{ secrets.SFTP_PASS }}
-          local_path: ./dist/public/
-          remote_path: /var/www/medicohelp/dist/public/
+          local_path: ./dist/public/*
+          remote_path: /var/www/medicohelp/dist/public
           sftp_only: true
           delete_remote_files: false
+      
+      - name: 🧹 Cleanup: Remove duplicate subdirectory if exists
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASS }}
+          port: ${{ secrets.SFTP_PORT }}
+          script: |
+            if [ -d "/var/www/medicohelp/dist/public/public" ]; then
+              mv /var/www/medicohelp/dist/public/public/* /var/www/medicohelp/dist/public/ 2>/dev/null || true
+              rm -rf /var/www/medicohelp/dist/public/public
+            fi
+            systemctl restart nginx
       
       - name: ✅ Deployment complete
         run: |

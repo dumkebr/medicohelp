@@ -1,4 +1,4 @@
-name: Build Frontend para Deploy VPS
+name: Deploy Automático - Hostinger VPS
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     
     steps:
@@ -28,35 +28,96 @@ jobs:
         env:
           NODE_ENV: production
       
-      - name: 📝 List build files
+      - name: 📝 Verificar arquivos compilados
         run: |
-          echo "=== Build completo ==="
-          ls -lh dist/public/
-          echo ""
-          echo "=== Arquivos críticos (JS/CSS) ==="
-          ls -lh dist/public/assets/index-*.js dist/public/assets/index-*.css
+          echo "=== Arquivos críticos compilados ==="
+          ls -lh dist/public/assets/index-*.js 2>/dev/null || echo "JS não encontrado!"
+          ls -lh dist/public/assets/index-*.css 2>/dev/null || echo "CSS não encontrado!"
           echo ""
           echo "=== Tamanho total dos assets ==="
           du -sh dist/public/assets/
       
-      - name: 📦 Upload build artifact
-        uses: actions/upload-artifact@v4
+      - name: 🧹 Limpar VPS antes do deploy
+        uses: appleboy/ssh-action@master
         with:
-          name: medicohelp-build
-          path: dist/public/
-          retention-days: 7
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASS }}
+          port: ${{ secrets.SFTP_PORT }}
+          script: |
+            echo "🗑️ Removendo arquivos antigos..."
+            rm -rf /var/www/medicohelp/dist/public/*
+            mkdir -p /var/www/medicohelp/dist/public/assets
+            echo "✅ VPS limpo e pronto!"
       
-      - name: ✅ Build complete
+      - name: 🚀 Deploy via SCP (TODOS os arquivos)
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASS }}
+          port: ${{ secrets.SFTP_PORT }}
+          source: "dist/public/*"
+          target: "/var/www/medicohelp/dist/"
+          strip_components: 1
+          rm: false
+          overwrite: true
+      
+      - name: 🔧 Configurar permissões e reiniciar Nginx
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASS }}
+          port: ${{ secrets.SFTP_PORT }}
+          script: |
+            echo "🔒 Configurando permissões..."
+            chmod -R 755 /var/www/medicohelp
+            chown -R www-data:www-data /var/www/medicohelp
+            
+            echo "🔄 Reiniciando Nginx..."
+            systemctl restart nginx
+            
+            echo ""
+            echo "✅ Deploy automático concluído!"
+            echo "📅 Data: $(date)"
+      
+      - name: ✅ Verificar arquivos críticos no VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASS }}
+          port: ${{ secrets.SFTP_PORT }}
+          script: |
+            echo "📁 Verificando arquivos críticos no VPS:"
+            echo ""
+            JS_SIZE=$(ls -lh /var/www/medicohelp/dist/public/assets/index-*.js 2>/dev/null | awk '{print $5}')
+            CSS_SIZE=$(ls -lh /var/www/medicohelp/dist/public/assets/index-*.css 2>/dev/null | awk '{print $5}')
+            
+            if [ -n "$JS_SIZE" ]; then
+              echo "✅ JavaScript: $JS_SIZE"
+            else
+              echo "❌ JavaScript NÃO ENCONTRADO!"
+            fi
+            
+            if [ -n "$CSS_SIZE" ]; then
+              echo "✅ CSS: $CSS_SIZE"
+            else
+              echo "❌ CSS NÃO ENCONTRADO!"
+            fi
+            
+            echo ""
+            echo "📊 Total de arquivos em assets:"
+            ls -la /var/www/medicohelp/dist/public/assets/ | wc -l
+      
+      - name: 🎉 Deploy finalizado
         run: |
-          echo "✅ Build concluído com sucesso!"
-          echo "📦 Artifact 'medicohelp-build' gerado para download"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ DEPLOY AUTOMÁTICO CONCLUÍDO!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🌐 Site: www.medicohelp.com.br"
+          echo "📅 Deploy: $(date)"
           echo ""
-          echo "📋 PRÓXIMO PASSO - DEPLOY MANUAL:"
-          echo "1. Acesse https://github.com/${{ github.repository }}/actions"
-          echo "2. Clique no workflow mais recente"
-          echo "3. Baixe o artifact 'medicohelp-build'"
-          echo "4. Extraia o ZIP e envie para VPS via SFTP/SCP:"
-          echo "   scp -r public/* root@72.61.219.66:/var/www/medicohelp/dist/public/"
-          echo "   ou use FileZilla: conecte em 72.61.219.66:22"
-          echo ""
-          echo "📅 Build: $(date)"
+          echo "⚠️  Limpe o cache do navegador (Ctrl+Shift+R)"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

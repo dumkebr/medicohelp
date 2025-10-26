@@ -69,7 +69,7 @@ MédicoHelp utilizes a modern full-stack JavaScript architecture, prioritizing a
 -   **App Features**: Standalone display mode, teal theme color (#00A79D), custom app shortcuts (Nova Consulta, MedPrime)
 -   **iOS Optimization**: Apple touch icons, status bar styling, and mobile-web-app-capable meta tags
 -   **Cache Strategy**: Precache static assets (index, favicon, logos, config) + runtime cache for dynamic content
--   **Deployment**: VPS deployment at www.medicohelp.com.br (72.61.219.66) via GitHub Actions SFTP workflow
+-   **Deployment**: Fully automated VPS deployment at www.medicohelp.com.br (72.61.219.66) via GitHub Actions SCP workflow
 
 ### V7 Integration (Oct 24, 2025)
 -   **Site Estático Completo**: 6 páginas HTML integradas (index, cadastro, termos, privacidade, admin, admin-api)

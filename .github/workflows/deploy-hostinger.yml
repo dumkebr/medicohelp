@@ -39,7 +39,9 @@ jobs:
           password: ${{ secrets.SFTP_PASS }}
           port: ${{ secrets.SFTP_PORT }}
           script: |
-            mkdir -p /var/www/medicohelp/dist/public
+            mkdir -p /var/www/medicohelp/dist/public/assets
+            rm -f /var/www/medicohelp/dist/public/assets/index-*.js
+            rm -f /var/www/medicohelp/dist/public/assets/index-*.css
             chmod -R 755 /var/www/medicohelp
       
       - name: 🚀 Deploy to Hostinger VPS via SFTP

@@ -1,0 +1,59 @@
+Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-86-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sun Oct 26 20:08:57 UTC 2025
+
+  System load:  0.08               Processes:             135
+  Usage of /:   2.7% of 192.69GB   Users logged in:       0
+  Memory usage: 3%                 IPv4 address for eth0: 72.61.219.66
+  Swap usage:   0%                 IPv6 address for eth0: 2a02:4780:66:5aeb::1
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+
+Last login: Sun Oct 26 19:58:01 2025 from 169.254.0.1
+root@srv1084057:~# ls -lh /var/www/medicohelp/dist/public/assets/*.js
+-rwxr-xr-x 1 www-data www-data 682K Oct 26 19:30 /var/www/medicohelp/dist/public/assets/index-Cqu5cX78.js
+-rwxr-xr-x 1 www-data www-data 681K Oct 26 19:20 /var/www/medicohelp/dist/public/assets/index-D9LfZgXK.js
+-rwxr-xr-x 1 www-data www-data 677K Oct 26 19:12 /var/www/medicohelp/dist/public/assets/index-DQoJKyBL.js-rwxr-xr-x 1 www-data www-data 677K Oct 26 19:18 /var/www/medicohelp/dist/public/assets/index-w75aeVLh.js
+root@srv1084057:~# ls -lh /var/www/medicohelp/dist/public/assets/*.css
+-rwxr-xr-x 1 www-data www-data 100K Oct 26 19:12 /var/www/medicohelp/dist/public/assets/index-Bm0hDMEF.css
+-rwxr-xr-x 1 www-data www-data 100K Oct 26 19:18 /var/www/medicohelp/dist/public/assets/index-C2yw3zJN.css
+-rwxr-xr-x 1 www-data www-data 100K Oct 26 19:30 /var/www/medicohelp/dist/public/assets/index-bGKNXLV6.css
+root@srv1084057:~# cat /var/www/medicohelp/dist/public/index.html | grep -E "(\.js|\.css)"
+    <link rel="manifest" href="/manifest.json">
+    <script type="module" crossorigin src="/assets/index-_ro_bY9G.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-bGKNXLV6.css">
+    <script src="/config.js"></script>
+    <script src="/script.js"></script>
+          navigator.serviceWorker.register('/service-worker.js')
+root@srv1084057:~# cd /var/www/medicohelp/dist/public/assets/
+rm -f index-*.js index-*.css
+root@srv1084057:/var/www/medicohelp/dist/public/assets# ls -lh /var/www/medicohelp/dist/public/assets/index-_ro_bY9G.js
+ls: cannot access '/var/www/medicohelp/dist/public/assets/index-_ro_bY9G.js': No such file or directory
+root@srv1084057:/var/www/medicohelp/dist/public/assets# curl -o /var/www/medicohelp/dist/public/assets/index-_ro_bY9G.js https://medico-help-dumkebr.replit.app/assets/index-_ro_bY9G.js
+curl -o /var/www/medicohelp/dist/public/assets/index-bGKNXLV6.css https://medico-help-dumkebr.replit.app/assets/index-bGKNXLV6.css
+systemctl restart nginx
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  1467  100  1467    0     0    200      0  0:00:07  0:00:07 --:--:--   392^[[3~^[[3~^[[3~^[[3 
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  1467  100  1467    0     0   5328      0 --:--:-- --:--:-- --:--:--  5334
+root@srv1084057:/var/www/medicohelp/dist/public/assets# 

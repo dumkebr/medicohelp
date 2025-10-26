@@ -60,9 +60,10 @@ function OAuthHandler() {
 function AuthRouter() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      <Route path="/" component={Login} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+      <Route path="/landing" component={Landing} />
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/verify-code" component={VerifyCode} />
       <Route path="/demo-top-controls" component={DemoTopControls} />

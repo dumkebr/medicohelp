@@ -537,10 +537,26 @@ export default function Landing() {
         
         @media (max-width: 900px) {
           .landing-container { padding: 16px; }
-          .landing-header { flex-wrap: wrap; gap: 12px; }
-          .landing-brand .title { font-size: 20px; }
-          .landing-nav { flex-wrap: wrap; gap: 8px; width: 100%; justify-content: flex-end; }
-          .landing-nav a, .landing-btn { padding: 8px 12px; font-size: 13px; white-space: nowrap; }
+          .landing-header { 
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 12px 0;
+          }
+          .landing-brand { width: 100%; }
+          .landing-brand .title { font-size: 22px; }
+          .landing-nav { 
+            flex-wrap: wrap;
+            gap: 8px;
+            width: 100%;
+            justify-content: flex-start;
+          }
+          .landing-nav a, .landing-btn { 
+            padding: 10px 16px;
+            font-size: 14px;
+            white-space: nowrap;
+            flex: 0 0 auto;
+          }
           
           .landing-grid-3 { grid-template-columns: 1fr; }
           .landing-hero h1 { font-size: clamp(24px, 5vw, 40px); }
@@ -578,8 +594,17 @@ export default function Landing() {
         }
         
         @media (max-width: 640px) {
-          .landing-nav a { display: none; }
-          .landing-nav { gap: 6px; }
+          .landing-header { gap: 12px; }
+          .landing-brand .title { font-size: 20px; }
+          .landing-nav { 
+            gap: 6px;
+            flex-direction: column;
+            width: 100%;
+          }
+          .landing-nav a, .landing-btn { 
+            width: 100%;
+            text-align: center;
+          }
         }
       `}</style>
 
